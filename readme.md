@@ -63,7 +63,9 @@ The default implementation (TypeRepository) expects a classname to be provided. 
 Default helpers are provided for getting list of types
 
 ```php
-    use GraphQL\Type\Definition\NonNull;use GraphQlTools\TypeRepository;
+    use GraphQL\Type\Definition\NonNull;
+    use GraphQlTools\TypeRepository;
+    
     $typeRepository = new TypeRepository();
     
     $typeRepository->listOfType(AnimalType::class); // graphql => [Animal]
@@ -81,7 +83,8 @@ All of your types must extend our implementation of the webonix/graphql types. T
 
 ```php
 
-    use GraphQL\Type\Definition\Type;use GraphQlTools\Definition\GraphQlType;
+    use GraphQL\Type\Definition\Type;
+    use GraphQlTools\Definition\GraphQlType;
     
     final class AnimalType extends GraphQlType {
         
