@@ -1,0 +1,35 @@
+{
+  "name": "le0daniel/graphql-tools",
+  "description": "Tools for using endpoints in PHP graphql applications based on webonyx/graphql-php",
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "type": "package",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "leodanielstuder",
+      "email": "leodaniel@nitrosoft.ch"
+    }
+  ],
+  "require": {
+    "php": "^8.0",
+    "webonyx/graphql-php": "^14.6",
+    "phan/phan": "^4.0"
+  },
+  "require-dev": {
+    "roave/security-advisories": "dev-master",
+    "phpunit/phpunit": "^9.3.3",
+    "dg/bypass-finals": "^1.1",
+    "phpspec/prophecy-phpunit": "^2.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "GraphQlTools\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "GraphQlTools\\Test\\": "tests/"
+    }
+  }
+}
