@@ -7,6 +7,7 @@ namespace GraphQlTools\Extension;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\Extension;
 use GraphQlTools\Definition\GraphQlField;
+use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Immutable\Message;
 
 final class FieldMessages extends Extension {
@@ -34,7 +35,7 @@ final class FieldMessages extends Extension {
         }
 
         // Adds a message if the field contains the isBeta flag in the config
-        if ($info->fieldDefinition->config[GraphQlField::BETA_FIELD_CONFIG_KEY] ?? false) {
+        if ($info->fieldDefinition->config[GraphQlType::BETA_FIELD_CONFIG_KEY] ?? false) {
             $this->messages[] = Message::beta($info);
         }
 

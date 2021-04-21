@@ -14,6 +14,12 @@ use GraphQlTools\Utility\Strings;
 abstract class GraphQlType extends ObjectType {
     use DefinesFields, HasDescription;
 
+    /**
+     * Use this config key on a field to declare the field as
+     * beta. This will add a message to the response.
+     */
+    public const BETA_FIELD_CONFIG_KEY = 'isBeta';
+
     public function __construct(
         protected TypeRepository $typeRepository
     ){
