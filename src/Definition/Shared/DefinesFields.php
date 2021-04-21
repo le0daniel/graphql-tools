@@ -33,7 +33,7 @@ trait DefinesFields {
             }
 
             $field[] = $field instanceof GraphQlFieldArgument
-                ? $field->toDefinition(is_string($key) ? $key : null)
+                ? $field->toConfig(is_string($key) ? $key : null)
                 : $field;
         }
 
