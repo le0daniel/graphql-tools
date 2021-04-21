@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\EnumType;
+use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Utility\Strings;
 
 abstract class GraphQlEnum extends EnumType {
+    use HasDescription;
 
     public function __construct(){
         parent::__construct(
@@ -26,8 +28,6 @@ abstract class GraphQlEnum extends EnumType {
      * @return array
      */
     abstract protected function values(): array;
-
-    abstract protected function description(): string;
 
     public static function typeName(): string {
         $typeName = Strings::baseClassName(static::class);

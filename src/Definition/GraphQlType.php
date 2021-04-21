@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\ObjectType;
+use GraphQlTools\Definition\Shared\HasDescription;
+use GraphQlTools\Definition\Shared\DefinesFields;
 use GraphQlTools\Resolver\ProxyResolver;
 use GraphQlTools\TypeRepository;
-use GraphQlTools\Utility\Resolving;
 use GraphQlTools\Utility\Strings;
 
 abstract class GraphQlType extends ObjectType {
+    use DefinesFields, HasDescription;
 
     public function __construct(
         protected TypeRepository $typeRepository
@@ -27,38 +29,9 @@ abstract class GraphQlType extends ObjectType {
     }
 
     /**
-     * IMPORTANT: be careful when changing this. For extensions and
-     *
-     * @return string
+     * Array returning the Interface types resolved by the TypeRepository.
+     * @return array
      */
-    protected static function defaultFieldResolver(): string {
-
-    }
-
-    private function initFields(): array {
-        $fields = [];
-        foreach ($this->fields() as $key => $field) {
-            if (!$field) {
-                continue;
-            }
-
-            if ($field instanceof GraphQlField) {
-                $fields[] = $field->toDefinition(is_string($key) ? $key : null);
-                continue;
-            }
-
-            // Ensure every field has an attached proxy if necessary
-            // This enables extensions to work correctly.
-            $fields[$key] = Resolving::attachProxy($field);
-        }
-
-        return $fields;
-    }
-
-    abstract protected function fields(): array;
-
-    abstract protected function description(): string;
-
     protected function interfaces(): array{
         return [];
     }
