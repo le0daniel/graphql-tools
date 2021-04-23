@@ -42,7 +42,24 @@ class QueryWithNormalTypeResolverTest extends ExecutionTestCase {
     }
 
     public function testQueryWithUnion(): void {
-        $result = $this->queryExecutor->execute('query { animals { sound } }', new Context());
+        $result = $this->queryExecutor->execute('query { animals { ... on Lion {sound} } }', new Context());
         $this->assertNoErrors($result);
+        self::assertCount(3, $result->data['animals']);
+        $this->assertColumnCount(1, $result->data['animals'], 'sound');
+    }
+
+    public function testQueryWithScalarInput(): void {
+        $result = $this->queryExecutor->execute('query { json: jsonInput(json: "[1]") }', new Context());
+        $this->assertNoErrors($result);
+        self::assertIsArray( $result->data['json']['json']);
+        self::assertEquals(1, $result->data['json']['json'][0]);
+    }
+
+    public function testQueryWithInterface(): void {
+        $result = $this->queryExecutor->execute('query { mamels { sound } }', new Context());
+        $this->assertNoErrors($result);
+        self::assertCount(3, $result->data['mamels']);
+        self::assertCount(3, $result->data['mamels']);
+        $this->assertColumnCount(3, $result->data['mamels'], 'sound');
     }
 }

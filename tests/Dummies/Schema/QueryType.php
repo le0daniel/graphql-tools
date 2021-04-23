@@ -12,6 +12,11 @@ final class QueryType extends GraphQlType {
 
     public const WHOAMI_DATA = 'Test';
     public const USER_ID = 'MQ==';
+    public const ANIMALS = [
+        ['type' => 'lion', 'sound' => 'Rooooahh'],
+        ['type' => 'tiger', 'sound' => 'Raoooo'],
+        ['type' => 'tiger', 'sound' => 'Raaggghhh'],
+    ];
 
     protected function fields(): array {
         return [
@@ -23,16 +28,25 @@ final class QueryType extends GraphQlType {
                 'type' => UserType::wrap(fn($type) => new NonNull($type)),
                 'resolve' => fn() => ['id' => self::USER_ID],
             ],
+            'jsonInput' => [
+                'type' => JsonScalar::class,
+                'args' => [
+                    'json' => JsonScalar::wrap(fn($type) => new NonNull($type))
+                ],
+                'resolve' => fn($d, array $arguments) => ['json' => $arguments['json']],
+            ],
             'animals' => [
                 'type' => AnimalUnion::wrap(
                     fn($type) => Type::nonNull(Type::listOf(Type::nonNull($type)))
                 ),
-                'resolve' => fn() => [
-                    ['type' => 'lion', 'sound' => 'Rooooahh'],
-                    ['type' => 'tiger', 'sound' => 'Raoooo'],
-                    ['type' => 'tiger', 'sound' => 'Raaggghhh'],
-                ]
-            ]
+                'resolve' => fn() => self::ANIMALS
+            ],
+            'mamels' => [
+                'type' => MamelInterface::wrap(
+                    fn($type) => Type::nonNull(Type::listOf(Type::nonNull($type)))
+                ),
+                'resolve' => fn() => self::ANIMALS
+            ],
         ];
     }
 

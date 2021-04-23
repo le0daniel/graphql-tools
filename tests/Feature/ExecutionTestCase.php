@@ -56,6 +56,21 @@ abstract class ExecutionTestCase extends TestCase {
         self::assertEmpty($result->errors, $message);
     }
 
+    protected function assertColumnCount(int $expectedCount, array $data, string $column): void {
+        $count = 0;
+        foreach ($data as $item) {
+            if (!$item || (!is_array($item) && !$item instanceof \ArrayAccess)) {
+                continue;
+            }
+
+            if (isset($item[$column])) {
+                $count++;
+            }
+        }
+
+        self::assertEquals($expectedCount, $count);
+    }
+
     protected function setUp(): void {
         $this->queryExecutor = new QueryExecutor(
             $this->typeRepository()->toSchema(

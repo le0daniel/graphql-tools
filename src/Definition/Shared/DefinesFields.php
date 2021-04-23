@@ -89,7 +89,9 @@ trait DefinesFields {
         // We assume it is either already an internal type or something else
         // we can not correctly resolve.
         if (!is_array($field)) {
-            return $field;
+            return $field instanceof WrappedType
+                ? $field->toType($this->typeRepository)
+                : $field;
         }
 
         // If it is a string, we assume it is either a class name or a
