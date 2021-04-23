@@ -11,6 +11,8 @@ trait ResolvesType {
 
     /**
      * This function is responsible to return the correct type given it's data.
+     * It is possible to return a className or typeName to make it resolved by the
+     * type repository
      *
      * Ex:
      * switch($typeValue->type) {
@@ -23,7 +25,7 @@ trait ResolvesType {
      * @param ResolveInfo $info
      * @return callable|Type
      */
-    abstract protected function resolveToType(mixed $typeValue, Context $context, ResolveInfo $info): callable|Type;
+    abstract protected function resolveToType(mixed $typeValue, Context $context, ResolveInfo $info): callable|Type|string;
 
     /**
      * Delegates to the type resolve method.
@@ -34,7 +36,10 @@ trait ResolvesType {
      * @return callable|null
      */
     final public function resolveType($objectValue, $context, ResolveInfo $info): Type|callable {
-        return $this->resolveToType($objectValue, $context->context, $info);
+        $type = $this->resolveToType($objectValue, $context->context, $info);
+        return is_string($type)
+            ? $this->typeRepository->type($type)
+            : $type;
     }
 
 }

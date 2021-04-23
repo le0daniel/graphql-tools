@@ -21,7 +21,11 @@ abstract class GraphQlUnion extends UnionType {
             [
                 'name' => static::typeName(),
                 'description' => $this->description(),
-                'types' => fn() => $this->possibleTypes(),
+                'types' => fn() => array_map(function($type){
+                    return is_string($type)
+                        ? $this->typeRepository->type($type)
+                        : $type;
+                }, $this->possibleTypes()),
             ]
         );
     }
@@ -31,7 +35,9 @@ abstract class GraphQlUnion extends UnionType {
      *
      * Ex:
      * return [
-     *     $this->typeRepository->type(MyType::class)
+     *     $this->typeRepository->type(MyType::class),
+     *     MyType::class,
+     *     MyType::typeName() # For Lazy loaded types
      * ];
      *
      * @return array<callable|Type>

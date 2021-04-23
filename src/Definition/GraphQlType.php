@@ -29,7 +29,7 @@ abstract class GraphQlType extends ObjectType {
                 'description' => $this->description(),
                 'fields' => fn() => $this->initFields(),
                 'resolveField' => [ProxyResolver::class, 'default'],
-                'interfaces' => $this->interfaces(),
+                'interfaces' => array_map([$this, 'resolveFieldType'],$this->interfaces()),
             ]
         );
     }
