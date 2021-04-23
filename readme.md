@@ -2,9 +2,19 @@
 
 This is a simple opinionated toolkit for writing GraphQL applications in PHP. It supports extensions and in particulat the apollo tracing format.
 
+Main Features
+
+ - Apollo Tracing support
+ - Custom extensions support
+ - Default TypeRepository Implementation (& Lazy Loading)
+ - Strict Type Checks
+ - Abstract classes to extend for defining types / enums / interfaces / unions / scalars
+ - Field definition is still as flexible as webonyx/graphql
+ - Extendable ProxyResolver class which allows for reusable validation / authorization
+
 ## Basic Usage
 
-The usage is similar to how you would use webonix/graphql and define object types, but it comes with default implementations for all GraphQL types.
+The usage is similar to how you would use `webonyx/graphql` and define object types, but it comes with default implementations for all GraphQL types.
 
 Every resolve function is wrapped by the ProxyResolver class, which enables the extensions to work and is extensible with different hooks. 
 
@@ -58,7 +68,15 @@ When defining fields with custom types, you must use the TypeRepository.
     $query === $typeRepository->type(RootQueryType::class); // => true
 ```
 
-The default implementation (TypeRepository) expects a classname to be provided. This is in most cases enough, but if you have a large schema, you may want to extend this class and overwrite `type` method and provide a custom typeLoader function to use LazyLoading.
+The default implementation (TypeRepository) expects a classname to be provided. This is in most cases enough, but if you have a large schema, you may want to extend this class and overwrite `type` method and provide a custom typeLoader function to use LazyLoading. 
+Out of the box we provide a `LazyRepository` implementation which resolves either a TypeName or a ClassName to the correct type. 
+
+```php
+    use GraphQlTools\LazyRepository;
+    $typeRepository = new LazyRepository([
+        RootQueryType::typeName() => RootQueryType::class,
+    ]);
+```
 
 Default helpers are provided for getting list of types
 
