@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition\Shared;
 
+use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Utility\Resolving;
@@ -21,22 +22,17 @@ trait DefinesFields {
     /**
      * Ensures the Input fields are correctly defined
      *
+     * @param array $inputFields
      * @return array
      */
-    private function initInputFields(): array {
+    private function initInputFields(array $inputFields): array {
         $fields = [];
-        foreach ($this->fields() as $key => $field) {
+        foreach ($inputFields as $key => $field) {
             if (!$field) {
                 continue;
             }
 
-            if (is_array($field) && is_string($field['type'] ?? false)) {
-                $field['type'] = $this->typeRepository->type($field['type']);
-            } elseif (is_string($field)) {
-                $field = $this->typeRepository->type($field);
-            }
-
-            $fields[] = $field;
+            $fields[$key] = $this->resolveFieldType($field);
         }
 
         return $fields;
@@ -45,6 +41,7 @@ trait DefinesFields {
     /**
      * Ensures the fields have the proxy attached to the resolve function
      *
+     * @param array $rawFields
      * @return array
      */
     private function initFields(): array {
@@ -56,16 +53,12 @@ trait DefinesFields {
                 continue;
             }
 
-            // If we have a string, we assume that the type must be resolved by the Repository.
-            // This allows for short definition, Ex
-            //
-            // 'id' => MyCustomIdType::class,
-            // 'parent' => 'Animal' || AnimalType::typeName()
-            //
-            if (is_array($field) && is_string($field['type'] ?? false)) {
-                $field['type'] = $this->typeRepository->type($field['type']);
-            } elseif (is_string($field)) {
-                $field = $this->typeRepository->type($field);
+            // Attaches the field type from a given type name
+            $field = $this->resolveFieldType($field);
+
+            // Ensure the argument types are also resolved.
+            if (is_array($field) && isset($field['args'])) {
+                $field['args'] = $this->initInputFields($field['args']);
             }
 
             // Ensure every field has an attached proxy if necessary
@@ -74,6 +67,35 @@ trait DefinesFields {
         }
 
         return $fields;
+    }
+
+    /**
+     * Ensure the types are resolved.
+     *
+     * @param Type|string|array $field
+     * @return Type|string|array
+     */
+    private function resolveFieldType(mixed $field): mixed {
+        // If it is a string, we assume it is either a class name or a
+        // type name which is resolved
+        if (is_string($field)) {
+            return $this->typeRepository->type($field);
+        }
+
+        // We assume it is either already an internal type or something else
+        // we can not correctly resolve.
+        if (!is_array($field)) {
+            return $field;
+        }
+
+        // If it is a string, we assume it is either a class name or a
+        // type name which is resolved
+        if (is_string($field['type'] ?? false)) {
+            $field['type'] = $this->typeRepository->type($field['type']);
+            return $field;
+        }
+
+        return $field;
     }
 
 }

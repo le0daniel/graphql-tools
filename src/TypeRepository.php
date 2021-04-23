@@ -48,16 +48,6 @@ class TypeRepository {
     }
 
     /**
-     * Define types which should be eagerly loaded. Those are types which are not visible
-     * because (for example) your schema only defines the those interfaces in the query.
-     *
-     * @return array
-     */
-    protected function eagerlyLoadedTypes(): array {
-        return [];
-    }
-
-    /**
      * Define a custom type loader.
      *
      * @return Closure|null
@@ -126,6 +116,7 @@ class TypeRepository {
     final public function toSchema(
         string $queryClassOrTypeName,
         ?string $mutationClassOrTypeName = null,
+        array $eagerlyLoadTypes = [],
         ?array $directives = null
     ): Schema {
         return new Schema(
@@ -137,7 +128,7 @@ class TypeRepository {
                         : null,
                     'types' => array_map(
                         fn(string $typeName) => self::enforceTypeLoading($this->type($typeName)),
-                        $this->eagerlyLoadedTypes()
+                        $eagerlyLoadTypes
                     ),
                     'typeLoader' => $this->typeLoader(),
                     'directives' => $directives

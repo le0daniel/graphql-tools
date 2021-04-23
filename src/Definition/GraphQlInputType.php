@@ -18,7 +18,7 @@ abstract class GraphQlInputType extends InputObjectType {
             [
                 'name' => static::typeName(),
                 'description' => $this->description(),
-                'fields' => fn() => $this->initInputFields(),
+                'fields' => fn() => $this->initInputFields($this->fields()),
             ]
         );
     }

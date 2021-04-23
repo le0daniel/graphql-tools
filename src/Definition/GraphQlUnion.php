@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition;
 
-use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\UnionType;
-use GraphQlTools\Context;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\ResolvesType;
-use GraphQlTools\Execution\OperationContext;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Strings;
 
