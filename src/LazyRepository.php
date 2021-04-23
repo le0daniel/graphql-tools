@@ -57,6 +57,10 @@ class LazyRepository extends TypeRepository {
         return $this->resolvedTypes[$typeName];
     }
 
+    final public function createdTypes(): array {
+        return array_keys($this->resolvedTypes);
+    }
+
     /**
      * A really simple method to check if this is a classname of not. We try to locate
      * a `\`, if it's present in the typename we assume a classname has been given.

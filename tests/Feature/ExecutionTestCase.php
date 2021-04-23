@@ -11,6 +11,8 @@ use PHPUnit\Framework\TestCase;
 
 abstract class ExecutionTestCase extends TestCase {
 
+    private TypeRepository $typeRepository;
+
     protected QueryExecutor $queryExecutor;
 
     /**
@@ -72,8 +74,9 @@ abstract class ExecutionTestCase extends TestCase {
     }
 
     protected function setUp(): void {
+        $this->typeRepository = $this->typeRepository();
         $this->queryExecutor = new QueryExecutor(
-            $this->typeRepository()->toSchema(
+            $this->typeRepository->toSchema(
                 $this->queryType(),
                 $this->mutationType(),
                 $this->eagerlyLoadedTypes(),
@@ -81,5 +84,7 @@ abstract class ExecutionTestCase extends TestCase {
             $this->extensions(),
         );
     }
+
+    protected function tearDown(): void {}
 
 }
