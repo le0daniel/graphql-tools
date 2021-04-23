@@ -7,12 +7,13 @@ namespace GraphQlTools\Definition;
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\DefinesFields;
+use GraphQlTools\Definition\Shared\IsWrapable;
 use GraphQlTools\Definition\Shared\ResolvesType;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Strings;
 
 abstract class GraphQlInterface extends InterfaceType {
-    use DefinesFields, HasDescription, ResolvesType;
+    use DefinesFields, HasDescription, ResolvesType, IsWrapable;
 
     public function __construct(protected TypeRepository $typeRepository) {
         parent::__construct(

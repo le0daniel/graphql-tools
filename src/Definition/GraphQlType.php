@@ -7,12 +7,13 @@ namespace GraphQlTools\Definition;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\DefinesFields;
+use GraphQlTools\Definition\Shared\IsWrapable;
 use GraphQlTools\Resolver\ProxyResolver;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Strings;
 
 abstract class GraphQlType extends ObjectType {
-    use DefinesFields, HasDescription;
+    use DefinesFields, HasDescription, IsWrapable;
 
     /**
      * Use this config key on a field to declare the field as

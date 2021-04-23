@@ -7,12 +7,13 @@ namespace GraphQlTools\Definition;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\UnionType;
 use GraphQlTools\Definition\Shared\HasDescription;
+use GraphQlTools\Definition\Shared\IsWrapable;
 use GraphQlTools\Definition\Shared\ResolvesType;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Strings;
 
 abstract class GraphQlUnion extends UnionType {
-    use HasDescription, ResolvesType;
+    use HasDescription, ResolvesType, IsWrapable;
 
     public function __construct(
         protected TypeRepository $typeRepository
@@ -40,7 +41,7 @@ abstract class GraphQlUnion extends UnionType {
      *     MyType::typeName() # For Lazy loaded types
      * ];
      *
-     * @return array<callable|Type>
+     * @return array<callable|Type|string>
      */
     abstract protected function possibleTypes(): array;
 

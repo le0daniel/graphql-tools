@@ -24,6 +24,8 @@ final class ExtensionManager implements \JsonSerializable {
 
     /**
      * This is used internally to build and order the extensions
+     * The extensions array must consist of stateless classes which
+     * can be instantiated or a factory (callable)
      *
      * @param array $extensions
      * @return \GraphQlTools\Execution\ExtensionManager
@@ -32,9 +34,9 @@ final class ExtensionManager implements \JsonSerializable {
         $instances = [];
         $columnToSort = [];
 
-        /** @var Extension|string $instance */
+        /** @var Extension|callable(): Extension $instance */
         foreach ($extensions as $instance) {
-            $instance = is_object($instance) ? $instance : new $instance;
+            $instance = is_callable($instance) ? $instance() : new $instance;
             $columnToSort[] = $instance->priority();
             $instances[] = $instance;
         }

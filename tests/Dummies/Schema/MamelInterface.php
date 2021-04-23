@@ -1,0 +1,34 @@
+<?php
+
+declare(strict_types=1);
+
+namespace GraphQlTools\Test\Dummies\Schema;
+
+use GraphQL\Type\Definition\ResolveInfo;
+use GraphQL\Type\Definition\Type;
+use GraphQlTools\Context;
+use GraphQlTools\Definition\GraphQlInterface;
+
+final class MamelInterface extends GraphQlInterface {
+
+    protected function fields(): array {
+        return [
+            'sound' => Type::nonNull(Type::string())
+        ];
+    }
+
+    protected function description(): string {
+        return '';
+    }
+
+    protected function resolveToType(mixed $typeValue, Context $context, ResolveInfo $info): callable|Type|string {
+        switch ($typeValue['type']) {
+            case 'lion':
+                return LionType::class;
+            case 'tiger':
+                return TigerType::class;
+        }
+
+        throw new \RuntimeException('Could not match type: ' . $typeValue['type']);
+    }
+}

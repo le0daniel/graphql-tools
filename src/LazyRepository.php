@@ -16,6 +16,16 @@ class LazyRepository extends TypeRepository {
 
     }
 
+    public static function createTypeMap(array $classMap): array {
+        $typeMap = [];
+
+        foreach ($classMap as $class) {
+            $typeMap[($class . '::typeName')()] = $class;
+        }
+
+        return $typeMap;
+    }
+
     final protected function typeLoader(): ?Closure {
         return function(string $name){
             return $this->resolveNameToType($name);

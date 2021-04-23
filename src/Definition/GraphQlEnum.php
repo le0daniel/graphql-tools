@@ -6,10 +6,11 @@ namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\EnumType;
 use GraphQlTools\Definition\Shared\HasDescription;
+use GraphQlTools\Definition\Shared\IsWrapable;
 use GraphQlTools\Utility\Strings;
 
 abstract class GraphQlEnum extends EnumType {
-    use HasDescription;
+    use HasDescription, IsWrapable;
 
     public function __construct(){
         parent::__construct(

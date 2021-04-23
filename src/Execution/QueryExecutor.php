@@ -17,11 +17,14 @@ use GraphQlTools\Resolver\ProxyResolver;
 
 final class QueryExecutor {
 
+    private array $extensions;
+
     public function __construct(
         private Schema $schema,
-        private array $extensions = [],
+        ?array $extensions = null,
         private array $validationRules = []
     ){
+        $this->extensions = $extensions ?? self::defaultExtensions();
     }
 
     public static function defaultExtensions(): array{
@@ -44,9 +47,7 @@ final class QueryExecutor {
         mixed $rootValue = null,
         ?string $operationName = null,
     ): ExecutionResult {
-        $extensionManager = ExtensionManager::create(
-            empty($this->extensions) ? self::defaultExtensions() : $this->extensions
-        );
+        $extensionManager = ExtensionManager::create($this->extensions);
         $extensionManager->dispatch(ExtensionManager::START_EVENT, $query);
 
         try {

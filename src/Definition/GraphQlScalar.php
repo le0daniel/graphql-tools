@@ -6,10 +6,11 @@ namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\ScalarType;
 use GraphQlTools\Definition\Shared\HasDescription;
+use GraphQlTools\Definition\Shared\IsWrapable;
 use GraphQlTools\Utility\Strings;
 
 abstract class GraphQlScalar extends ScalarType {
-    use HasDescription;
+    use HasDescription, IsWrapable;
 
     public function __construct() {
         parent::__construct(

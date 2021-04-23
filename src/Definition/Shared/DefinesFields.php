@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition\Shared;
 
+use Closure;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
+use GraphQlTools\Definition\WrappedType;
 use GraphQlTools\Utility\Resolving;
+
+use function Sabre\Event\Loop\instance;
 
 trait DefinesFields {
 
@@ -90,8 +94,15 @@ trait DefinesFields {
 
         // If it is a string, we assume it is either a class name or a
         // type name which is resolved
-        if (is_string($field['type'] ?? false)) {
+        if (is_string($field['type'])) {
             $field['type'] = $this->typeRepository->type($field['type']);
+            return $field;
+        }
+
+        // If we have a wrapped type,
+        // we resolve it now that we have  access to the type repo
+        if ($field['type'] instanceof WrappedType) {
+            $field['type'] = $field['type']->toType($this->typeRepository);
             return $field;
         }
 
