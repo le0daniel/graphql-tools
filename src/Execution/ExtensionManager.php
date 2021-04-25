@@ -53,9 +53,29 @@ final class ExtensionManager implements \JsonSerializable {
      *
      * @param string $eventName
      * @param ...$payload
-     * @return \Closure|null
+     * @return Closure
      */
-    public function dispatch(string $eventName, ... $payload): Closure|null {
+    public function pipe(string $eventName, ...$payload): Closure {
+        $eventTime = Time::nanoSeconds();
+
+        switch ($eventName) {
+            case self::FIELD_RESOLUTION_EVENT:
+                return Stack::executeAndReturnStack(
+                    $this->extensions,
+                    /** @suppress PhanTypeMismatchArgument */
+                    fn(Extension $extension) => $extension->fieldResolution($eventTime, ... $payload)
+                );
+        }
+    }
+
+    /**
+     * @suppress PhanTypeMismatchArgument
+     *
+     * @param string $eventName
+     * @param ...$payload
+     * @return void
+     */
+    public function dispatch(string $eventName, ... $payload): void {
         // The time of the event is always added as the first
         $eventTime = Time::nanoSeconds();
 
@@ -65,19 +85,13 @@ final class ExtensionManager implements \JsonSerializable {
                     $this->extensions,
                     static fn(Extension $extension) => $extension->start($eventTime, ... $payload)
                 );
-                return null;
+                return;
             case self::END_EVENT:
                 Stack::execute(
                     $this->extensions,
                     static fn(Extension $extension) => $extension->end($eventTime)
                 );
-                return null;
-            case self::FIELD_RESOLUTION_EVENT:
-                return Stack::executeAndReturnCallback(
-                    $this->extensions,
-                    /** @suppress PhanTypeMismatchArgument */
-                    fn(Extension $extension) => $extension->fieldResolution($eventTime, ... $payload)
-                );
+                return;
         }
 
         throw new \RuntimeException("Unexpected event with name: `{$eventName}`");

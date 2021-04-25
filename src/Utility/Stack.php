@@ -15,7 +15,7 @@ final class Stack {
         );
     }
 
-    public static function executeAndReturnCallback(array &$stack, callable $callback): Closure {
+    public static function executeAndReturnStack(array &$stack, callable $callback): Closure {
         $callbackStack = [];
 
         foreach ($stack as $resolver) {
@@ -24,8 +24,8 @@ final class Stack {
             }
         }
 
-        return static function(...$args) use ($callbackStack): void {
-            self::execute($callbackStack, static fn($callback) => $callback(...$args));
+        return static function() use ($callbackStack): void {
+            self::execute($callbackStack, static fn($callback) => $callback(...func_get_args()));
         };
     }
 

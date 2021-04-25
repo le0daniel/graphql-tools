@@ -108,7 +108,7 @@ class ProxyResolver
         $arguments ??= [];
         $context = $operationContext->context;
 
-        $resolveExtensions = $operationContext->extension->dispatch(
+        $next = $operationContext->extension->pipe(
             ExtensionManager::FIELD_RESOLUTION_EVENT, $typeData, $arguments, $info
         );
 
@@ -123,23 +123,23 @@ class ProxyResolver
             // The synchronous case is directly resolved as the value is already preset.
             if (!self::isPromise($promiseOrValue)) {
                 $value = $this->manipulateValueAfterResolution($promiseOrValue, $context, $info);
-                $resolveExtensions($value);
+                $next($value);
                 return $value;
             }
         } catch (\Throwable $error) {
-            $resolveExtensions($error);
+            $next($error);
             throw $error;
         }
 
         // In the event of the asynchronous case, resolution and its handlers
         // are called after the resolution was successfully completed.
         return $promiseOrValue
-            ->then(function($resolvedValue) use ($context, $info, $resolveExtensions){
+            ->then(function($resolvedValue) use ($context, $info, $next){
                 $value = $this->manipulateValueAfterResolution($resolvedValue, $context, $info);
-                $resolveExtensions($value);
+                $next($value);
                 return $value;
-            })->catch(static function(\Throwable $error) use ($resolveExtensions) {
-                $resolveExtensions($error);
+            })->catch(static function(\Throwable $error) use ($next) {
+                $next($error);
                 return $error;
             });
     }
