@@ -25,7 +25,7 @@ abstract class SyncDataLoader implements DataLoader {
 
     public function loadSingleBy(string|int $identifier): SyncPromise {
         return $this->loadBy($identifier)
-            ->then(fn(?array $data) => $data ? $data[0] ?? null : null);
+            ->then(fn(array|\ArrayAccess|null $data) => $data ? $data[0] ?? null : null);
     }
 
     public function loadBy(string|int ... $identifiers): SyncPromise {
@@ -34,7 +34,7 @@ abstract class SyncDataLoader implements DataLoader {
 
         return (new SyncPromise(fn() => $this->ensureLoaded()))
             ->then(
-                fn(array $data) => static::resolve($data, $identifiers)
+                fn(array|\ArrayAccess $data) => static::resolve($data, $identifiers)
             );
     }
 
