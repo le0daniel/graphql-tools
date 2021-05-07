@@ -54,7 +54,7 @@ trait DefinesFields {
         $fields = [];
         foreach ($this->fields() as $key => $field) {
 
-            // Skip empty fields. This is usefull when using
+            // Skip empty fields. This is useful when using
             // a dynamic schema.
             if (!$field) {
                 continue;
