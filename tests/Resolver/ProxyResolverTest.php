@@ -15,10 +15,10 @@ use PHPUnit\Framework\TestCase;
 
 final class ProxyResolverTest extends TestCase {
 
-    private OperationContext $executionContext;
+    private OperationContext $operationContext;
 
     protected function setUp(): void{
-        $this->executionContext = new OperationContext(
+        $this->operationContext = new OperationContext(
             new Context(),
             ExtensionManager::create([])
         );
@@ -32,11 +32,11 @@ final class ProxyResolverTest extends TestCase {
         $result = $resolver(
             ['username' => 'Test'],
             null,
-            $this->executionContext,
+            $this->operationContext,
             ResolveInfoDummy::withDefaults()
         );
         self::assertEquals('Test', $result);
-        self::assertCount(0, $this->executionContext->context->getUsedLoaders());
+        self::assertCount(0, $this->operationContext->context->getUsedLoaders());
     }
 
     /**
@@ -47,11 +47,11 @@ final class ProxyResolverTest extends TestCase {
         $result = $resolver(
             ['username' => 'Test'],
             null,
-            $this->executionContext,
+            $this->operationContext,
             ResolveInfoDummy::withDefaults('test')
         );
         self::assertEquals('Test', $result);
-        self::assertCount(0, $this->executionContext->context->getUsedLoaders());
+        self::assertCount(0, $this->operationContext->context->getUsedLoaders());
     }
 
     /**
@@ -62,17 +62,12 @@ final class ProxyResolverTest extends TestCase {
         $promise = $resolver(
             ['username' => 'Test'],
             null,
-            $this->executionContext,
+            $this->operationContext,
             ResolveInfoDummy::withDefaults()
         );
 
-        $promise->then(
-            function($result){
-                self::assertEquals('Test', $result);
-                self::assertCount(0, $this->executionContext->context->getUsedLoaders());
-            }
-        );
-
         SyncPromise::runQueue();
+        self::assertEquals('Test', $promise->result);
+        self::assertCount(0, $this->operationContext->context->getUsedLoaders());
     }
 }
