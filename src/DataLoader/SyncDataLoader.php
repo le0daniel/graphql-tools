@@ -12,8 +12,8 @@ abstract class SyncDataLoader implements DataLoader {
     private array $queued = [];
     private array|null $loadedValues = null;
 
-    abstract protected function load(array $identifiers): array;
-    abstract protected static function resolve(array $loadedData, array $identifiers): ?array;
+    abstract protected function load(array $identifiers): array|\ArrayAccess;
+    abstract protected static function resolve(array $loadedData, array $identifiers): null|array|\ArrayAccess;
 
     private function ensureLoaded(): ?array {
         if (!isset($this->loadedValues)) {
