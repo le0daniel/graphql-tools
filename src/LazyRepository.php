@@ -6,6 +6,7 @@ namespace GraphQlTools;
 
 use Closure;
 use GraphQL\Type\Definition\Type;
+use GraphQlTools\Utility\Classes;
 
 class LazyRepository extends TypeRepository {
 
@@ -57,29 +58,14 @@ class LazyRepository extends TypeRepository {
         return $this->resolvedTypes[$typeName];
     }
 
-    final public function createdTypes(): array {
-        return array_keys($this->resolvedTypes);
-    }
-
     /**
-     * A really simple method to check if this is a classname of not. We try to locate
-     * a `\`, if it's present in the typename we assume a classname has been given.
-     *
-     * @param string $potentialClassName
-     * @return bool
-     */
-    private static function isProbablyClassName(string $potentialClassName): bool {
-        return str_contains($potentialClassName, '\\');
-    }
-
-    /**
-     * Returns the correct key to use to store the type.
+     * Returns the correct key to use to store the type under.
      *
      * @param string $classOrTypeName
      * @return string
      */
     final protected function key(string $classOrTypeName): string {
-        return self::isProbablyClassName($classOrTypeName)
+        return Classes::mightBeClassName($classOrTypeName)
             ? $classOrTypeName::typeName()
             : $classOrTypeName;
     }
@@ -87,10 +73,10 @@ class LazyRepository extends TypeRepository {
     /**
      * Returns a Lazy Type.
      *
-     * @param string $classOrTypeName
+     * @param string $typeName
      * @return Closure
      */
-    final protected function make(string $classOrTypeName): Closure {
-        return fn() => $this->resolveNameToType($classOrTypeName);
+    final protected function makeType(string $typeName): Closure {
+        return fn() => $this->resolveNameToType($typeName);
     }
 }

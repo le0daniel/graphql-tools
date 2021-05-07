@@ -30,7 +30,7 @@ class TypeRepository {
      * @param string $classOrTypeName
      * @return mixed
      */
-    protected function make(string $classOrTypeName): mixed
+    protected function makeType(string $classOrTypeName): mixed
     {
         return new $classOrTypeName($this);
     }
@@ -99,7 +99,7 @@ class TypeRepository {
         $className = $this->key($classOrTypeName);
 
         if (!isset($this->types[$className])) {
-            $this->types[$className] = $this->make($className);
+            $this->types[$className] = $this->makeType($className);
         }
 
         return $this->types[$className];
