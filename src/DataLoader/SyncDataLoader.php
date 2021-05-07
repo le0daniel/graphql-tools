@@ -10,12 +10,12 @@ use GraphQlTools\Contract\DataLoader;
 abstract class SyncDataLoader implements DataLoader {
 
     private array $queued = [];
-    private array|null $loadedValues = null;
+    private array|\ArrayAccess|null $loadedValues = null;
 
     abstract protected function load(array $identifiers): array|\ArrayAccess;
     abstract protected static function resolve(array|\ArrayAccess $loadedData, array $identifiers): null|array|\ArrayAccess;
 
-    private function ensureLoaded(): ?array {
+    private function ensureLoaded(): null|array|\ArrayAccess {
         if (!isset($this->loadedValues)) {
             $this->loadedValues = $this->load($this->queued);
             $this->queued = [];
