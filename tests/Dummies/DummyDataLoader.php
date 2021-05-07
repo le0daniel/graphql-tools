@@ -30,7 +30,7 @@ final class DummyDataLoader extends SyncDataLoader {
         return $data;
     }
 
-    protected static function resolve(array|\ArrayAccess $loadedData, array $identifiers): ?array{
+    protected static function resolve(mixed $loadedData, array $identifiers): array{
         $resolvedData = [];
         foreach ($identifiers as $id) {
             $resolvedData[] = $loadedData[$id];
