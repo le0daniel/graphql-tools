@@ -10,6 +10,9 @@ final class Resolving {
 
     /** @return callable(): \GraphQL\Type\Definition\Type|\GraphQL\Type\Definition\Type|array  */
     public static function attachProxy($field): mixed {
+
+        // If no resolve function is added, we assume the default resolver is used which means
+        // we do not attach the proxy resolver it this case.
         if (!is_array($field)){
             return $field;
         }

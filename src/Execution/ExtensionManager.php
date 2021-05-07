@@ -25,7 +25,8 @@ final class ExtensionManager implements \JsonSerializable {
     /**
      * This is used internally to build and order the extensions
      * The extensions array must consist of stateless classes which
-     * can be instantiated or a factory (callable)
+     * can be instantiated or a factory (callable). Extensions are
+     * considered contextual for each execution.
      *
      * @param array $extensions
      * @return \GraphQlTools\Execution\ExtensionManager
@@ -66,6 +67,8 @@ final class ExtensionManager implements \JsonSerializable {
                     fn(Extension $extension) => $extension->fieldResolution($eventTime, ... $payload)
                 );
         }
+
+        throw new \RuntimeException("Unexpected event with for pipe with name: `{$eventName}`");
     }
 
     /**

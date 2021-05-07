@@ -53,6 +53,9 @@ trait DefinesFields {
 
         $fields = [];
         foreach ($this->fields() as $key => $field) {
+
+            // Skip empty fields. This is usefull when using
+            // a dynamic schema.
             if (!$field) {
                 continue;
             }
@@ -77,11 +80,11 @@ trait DefinesFields {
      * Ensure the types are resolved.
      *
      * @param Type|string|array $field
-     * @return Type|string|array
+     * @return mixed
      */
     private function resolveFieldType(mixed $field): mixed {
         // If it is a string, we assume it is either a class name or a
-        // type name which is resolved
+        // type name which is resolved by the type repository
         if (is_string($field)) {
             return $this->typeRepository->type($field);
         }
