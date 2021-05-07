@@ -82,11 +82,7 @@ abstract class SyncDataLoader implements DataLoader {
      * @return mixed
      */
     private function ensureLoadedAndReturnValues(): mixed {
-        if (empty($this->queued)) {
-            return null;
-        }
-
-        if (!isset($this->loadedValues)) {
+        if (!isset($this->loadedValues) && !empty($this->queued)) {
             $startTime = Time::nanoSeconds();
             $this->loadedValues = $this->load($this->popQueuedIdentifiers());
             $this->verifyLoadedValuesAreNotNull();
