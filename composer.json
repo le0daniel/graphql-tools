@@ -13,7 +13,7 @@
   ],
   "require": {
     "php": "^8.0",
-    "webonyx/graphql-php": "^14.6"
+    "webonyx/graphql-php": "^14.9"
   },
   "require-dev": {
     "phan/phan": "^4.0",
