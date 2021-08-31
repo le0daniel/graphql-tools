@@ -7,7 +7,7 @@ namespace GraphQlTools\Execution;
 use Closure;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\Extension;
-use GraphQlTools\Utility\Stack;
+use GraphQlTools\Utility\Middlewares;
 use GraphQlTools\Utility\Time;
 
 final class ExtensionManager implements \JsonSerializable {
@@ -57,10 +57,10 @@ final class ExtensionManager implements \JsonSerializable {
      * @param ...$payload
      * @return Closure
      */
-    public function pipeFieldResolution(mixed $typeData, array $arguments, ResolveInfo $info): Closure {
+    public function middlewareFieldResolution(mixed $typeData, array $arguments, ResolveInfo $info): Closure {
         $eventTime = Time::nanoSeconds();
 
-        return Stack::executeAndReturnStack(
+        return Middlewares::executeAndReturnNext(
             $this->extensions,
             /** @suppress PhanTypeMismatchArgument */
             fn(Extension $extension) => $extension->fieldResolution($eventTime, $typeData, $arguments, $info)
@@ -80,16 +80,10 @@ final class ExtensionManager implements \JsonSerializable {
 
         switch ($eventName) {
             case self::START_EVENT:
-                Stack::execute(
-                    $this->extensions,
-                    static fn(Extension $extension) => $extension->start($eventTime, ... $payload)
-                );
+                array_walk($this->extensions, static fn(Extension $extension) => $extension->start($eventTime, ... $payload));
                 return;
             case self::END_EVENT:
-                Stack::execute(
-                    $this->extensions,
-                    static fn(Extension $extension) => $extension->end($eventTime)
-                );
+                array_walk($this->extensions, static fn(Extension $extension) => $extension->end($eventTime));
                 return;
         }
 

@@ -6,16 +6,9 @@ namespace GraphQlTools\Utility;
 
 use Closure;
 
-final class Stack {
+final class Middlewares {
 
-    public static function execute(array &$stack, callable $callback): void {
-        array_walk(
-            $stack,
-            $callback
-        );
-    }
-
-    public static function executeAndReturnStack(array &$stack, callable $callback): Closure {
+    public static function executeAndReturnNext(array &$stack, callable $callback): Closure {
         $callbackStack = [];
 
         foreach ($stack as $resolver) {
@@ -25,7 +18,7 @@ final class Stack {
         }
 
         return static function() use ($callbackStack): void {
-            self::execute($callbackStack, static fn($callback) => $callback(...func_get_args()));
+            array_walk($callbackStack, static fn($callback) => $callback(...func_get_args()));
         };
     }
 
