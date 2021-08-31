@@ -9,7 +9,7 @@ use GraphQL\Executor\Promise\Promise;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
 use GraphQlTools\Execution\OperationContext;
-use GraphQlTools\Execution\ExtensionManager;
+use GraphQlTools\Utility\SideEffects;
 
 class ProxyResolver
 {
@@ -108,9 +108,7 @@ class ProxyResolver
         $arguments ??= [];
         $context = $operationContext->context;
 
-        $next = $operationContext->extension->pipe(
-            ExtensionManager::FIELD_RESOLUTION_EVENT, $typeData, $arguments, $info
-        );
+        $next = $operationContext->extension->pipeFieldResolution($typeData, $arguments, $info);
 
         try {
             $promiseOrValue = $this->resolveFieldToValue(
@@ -122,25 +120,25 @@ class ProxyResolver
 
             // The synchronous case is directly resolved as the value is already preset.
             if (!self::isPromise($promiseOrValue)) {
-                $value = $this->manipulateValueAfterResolution($promiseOrValue, $context, $info);
-                $next($value);
-                return $value;
+                return SideEffects::tap(
+                    $this->manipulateValueAfterResolution($promiseOrValue, $context, $info),
+                    $next
+                );
             }
         } catch (\Throwable $error) {
-            $next($error);
-            throw $error;
+            return SideEffects::tap($error, $next);
         }
 
         // In the event of the asynchronous case, resolution and its handlers
         // are called after the resolution was successfully completed.
         return $promiseOrValue
             ->then(function($resolvedValue) use ($context, $info, $next){
-                $value = $this->manipulateValueAfterResolution($resolvedValue, $context, $info);
-                $next($value);
-                return $value;
+                return SideEffects::tap(
+                    $this->manipulateValueAfterResolution($resolvedValue, $context, $info),
+                    $next
+                );
             })->catch(static function(\Throwable $error) use ($next) {
-                $next($error);
-                return $error;
+                return SideEffects::tap($error, $next);
             });
     }
 }

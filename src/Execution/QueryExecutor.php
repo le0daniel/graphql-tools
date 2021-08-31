@@ -19,6 +19,13 @@ final class QueryExecutor {
 
     private array $extensions;
 
+    /**
+     *
+     *
+     * @param Schema $schema
+     * @param array|null $extensions
+     * @param array $validationRules
+     */
     public function __construct(
         private Schema $schema,
         ?array $extensions = null,

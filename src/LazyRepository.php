@@ -17,10 +17,10 @@ class LazyRepository extends TypeRepository {
 
     }
 
-    public static function createTypeMap(array $classMap): array {
+    public static function createTypeMap(array $classes): array {
         $typeMap = [];
 
-        foreach ($classMap as $class) {
+        foreach ($classes as $class) {
             $typeMap[($class . '::typeName')()] = $class;
         }
 

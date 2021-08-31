@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GraphQlTools\Execution;
 
 use Closure;
+use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\Extension;
 use GraphQlTools\Utility\Stack;
 use GraphQlTools\Utility\Time;
@@ -56,19 +57,14 @@ final class ExtensionManager implements \JsonSerializable {
      * @param ...$payload
      * @return Closure
      */
-    public function pipe(string $eventName, ...$payload): Closure {
+    public function pipeFieldResolution(mixed $typeData, array $arguments, ResolveInfo $info): Closure {
         $eventTime = Time::nanoSeconds();
 
-        switch ($eventName) {
-            case self::FIELD_RESOLUTION_EVENT:
-                return Stack::executeAndReturnStack(
-                    $this->extensions,
-                    /** @suppress PhanTypeMismatchArgument */
-                    fn(Extension $extension) => $extension->fieldResolution($eventTime, ... $payload)
-                );
-        }
-
-        throw new \RuntimeException("Unexpected event with for pipe with name: `{$eventName}`");
+        return Stack::executeAndReturnStack(
+            $this->extensions,
+            /** @suppress PhanTypeMismatchArgument */
+            fn(Extension $extension) => $extension->fieldResolution($eventTime, $typeData, $arguments, $info)
+        );
     }
 
     /**
