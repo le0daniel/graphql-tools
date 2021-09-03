@@ -15,7 +15,7 @@ class TypeRepository {
     /**
      * Array containing already initialized types. This ensures the
      * types are only initialized once. The instance of this repository
-     * is passed to each types, so they can load the specific instances which are
+     * is passed to each type, so they can load the specific instances which are
      * required
      *
      * @var array
@@ -57,22 +57,6 @@ class TypeRepository {
     }
 
     /**
-     * This method is used in the Trait `HasConditionalFields`. This enables
-     * the creation of dynamic Schemas and hide nodes depending on options
-     *
-     * The logic of determining if the option is true or not must be implemented
-     * by the Implementor itself.
-     *
-     * Ex: class ConditionalRepository extends TypeRepository
-     *
-     * @param string $key
-     * @return bool
-     */
-    public function hasOption(string $key): bool {
-        return false;
-    }
-
-    /**
      * Enforce creation of the type. This is important when using lazy loading
      * as for example root query and mutation types must be loaded.
      *
@@ -103,6 +87,16 @@ class TypeRepository {
         }
 
         return $this->types[$className];
+    }
+
+    /**
+     * ShortCut for NonNull Type: `Type!`
+     *
+     * @param string $classOrTypeName
+     * @return NonNull
+     */
+    final public function nonNullType(string $classOrTypeName): NonNull {
+        return new NonNull($this->type($classOrTypeName));
     }
 
     final public function listOfType(string $className, bool $typeIsNullable = true): ListOfType {

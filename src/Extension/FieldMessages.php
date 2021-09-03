@@ -39,6 +39,14 @@ final class FieldMessages extends Extension {
             $this->messages[] = Message::beta($info);
         }
 
+        if (empty($arguments)) {
+            return null;
+        }
+
+        foreach ($info->fieldDefinition->args as $arg) {
+
+        }
+
         return null;
     }
 }

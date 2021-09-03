@@ -17,7 +17,7 @@ final class WrappedType {
     }
 
     public function toType(TypeRepository $repository): Type {
-        return ($this->resolver)($repository->type($this->typeNameOrClassname));
+        return call_user_func($this->resolver, $repository->type($this->typeNameOrClassname));
     }
 
 }

@@ -17,6 +17,12 @@ class LazyRepository extends TypeRepository {
 
     }
 
+    /**
+     * Get a list of classes and create a Type Map which can be cached for faster execution.
+     *
+     * @param array $classes
+     * @return array
+     */
     public static function createTypeMap(array $classes): array {
         $typeMap = [];
 
@@ -27,9 +33,14 @@ class LazyRepository extends TypeRepository {
         return $typeMap;
     }
 
+    /**
+     * Custom type loader which makes sure to load all types correctly and only resolve them when needed
+     *
+     * @return Closure|null
+     */
     final protected function typeLoader(): ?Closure {
-        return function(string $name){
-            return $this->resolveNameToType($name);
+        return function(string $typeName){
+            return $this->resolveNameToType($typeName);
         };
     }
 
