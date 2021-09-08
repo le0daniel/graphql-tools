@@ -27,4 +27,39 @@ final class Arrays {
         return false;
     }
 
+    private static function isArrayAccessible(mixed $value): bool {
+        return is_array($value) || $value instanceof \ArrayAccess;
+    }
+
+    private static function getValueFromArray(mixed $array, string $key, mixed $defaultValue = null): mixed {
+        $keyParts = explode('.', $key);
+        $value = $array;
+
+        foreach ($keyParts as $keyPart) {
+            $value = self::isArrayAccessible($value) ? ($value[$keyPart] ?? null) : ($value->{$keyPart} ?? null);
+            if (!$value) {
+                return $defaultValue;
+            }
+        }
+
+        return $value;
+    }
+
+    public static function sortByColumn(array $array, string $columnKey) {
+        $sortedArray = [];
+        $columnsToSortBy = [];
+
+        foreach ($array as $index => $row) {
+            $columnsToSortBy[$index] = self::getValueFromArray($row, $columnKey);
+        }
+
+        array_multisort($columnsToSortBy, $array);
+
+        foreach ($columnsToSortBy as $index => $value) {
+            $sortedArray[] = $array[$index];
+        }
+
+        return array_values($array);
+    }
+
 }
