@@ -56,7 +56,6 @@ final class QuerySignature
         return md5(self::createSignatureString($query, $pipeline));
     }
 
-
     private static function sortBy(array|\Traversable|null $nodes, string ...$keys): array
     {
         if (!$nodes) {
@@ -71,6 +70,8 @@ final class QuerySignature
 
     private static function sortAst(DocumentNode $ast): DocumentNode
     {
+        // Here, the direct object is manipulated as it did not work by cloning the Node.
+        // This might change in future versions...
         return Visitor::visit($ast, [
             NodeKind::DOCUMENT => static function (DocumentNode $node): DocumentNode {
                 $node->definitions = NodeList::create(self::sortBy($node->definitions, 'kind', 'name.value'));
