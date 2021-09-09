@@ -3,6 +3,7 @@
 namespace GraphQlTools\Test\Utility;
 
 use GraphQlTools\Utility\QuerySignature;
+use JetBrains\PhpStorm\ArrayShape;
 use PHPUnit\Framework\TestCase;
 
 class QuerySignatureTest extends TestCase
@@ -70,6 +71,29 @@ class QuerySignatureTest extends TestCase
                     preview(type: $var1, count: $bvar)
                 }',
                 'query ($bvar: ID!, $var1: ID!) { preview(count: $bvar, type: $var1) }'
+            ]
+        ];
+    }
+
+    /** @dataProvider sameSignatureDataProvider */
+    public function testSameSignature(string ... $queries): void {
+        $signatures = array_map(fn(string $query): string => QuerySignature::createSignatureString($query), $queries);
+        self::assertCount(1, array_unique($signatures));
+    }
+
+    public function sameSignatureDataProvider(): array {
+        return [
+            'with aliases' => [
+                'query AuthorForPost {
+                  post(id: "my-post-id") {
+                    author
+                  }
+                }',
+                'query AuthorForPost {
+                  post(id: "my-post-id") {
+                    writer: author
+                  }
+                }'
             ]
         ];
     }
