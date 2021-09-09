@@ -17,19 +17,23 @@ use GraphQlTools\Resolver\ProxyResolver;
 
 final class QueryExecutor {
 
+    /** @var string[]|callable[]  */
     private array $extensions;
 
     /**
-     *
+     * Extensions must be an array of factories or class names which can be constructed
+     * without any arguments. Extensions are newly created before the query is executed
+     * and destroyed afterwards. They should be used to collect data and add them to
+     * result as an array.
      *
      * @param Schema $schema
      * @param array|null $extensions
-     * @param array $validationRules
+     * @param array|null $validationRules
      */
     public function __construct(
         private Schema $schema,
         ?array $extensions = null,
-        private array $validationRules = []
+        private ?array $validationRules = null
     ){
         $this->extensions = $extensions ?? self::defaultExtensions();
     }

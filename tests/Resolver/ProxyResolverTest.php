@@ -58,7 +58,7 @@ final class ProxyResolverTest extends TestCase {
      * @throws \Throwable
      */
     public function testInvocationWithPromise(): void {
-        $resolver = new ProxyResolver(fn(array $typeData) => new Deferred(fn() => $typeData['username']));
+        $resolver = new ProxyResolver(fn(array $typeData) => Deferred::create(fn() => $typeData['username']));
         $promise = $resolver(
             ['username' => 'Test'],
             null,
