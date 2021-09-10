@@ -6,7 +6,7 @@ use GraphQlTools\Immutable\ResolverTrace;
 use GraphQlTools\Utility\Arrays;
 use JsonSerializable;
 
-class RootNode implements JsonSerializable
+final class RootNode implements JsonSerializable
 {
     private const RESPONSE_NAME = 'response_name';
     private const INDEX = 'index';
@@ -14,21 +14,29 @@ class RootNode implements JsonSerializable
 
     private array $rootChildren = [];
 
-    public static function createFromResolverTrace(array $resolvers): self {
-        $instance = new static();
+    public static function createFromResolverTrace(array $resolvers): self
+    {
+        $instance = new self();
+
+        /** @var ResolverTrace|array $resolver */
         foreach ($resolvers as $resolver) {
-            $instance->add(ResolverTrace::fromSerialized($resolver));
+            $instance->addFromTrace(
+                $resolver instanceof ResolverTrace
+                    ? $resolver
+                    : ResolverTrace::fromSerialized($resolver)
+            );
         }
         return $instance;
     }
 
-    public function add(ResolverTrace $trace): void
+    private function addFromTrace(ResolverTrace $trace): void
     {
         $tree = &$this->rootChildren;
         foreach (Arrays::splice($trace->path, 0, -1) as $currentPath) {
             $isListItem = is_int($currentPath);
             $childrenExistsAtCurrentDepth = self::childrenExists($tree, $currentPath);
 
+            // Index nodes might have to be created on the fly.
             if (!$childrenExistsAtCurrentDepth && $isListItem) {
                 array_push($tree, self::createIndexNode($currentPath));
             }
@@ -80,29 +88,25 @@ class RootNode implements JsonSerializable
         return $tree;
     }
 
-    private function createIndexNode(int $index): array {
+    private function createIndexNode(int $index): array
+    {
         return [self::INDEX => $index, self::CHILD => []];
     }
 
-    private function createNode(ResolverTrace $trace): array {
+    private function createNode(ResolverTrace $trace): array
+    {
         return [
             self::RESPONSE_NAME => $trace->lastPathElement,
             'type' => $trace->returnType,
-            'start_time' => (string) $trace->startOffset,
-            'end_time' => (string) ($trace->startOffset + $trace->duration)
+            'start_time' => (string)$trace->startOffset,
+            'end_time' => (string)($trace->startOffset + $trace->duration)
         ];
     }
-
-
-
-
 
     public function jsonSerialize(): array
     {
         return [
-            'root' => [
-                self::CHILD => $this->rootChildren
-            ]
+            self::CHILD => $this->rootChildren
         ];
     }
 }
