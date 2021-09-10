@@ -6,7 +6,6 @@ namespace GraphQlTools\Extension;
 
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\Extension;
-use GraphQlTools\Definition\GraphQlField;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Immutable\Message;
 
@@ -43,9 +42,9 @@ final class FieldMessages extends Extension {
             return null;
         }
 
-        foreach ($info->fieldDefinition->args as $arg) {
+        // foreach ($info->fieldDefinition->args as $arg) {
 
-        }
+        // }
 
         return null;
     }

@@ -45,6 +45,15 @@ final class Arrays {
         return $value;
     }
 
+    public static function keysExist(array $array, array $keys): bool {
+        foreach ($keys as $key) {
+            if (!array_key_exists($key, $array)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static function splice(array $array, int $offset, ?int $length): array {
         return array_splice($array, $offset, $length);
     }
