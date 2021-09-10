@@ -45,6 +45,10 @@ final class Arrays {
         return $value;
     }
 
+    public static function splice(array $array, int $offset, ?int $length): array {
+        return array_splice($array, $offset, $length);
+    }
+
     public static function sortByColumn(array $array, string $columnKey) {
         $sortedArray = [];
         $columnsToSortBy = [];

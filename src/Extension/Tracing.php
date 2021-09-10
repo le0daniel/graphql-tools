@@ -8,7 +8,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\Extension;
-use GraphQlTools\Immutable\FieldTrace;
+use GraphQlTools\Immutable\ResolverTrace;
 use Closure;
 
 final class Tracing extends Extension {
@@ -42,7 +42,7 @@ final class Tracing extends Extension {
     /**
      * Array containing all the traces of all fields
      *
-     * @var FieldTrace[]
+     * @var ResolverTrace[]
      */
     private array $fieldTraces = [];
 
@@ -105,7 +105,7 @@ final class Tracing extends Extension {
         return function() use ($eventTimeInNanoseconds, $info): void {
 
             // Add trace as soon as the field is resolved
-            $this->fieldTraces[] = FieldTrace::fromResolveInfo(
+            $this->fieldTraces[] = ResolverTrace::fromResolveInfo(
                 $info,
                 $eventTimeInNanoseconds,
                 $this->startTimeInNanoseconds
