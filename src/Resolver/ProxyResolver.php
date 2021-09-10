@@ -108,7 +108,7 @@ class ProxyResolver
         $arguments ??= [];
         $context = $operationContext->context;
 
-        $next = $operationContext->extension->middlewareFieldResolution($typeData, $arguments, $info);
+        $next = $operationContext->extensions->middlewareFieldResolution($typeData, $arguments, $info);
 
         try {
             $promiseOrValue = $this->resolveFieldToValue(

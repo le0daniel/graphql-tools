@@ -79,4 +79,8 @@ final class Arrays
         return array_values($array);
     }
 
+    public static function last(array $array): mixed {
+        return array_pop($array);
+    }
+
 }

@@ -14,6 +14,7 @@ use GraphQlTools\Context;
 use GraphQlTools\Extension\FieldMessages;
 use GraphQlTools\Extension\Tracing;
 use GraphQlTools\Resolver\ProxyResolver;
+use GraphQlTools\Utility\SideEffects;
 
 final class QueryExecutor {
 
@@ -82,7 +83,6 @@ final class QueryExecutor {
 
         // Append extensions to the result.
         $result->extensions = $extensionManager->jsonSerialize();
-
         return $result;
     }
 

@@ -46,15 +46,13 @@ final class ExtensionManager implements \JsonSerializable {
         // We sort the instance by priority. This is especially important for tracing to
         // ensure the durations are correct.
         array_multisort($columnToSort, SORT_ASC, $instances);
-
         return new self(...$instances);
     }
 
     /**
-     * @suppress PhanTypeMismatchArgument
-     *
-     * @param string $eventName
-     * @param ...$payload
+     * @param mixed $typeData
+     * @param array $arguments
+     * @param ResolveInfo $info
      * @return Closure
      */
     public function middlewareFieldResolution(mixed $typeData, array $arguments, ResolveInfo $info): Closure {

@@ -81,4 +81,10 @@ final class ArraysTest extends TestCase
             )
         );
     }
+
+    public function testLast(){
+        $array = ['one', 'two', 'three'];
+        self::assertEquals('three', Arrays::last($array));
+        self::assertEquals(['one', 'two', 'three'], $array);
+    }
 }

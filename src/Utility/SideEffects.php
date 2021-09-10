@@ -2,7 +2,7 @@
 
 namespace GraphQlTools\Utility;
 
-class SideEffects
+final class SideEffects
 {
 
     /**

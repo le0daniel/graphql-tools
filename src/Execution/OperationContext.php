@@ -16,6 +16,6 @@ use GraphQlTools\Execution\ExtensionManager;
  */
 final class OperationContext {
 
-    public function __construct(public Context $context, public ExtensionManager $extension){}
+    public function __construct(public Context $context, public ExtensionManager $extensions){}
 
 }

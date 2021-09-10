@@ -54,13 +54,10 @@ final class ResolverTrace extends Holder
 
     protected function getValue(string $name): mixed
     {
-        switch ($name) {
-            case 'lastPathElement':
-                $path = $this->path;
-                return array_pop($path);
-        }
-
-        return parent::getValue($name);
+        return match ($name) {
+            'lastPathElement' => Arrays::last($this->path),
+            default => parent::getValue($name),
+        };
     }
 
     public static function fromResolveInfo(ResolveInfo $info, int $preciseResolveStart, int $preciseExecutionStart): ResolverTrace

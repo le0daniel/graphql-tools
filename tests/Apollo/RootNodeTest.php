@@ -14,7 +14,6 @@ class RootNodeTest extends TestCase
     {
         $trace = json_decode(file_get_contents(self::TRACE_FILE), true, flags: JSON_THROW_ON_ERROR);
         $rootNode = RootNode::createFromResolverTrace($trace['execution']['resolvers']);
-
         self::assertEquals(file_get_contents(self::EXPECTED_ROOT_NODE), json_encode($rootNode));
     }
 }
