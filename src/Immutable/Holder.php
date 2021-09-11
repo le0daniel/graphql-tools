@@ -17,6 +17,10 @@ abstract class Holder implements \ArrayAccess, \JsonSerializable
         return $this->items;
     }
 
+    protected function getValueForSerialization(string $name): mixed {
+        return $this->getValue($name);
+    }
+
     protected function getValue(string $name): mixed {
         return $this->items[$name] ?? null;
     }
@@ -55,7 +59,7 @@ abstract class Holder implements \ArrayAccess, \JsonSerializable
 
         $data = [];
         foreach ($keys as $key) {
-            $data[$key] = $this->getValue($key);
+            $data[$key] = $this->getValueForSerialization($key);
         }
         return $data;
     }
