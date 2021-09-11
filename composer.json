@@ -30,7 +30,9 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "GraphQlTools\\Test\\": "tests/"
+      "GraphQlTools\\Test\\": "tests/",
+      "Mdg\\": "protobuf/Mdg",
+      "Metadata\\": "protobuf/Metadata"
     }
   }
 }

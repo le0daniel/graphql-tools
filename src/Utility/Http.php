@@ -13,4 +13,8 @@ final class Http
         return $normalized;
     }
 
+    public static function headerValues(string $headerValue): array {
+        return array_map(fn(string $value): string => trim($value), explode(',', $headerValue));
+    }
+
 }

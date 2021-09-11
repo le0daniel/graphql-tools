@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\Immutable;
 
+use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Http;
 
 /**
@@ -32,7 +33,7 @@ final class AdditionalExecutionInformation extends Holder
 
     public function getHeaders(array $blacklist = []): array {
         $blacklist = array_map('strtolower', $blacklist);
-        return array_filter($this->requestHeaders, fn(string $key) => !in_array($key, $blacklist), ARRAY_FILTER_USE_KEY);
+        return Arrays::blacklistKeys($this->requestHeaders, $blacklist, false);
     }
 
 }

@@ -9,10 +9,14 @@ use Google\Protobuf\Timestamp;
 use GraphQlTools\Immutable\AdditionalExecutionInformation;
 use GraphQlTools\Immutable\ExecutionTrace;
 use GraphQlTools\Utility\Arrays;
+use GraphQlTools\Utility\Http;
 use Mdg\Trace;
 
 final class Formatter
 {
+    public const BLACKLISTED_HEADERS = ['authorization', 'cookie', 'set-cookie'];
+    public const BLACKLISTED_VARIABLE_VALUES = ['secret', 'token'];
+
     public static function singleTraceToProtobuf(ExecutionTrace $executionTrace, ?AdditionalExecutionInformation $information = null): Trace
     {
         $result = new Trace();
@@ -35,6 +39,14 @@ final class Formatter
     private static function setHttp(Trace $trace, ?AdditionalExecutionInformation $information): void {
         $http = new Trace\HTTP();
         $http->setMethod(Trace\HTTP\Method::POST);
+
+        if ($information->requestHeaders) {
+            $filteredHeaders = $information->getHeaders(self::BLACKLISTED_HEADERS);
+            $http->setRequestHeaders(
+                array_map(fn($headerValue) => (new Trace\HTTP\Values())->setValue(Http::headerValues($headerValue)), $filteredHeaders)
+            );
+        }
+
         $trace->setHttp($http);
     }
 
@@ -42,8 +54,9 @@ final class Formatter
     {
         if ($information?->variables) {
             try {
+                $filteredVariables = Arrays::blacklistKeys($information->variables, self::BLACKLISTED_VARIABLE_VALUES);
                 $trace->setDetails(new Trace\Details([
-                    'variables_json' => Arrays::blacklistKeys($information->variables, ['secret', 'token'])
+                    'variables_json' => array_map(fn(mixed $value): string => (string) json_encode($value), $filteredVariables),
                 ]));
             } catch (Exception) {
             }
