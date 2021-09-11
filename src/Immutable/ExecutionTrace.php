@@ -4,9 +4,12 @@ namespace GraphQlTools\Immutable;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use GraphQlTools\Utility\QuerySignature;
 
 /**
  * @property-read int $version
+ * @property-read string $query
+ * @property-read string $queryId
  * @property-read DateTimeImmutable $startTime
  * @property-read DateTimeImmutable $endTime
  * @property-read int $durationNs
@@ -18,6 +21,7 @@ final class ExecutionTrace extends Holder
 {
     public static function from(
         int               $version,
+        string            $query,
         DateTimeImmutable $startTime,
         DateTimeImmutable $endTime,
         int               $durationNs,
@@ -26,6 +30,7 @@ final class ExecutionTrace extends Holder
     {
         return new self([
             'version' => $version,
+            'query' => $query,
             'startTime' => $startTime,
             'endTime' => $endTime,
             'durationNs' => $durationNs,
@@ -47,6 +52,7 @@ final class ExecutionTrace extends Holder
     {
         return new self([
             'version' => $data['version'],
+            'query' => $data['query'],
             'startTime' => self::dateFromString($data['startTime']),
             'endTime' => self::dateFromString($data['endTime']),
             'durationNs' => $data['durationNs'],
@@ -58,9 +64,10 @@ final class ExecutionTrace extends Holder
 
     protected function getValueForSerialization(string $name): mixed
     {
+        $value = parent::getValueForSerialization($name);
         return match ($name) {
-            'startTime', 'endTime' => self::dateToString(parent::getValueForSerialization($name)),
-            default => parent::getValueForSerialization($name),
+            'startTime', 'endTime' => self::dateToString($value),
+            default => $value,
         };
     }
 
@@ -69,6 +76,7 @@ final class ExecutionTrace extends Holder
         return match ($name) {
             'duration' => $this->durationNs,
             'executionResolvers' => $this->execution['resolvers'],
+            'queryId' => QuerySignature::createSignatureString($this->query),
             default => parent::getValue($name),
         };
     }

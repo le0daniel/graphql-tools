@@ -25,6 +25,13 @@ final class Tracing extends Extension
     private DateTimeImmutable $startTime;
 
     /**
+     * String representation of the query to run
+     *
+     * @var string
+     */
+    private string $query;
+
+    /**
      * Exact time of when the execution started
      *
      * @var int
@@ -93,6 +100,7 @@ final class Tracing extends Extension
     {
         $executionTrace = ExecutionTrace::from(
             self::VERSION,
+            $this->query,
             $this->startTime,
             $this->endTime,
             $this->endTimeInNanoseconds,
@@ -110,6 +118,7 @@ final class Tracing extends Extension
 
     public function start(int $eventTimeInNanoseconds, string $query): void
     {
+        $this->query = $query;
         $this->startTime = new DateTimeImmutable();
         $this->startTimeInNanoseconds = $eventTimeInNanoseconds;
     }
