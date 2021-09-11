@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GraphQlTools\Execution;
 
 use GraphQlTools\Context;
-use GraphQlTools\Execution\ExtensionManager;
+use GraphQlTools\Execution\Extensions;
 
 /**
  * Class ExecutionContext
@@ -16,6 +16,6 @@ use GraphQlTools\Execution\ExtensionManager;
  */
 final class OperationContext {
 
-    public function __construct(public Context $context, public ExtensionManager $extensions){}
+    public function __construct(public Context $context, public Extensions $extensions){}
 
 }

@@ -83,4 +83,8 @@ final class Arrays
         return array_pop($array);
     }
 
+    public static function removeNullValues(array $array): array {
+        return array_filter($array, fn($value): bool => $value !== null);
+    }
+
 }

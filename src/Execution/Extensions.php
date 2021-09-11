@@ -10,7 +10,7 @@ use GraphQlTools\Contract\Extension;
 use GraphQlTools\Utility\Middlewares;
 use GraphQlTools\Utility\Time;
 
-final class ExtensionManager implements \JsonSerializable {
+final class Extensions implements \JsonSerializable {
 
     public const START_EVENT = 'start';
     public const END_EVENT = 'end';
@@ -30,9 +30,9 @@ final class ExtensionManager implements \JsonSerializable {
      * considered contextual for each execution.
      *
      * @param array $extensions
-     * @return \GraphQlTools\Execution\ExtensionManager
+     * @return \GraphQlTools\Execution\Extensions
      */
-    public static function create(array $extensions): ExtensionManager {
+    public static function create(array $extensions): Extensions {
         $instances = [];
         $columnToSort = [];
 

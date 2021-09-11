@@ -7,7 +7,7 @@ namespace GraphQlTools\Test\Resolver;
 use GraphQL\Deferred;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQlTools\Execution\OperationContext;
-use GraphQlTools\Execution\ExtensionManager;
+use GraphQlTools\Execution\Extensions;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use GraphQlTools\Context;
 use GraphQlTools\Resolver\ProxyResolver;
@@ -20,7 +20,7 @@ final class ProxyResolverTest extends TestCase {
     protected function setUp(): void{
         $this->operationContext = new OperationContext(
             new Context(),
-            ExtensionManager::create([])
+            Extensions::create([])
         );
     }
 

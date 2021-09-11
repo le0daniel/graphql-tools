@@ -59,8 +59,8 @@ final class QueryExecutor {
         mixed $rootValue = null,
         ?string $operationName = null,
     ): ExecutionResult {
-        $extensionManager = ExtensionManager::create($this->extensions);
-        $extensionManager->dispatch(ExtensionManager::START_EVENT, $query);
+        $extensionManager = Extensions::create($this->extensions);
+        $extensionManager->dispatch(Extensions::START_EVENT, $query);
 
         try {
             $source = Parser::parse($query);
@@ -79,7 +79,7 @@ final class QueryExecutor {
             $this->validationRules
         );
 
-        $extensionManager->dispatch(ExtensionManager::END_EVENT);
+        $extensionManager->dispatch(Extensions::END_EVENT);
 
         // Append extensions to the result.
         $result->extensions = $extensionManager->jsonSerialize();
