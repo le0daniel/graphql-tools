@@ -33,11 +33,13 @@ final class ArraysTest extends TestCase
     }
 
     /** @dataProvider keysExistProvider */
-    public function testKeysExist(bool $expected, array $array, array $keys): void {
+    public function testKeysExist(bool $expected, array $array, array $keys): void
+    {
         self::assertEquals($expected, Arrays::keysExist($array, $keys));
     }
 
-    public function keysExistProvider(): array {
+    public function keysExistProvider(): array
+    {
         return [
             'simple case' => [
                 true,
@@ -82,9 +84,16 @@ final class ArraysTest extends TestCase
         );
     }
 
-    public function testLast(){
+    public function testLast()
+    {
         $array = ['one', 'two', 'three'];
         self::assertEquals('three', Arrays::last($array));
         self::assertEquals(['one', 'two', 'three'], $array);
+    }
+
+    public function testBlacklistKeys(): void
+    {
+        self::assertEquals(['key' => 'value'], Arrays::blacklistKeys(['key' => 'value', 'secret' => 1], ['secret']));
+        self::assertEquals(['key' => 'value', 'test' => []], Arrays::blacklistKeys(['key' => 'value', 'test' => ['secret' => true], 'secret' => 1], ['secret']));
     }
 }

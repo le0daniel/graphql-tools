@@ -144,6 +144,3 @@ class Error extends \Google\Protobuf\Internal\Message
 
 }
 
-// Adding a class alias for backwards compatibility with the previous class name.
-class_alias(Error::class, \Mdg\Trace_Error::class);
-

@@ -85,7 +85,3 @@ class Method
         return constant($const);
     }
 }
-
-// Adding a class alias for backwards compatibility with the previous class name.
-class_alias(Method::class, \Mdg\Trace_HTTP_Method::class);
-

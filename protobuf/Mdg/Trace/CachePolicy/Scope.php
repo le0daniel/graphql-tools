@@ -50,7 +50,3 @@ class Scope
         return constant($const);
     }
 }
-
-// Adding a class alias for backwards compatibility with the previous class name.
-class_alias(Scope::class, \Mdg\Trace_CachePolicy_Scope::class);
-

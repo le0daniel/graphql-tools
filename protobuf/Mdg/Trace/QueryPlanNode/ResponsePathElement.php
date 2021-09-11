@@ -93,7 +93,3 @@ class ResponsePathElement extends \Google\Protobuf\Internal\Message
     }
 
 }
-
-// Adding a class alias for backwards compatibility with the previous class name.
-class_alias(ResponsePathElement::class, \Mdg\Trace_QueryPlanNode_ResponsePathElement::class);
-

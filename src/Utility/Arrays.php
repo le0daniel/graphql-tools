@@ -66,6 +66,21 @@ final class Arrays
         return array_splice($array, $offset, $length);
     }
 
+    public static function blacklistKeys(array $array, array $blacklist, bool $recursive = true): array {
+        $filtered = [];
+        foreach ($array as $key => $value) {
+            if (in_array($key, $blacklist)) {
+                continue;
+            }
+
+            $filtered[$key] = $recursive && is_array($value)
+                ? self::blacklistKeys($value, $blacklist, $recursive)
+                : $value;
+        }
+
+        return $filtered;
+    }
+
     public static function sortByColumn(array $array, string $columnKey): array
     {
         $columnsToSortBy = [];

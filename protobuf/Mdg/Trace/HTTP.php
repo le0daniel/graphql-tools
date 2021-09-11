@@ -265,7 +265,3 @@ class HTTP extends \Google\Protobuf\Internal\Message
     }
 
 }
-
-// Adding a class alias for backwards compatibility with the previous class name.
-class_alias(HTTP::class, \Mdg\Trace_HTTP::class);
-

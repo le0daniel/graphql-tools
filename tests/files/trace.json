@@ -1,8 +1,9 @@
 {
   "version": 1,
+  "query": "query {\n  assets(query: {search: \"messi\"}) {\n    id\n    metadataValues {\n      value \n      metadataField {\n        id\n        label\n      }\n    }\n  }\n}",
   "startTime": "2021-09-09T13:39:01.013+00:00",
   "endTime": "2021-09-09T13:39:01.018+00:00",
-  "duration": 5393659,
+  "durationNs": 5393659,
   "execution": {
     "resolvers": [
       {

@@ -353,7 +353,3 @@ class Node extends \Google\Protobuf\Internal\Message
     }
 
 }
-
-// Adding a class alias for backwards compatibility with the previous class name.
-class_alias(Node::class, \Mdg\Trace_Node::class);
-

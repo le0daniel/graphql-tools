@@ -22,6 +22,7 @@ use RuntimeException;
  * @property-read int $duration
  * @property-read int $startOffset
  * @property-read string $lastPathElement
+ * @property-read string $pathKey
  */
 final class ResolverTrace extends Holder
 {
@@ -56,6 +57,7 @@ final class ResolverTrace extends Holder
     {
         return match ($name) {
             'lastPathElement' => Arrays::last($this->path),
+            'pathKey' => implode('.', $this->path),
             default => parent::getValue($name),
         };
     }

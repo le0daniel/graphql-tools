@@ -4,9 +4,9 @@ namespace GraphQlTools\Apollo;
 
 use GraphQlTools\Immutable\ResolverTrace;
 use GraphQlTools\Utility\Arrays;
-use JsonSerializable;
+use Mdg\Trace\Node;
 
-final class RootNode implements JsonSerializable
+final class RootNode
 {
     private const RESPONSE_NAME = 'response_name';
     private const INDEX = 'index';
@@ -38,7 +38,7 @@ final class RootNode implements JsonSerializable
 
             // Index nodes might have to be created on the fly.
             if (!$childrenExistsAtCurrentDepth && $isListItem) {
-                array_push($tree, self::createIndexNode($currentPath));
+                array_push($tree, self::createIndexNodeData($currentPath));
             }
 
             if (!$childrenExistsAtCurrentDepth && !$isListItem) {
@@ -51,7 +51,7 @@ final class RootNode implements JsonSerializable
             );
         }
 
-        array_push($tree, self::createNode($trace));
+        array_push($tree, self::createNodeData($trace));
     }
 
     private static function childrenExists(&$tree, string|int $valueToSearch): bool
@@ -88,25 +88,75 @@ final class RootNode implements JsonSerializable
         return $tree;
     }
 
-    private function createIndexNode(int $index): array
+    private function createIndexNodeData(int $index): array
     {
-        return [self::INDEX => $index, self::CHILD => []];
+        return [
+            self::INDEX => $index,
+            self::CHILD => [],
+        ];
     }
 
-    private function createNode(ResolverTrace $trace): array
+    private function createNodeData(ResolverTrace $trace): array
     {
         return [
             self::RESPONSE_NAME => $trace->lastPathElement,
-            'type' => $trace->returnType,
-            'start_time' => (string)$trace->startOffset,
-            'end_time' => (string)($trace->startOffset + $trace->duration)
+            'resolverTrace' => $trace,
         ];
     }
 
-    public function jsonSerialize(): array
-    {
-        return [
-            self::CHILD => $this->rootChildren
-        ];
+    /**
+     * Transforms the Data to a node
+     *
+     * @param array $data
+     * @return Node
+     */
+    private static function dataToNode(array $data): Node {
+        $node = new Node();
+
+        if (isset($data[self::INDEX])) {
+            $node->setIndex($data[self::INDEX]);
+            return $node;
+        }
+
+        /** @var ResolverTrace $trace */
+        $trace = $data['resolverTrace'];
+
+        $node->setType($trace->returnType);
+        $node->setStartTime((string)$trace->startOffset);
+        $node->setEndTime((string)($trace->startOffset + $trace->duration));
+        $node->setParentType($trace->parentType);
+        $node->setResponseName($trace->lastPathElement);
+
+        // ToDo: Set GraphQL errors
+        // $node->setError();
+
+        return $node;
+    }
+
+    private static function nodeHasChildren(array $node): bool {
+        return isset($node[self::CHILD]) && count($node[self::CHILD]) > 0;
+    }
+
+    /** @return Node[] */
+    private function childrenToNodes(array $children): array {
+        $nodes = [];
+
+        foreach ($children as $child) {
+            $node = self::dataToNode($child);
+
+            // Append the children if needed
+            if (self::nodeHasChildren($child)) {
+                $node->setChild($this->childrenToNodes($child[self::CHILD]));
+            }
+
+            $nodes[] = $node;
+        }
+        return $nodes;
+    }
+
+    public function toProtobuf(): Node {
+        return (new Node())->setChild(
+            $this->childrenToNodes($this->rootChildren)
+        );
     }
 }
