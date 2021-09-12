@@ -8,39 +8,46 @@ use Exception;
 use Google\Protobuf\Timestamp;
 use GraphQlTools\Immutable\AdditionalExecutionInformation;
 use GraphQlTools\Immutable\ExecutionTrace;
+use GraphQlTools\Immutable\SchemaInformation;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Http;
+use Mdg\Report;
+use Mdg\ReportHeader;
 use Mdg\Trace;
+use Mdg\TracesAndStats;
 
 final class Formatter
 {
     public const BLACKLISTED_HEADERS = ['authorization', 'cookie', 'set-cookie'];
     public const BLACKLISTED_VARIABLE_VALUES = ['secret', 'token'];
 
-    public static function singleTraceToProtobuf(ExecutionTrace $executionTrace, ?AdditionalExecutionInformation $information = null): Trace
+    public static function singleTraceToProtobuf(ExecutionTrace $executionTrace, ?AdditionalExecutionInformation $information = null): array
     {
-        $result = new Trace();
-        $result->setDurationNs($executionTrace->durationNs);
-        $result->setStartTime(self::toTimestamp($executionTrace->startTime));
-        $result->setEndTime(self::toTimestamp($executionTrace->endTime));
+        $trace = new Trace();
+        $trace->setDurationNs($executionTrace->durationNs);
+        $trace->setStartTime(self::toTimestamp($executionTrace->startTime));
+        $trace->setEndTime(self::toTimestamp($executionTrace->endTime));
 
         if ($information) {
-            self::setClientInformation($result, $information);
-            self::setDetails($result, $information);
+            self::setClientInformation($trace, $information);
+            self::setDetails($trace, $information);
         }
 
-        self::setHttp($result, $information);
+        self::setHttp($trace, $information);
 
         // Create the Protobuf tree
-        $result->setRoot(RootNode::createFromResolverTrace($executionTrace->executionResolvers)->toProtobuf());
-        return $result;
+        $trace->setRoot(RootNode::createFromResolverTrace($executionTrace->executionResolvers)->toProtobuf());
+
+        return [
+            $executionTrace->queryId, $trace
+        ];
     }
 
     private static function setHttp(Trace $trace, ?AdditionalExecutionInformation $information): void {
         $http = new Trace\HTTP();
         $http->setMethod(Trace\HTTP\Method::POST);
 
-        if ($information->requestHeaders) {
+        if ($information?->requestHeaders) {
             $filteredHeaders = $information->getHeaders(self::BLACKLISTED_HEADERS);
             $http->setRequestHeaders(
                 array_map(fn($headerValue) => (new Trace\HTTP\Values())->setValue(Http::headerValues($headerValue)), $filteredHeaders)
@@ -79,6 +86,29 @@ final class Formatter
         $timestamp = new Timestamp();
         $timestamp->fromDateTime(DateTime::createFromImmutable($dateTime));
         return $timestamp;
+    }
+
+    public static function createReport(SchemaInformation $schemaInformation, array $tracesWithAdditionalInformation): Report {
+        $report = new Report();
+
+        return $report->setHeader(
+            (new ReportHeader())->setGraphRef($schemaInformation->graphReference)
+        );
+
+        $tracesAndStats = [];
+        foreach ($tracesWithAdditionalInformation as $traceData) {
+            [$id, $trace] = self::singleTraceToProtobuf(
+                $traceData instanceof ExecutionTrace ? $traceData : $traceData[0],
+                $traceData instanceof ExecutionTrace? null : ($traceData[1] ?? null),
+            );
+            $tracesAndStats[$id][] = $trace;
+        }
+
+        $report->setTracesPerQuery(
+            array_map(fn($traces) => (new TracesAndStats())->setTrace($traces), $tracesAndStats)
+        );
+
+        return $report;
     }
 
     //public static function fullTraceReport(): Report {
