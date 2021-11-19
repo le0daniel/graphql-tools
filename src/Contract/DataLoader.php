@@ -13,9 +13,9 @@ interface DataLoader
 {
 
     /** @return Promise|SyncPromise */
-    public function loadBy(string|int ... $identifiers);
+    public function loadBy(...$identifiers);
 
     /** @return Promise|SyncPromise */
-    public function loadSingleBy(string|int $identifier);
+    public function loadSingleBy($identifier);
 
 }
