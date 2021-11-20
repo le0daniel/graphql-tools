@@ -14,6 +14,7 @@ use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Definition\GraphQlUnion;
 use GraphQlTools\Utility\Classes;
 use GraphQlTools\Utility\Directories;
+use GraphQlTools\Utility\Reflections;
 use ReflectionClass;
 
 class LazyRepository extends TypeRepository {
@@ -30,19 +31,35 @@ class LazyRepository extends TypeRepository {
     /** @var Type[]  */
     private array $resolvedTypes = [];
 
-    public function __construct(private array $typeResolutionMap) {
+    public function __construct(private array $typeResolutionMap) {}
 
-    }
-
+    /**
+     * Creates a TypeMap given a directory with classes extending the GraphQl
+     * Type instances.
+     *
+     * This method should only be called in a dev environment. This classmap
+     * should be cached and built during the build process.
+     *
+     * @param string $directory
+     * @return array
+     * @throws \ReflectionException
+     */
     public static function createTypeMapFromDirectory(string $directory): array {
         $typeMap = [];
 
         foreach (Directories::fileIteratorWithRegex($directory, '/\.php$/') as $phpFile) {
             $className = Classes::getDeclaredClassInFile($phpFile->getRealPath());
-            $reflection = new ReflectionClass($className);
+            if (!$className) {
+                continue;
+            }
 
-            if (in_array($reflection->getParentClass()?->getName(), self::CLASS_MAP_INSTANCES, true)) {
-                $typeMap[$className::typeName()] = $className;
+            $parentClassNames = Reflections::getAllParentClasses(new ReflectionClass($className));
+            foreach ($parentClassNames as $parentClassName) {
+                if (in_array($parentClassName, self::CLASS_MAP_INSTANCES, true)) {
+                    /** @var $className GraphQlUnion|GraphQlType|GraphQlScalar|GraphQlInterface|GraphQlEnum|GraphQlInputType */
+                    $typeMap[$className::typeName()] = $className;
+                    break;
+                }
             }
         }
 

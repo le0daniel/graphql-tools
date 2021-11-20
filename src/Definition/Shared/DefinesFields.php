@@ -106,6 +106,9 @@ trait DefinesFields
         ]);
     }
 
+    /**
+     * @throws DefinitionException
+     */
     private function createField(mixed $name, mixed $fieldDeclaration): FieldDefinition
     {
         if ($fieldDeclaration instanceof GraphQlField) {
