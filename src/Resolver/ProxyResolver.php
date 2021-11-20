@@ -58,6 +58,7 @@ class ProxyResolver
             return null;
         }
 
+        /** @var $typeData object */
         return $typeData->{$fieldName} ?? null;
     }
 
@@ -75,30 +76,24 @@ class ProxyResolver
     final public function __invoke(mixed $typeData, ?array $arguments, OperationContext $operationContext, ResolveInfo $info): mixed
     {
         $arguments ??= [];
-        $context = $operationContext->context;
-
         $next = $operationContext->extensions->middlewareFieldResolution($typeData, $arguments, $info);
 
         try {
             $promiseOrValue = $this->resolveFieldToValue(
                 $typeData,
                 $arguments,
-                $context,
+                $operationContext->context,
                 $info
             );
 
-            // The synchronous case is directly resolved as the value is already preset.
-            if (!self::isPromise($promiseOrValue)) {
-                return $next($promiseOrValue);
-            }
+            return self::isPromise($promiseOrValue)
+                ? $promiseOrValue
+                    ->then(static fn($resolvedValue) => $next($resolvedValue))
+                    ->catch(static fn(\Throwable $error) => SideEffects::tap($error, $next))
+                : $next($promiseOrValue);
+
         } catch (\Throwable $error) {
             return SideEffects::tap($error, $next);
         }
-
-        // In the event of the asynchronous case, resolution and its handlers
-        // are called after the resolution was successfully completed.
-        return $promiseOrValue
-            ->then(fn($resolvedValue) => $next($resolvedValue))
-            ->catch(fn(\Throwable $error) => SideEffects::tap($error, $next));
     }
 }

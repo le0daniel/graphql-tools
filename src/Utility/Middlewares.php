@@ -17,6 +17,10 @@ final class Middlewares {
             }
         }
 
+        if (empty($callbackStack)) {
+            return static fn($value) => $value;
+        }
+
         return static function($value) use ($callbackStack): mixed {
             return array_reduce($callbackStack, static fn($carry, $callback) => $callback($carry), $value);
         };
