@@ -28,15 +28,15 @@ final class QueryExecutor {
      * result as an array.
      *
      * @param Schema $schema
-     * @param array|null $extensions
+     * @param array|null $extensionFactories
      * @param array|null $validationRules
      */
     public function __construct(
         private Schema $schema,
-        ?array $extensions = null,
+        ?array         $extensionFactories = null,
         private ?array $validationRules = null
     ){
-        $this->extensions = $extensions ?? self::defaultExtensions();
+        $this->extensions = $extensionFactories ?? self::defaultExtensions();
     }
 
     public static function defaultExtensions(): array{
@@ -53,8 +53,8 @@ final class QueryExecutor {
         mixed $rootValue = null,
         ?string $operationName = null,
     ): ExecutionResult {
-        $extensionManager = Extensions::create($this->extensions);
-        $extensionManager->dispatch(Extensions::START_EVENT, $query);
+        $extensions = Extensions::create($this->extensions);
+        $extensions->dispatch(Extensions::START_EVENT, $query);
 
         try {
             $source = Parser::parse($query);
@@ -66,17 +66,17 @@ final class QueryExecutor {
             $this->schema,
             $source,
             $rootValue,
-            new OperationContext($context, $extensionManager),
+            new OperationContext($context, $extensions),
             $variables ?? [],
             $operationName,
             [ProxyResolver::class, 'default'],
             $this->validationRules
         );
 
-        $extensionManager->dispatch(Extensions::END_EVENT);
+        $extensions->dispatch(Extensions::END_EVENT);
 
         // Append extensions to the result.
-        $result->extensions = $extensionManager->jsonSerialize();
+        $result->extensions = $extensions->jsonSerialize();
         return $result;
     }
 
