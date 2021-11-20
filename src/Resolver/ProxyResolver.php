@@ -21,7 +21,7 @@ class ProxyResolver
         $this->resolveFunction = $resolveFunction;
     }
 
-    private static function isPromise($potentialPromise): bool
+    private static function isPromise(mixed $potentialPromise): bool
     {
         return $potentialPromise instanceof SyncPromise || $potentialPromise instanceof Promise;
     }
@@ -58,38 +58,7 @@ class ProxyResolver
             return null;
         }
 
-        return $typeData->{$fieldName};
-    }
-
-    /**
-     * This function is a hook before the value is resolved. This can be used to manipulate the arguments and
-     * MUST return an array of arguments. This is a good place to validate arguments
-     *
-     * This is done synchronously as it should only manipulate the arguments.
-     *
-     * @param array $arguments
-     * @param mixed $typeData
-     * @param Context $context
-     * @param ResolveInfo $info
-     * @return array
-     */
-    protected function manipulateArgumentsBeforeResolution(array $arguments, mixed $typeData, Context $context, ResolveInfo $info): array
-    {
-        return $arguments;
-    }
-
-    /**
-     * This can be used to further manipulate the data based on the resolved value. This is called when
-     * the value has finally been resolved.
-     *
-     * @param mixed $resolvedValue
-     * @param Context $context
-     * @param ResolveInfo $info
-     * @return mixed
-     */
-    protected function manipulateValueAfterResolution(mixed $resolvedValue, Context $context, ResolveInfo $info): mixed
-    {
-        return $resolvedValue;
+        return $typeData->{$fieldName} ?? null;
     }
 
     /**
@@ -113,17 +82,14 @@ class ProxyResolver
         try {
             $promiseOrValue = $this->resolveFieldToValue(
                 $typeData,
-                $this->manipulateArgumentsBeforeResolution($arguments, $typeData, $context, $info),
+                $arguments,
                 $context,
                 $info
             );
 
             // The synchronous case is directly resolved as the value is already preset.
             if (!self::isPromise($promiseOrValue)) {
-                return SideEffects::tap(
-                    $this->manipulateValueAfterResolution($promiseOrValue, $context, $info),
-                    $next
-                );
+                return $next($promiseOrValue);
             }
         } catch (\Throwable $error) {
             return SideEffects::tap($error, $next);
@@ -132,13 +98,7 @@ class ProxyResolver
         // In the event of the asynchronous case, resolution and its handlers
         // are called after the resolution was successfully completed.
         return $promiseOrValue
-            ->then(function($resolvedValue) use ($context, $info, $next){
-                return SideEffects::tap(
-                    $this->manipulateValueAfterResolution($resolvedValue, $context, $info),
-                    $next
-                );
-            })->catch(static function(\Throwable $error) use ($next) {
-                return SideEffects::tap($error, $next);
-            });
+            ->then(fn($resolvedValue) => $next($resolvedValue))
+            ->catch(fn(\Throwable $error) => SideEffects::tap($error, $next));
     }
 }

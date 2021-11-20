@@ -6,11 +6,11 @@ namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\EnumType;
 use GraphQlTools\Definition\Shared\HasDescription;
-use GraphQlTools\Definition\Shared\IsWrapable;
 use GraphQlTools\Utility\Strings;
 
 abstract class GraphQlEnum extends EnumType {
-    use HasDescription, IsWrapable;
+    private const CLASS_POSTFIX = 'Scalar';
+    use HasDescription;
 
     public function __construct(){
         parent::__construct(
@@ -32,8 +32,8 @@ abstract class GraphQlEnum extends EnumType {
 
     public static function typeName(): string {
         $typeName = Strings::baseClassName(static::class);
-        return str_ends_with($typeName, 'Enum')
-            ? substr($typeName, 0, -strlen('Enum'))
+        return str_ends_with($typeName, self::CLASS_POSTFIX)
+            ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))
             : $typeName;
     }
 

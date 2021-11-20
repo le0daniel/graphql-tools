@@ -46,12 +46,6 @@ final class QueryExecutor {
         ];
     }
 
-    public static function withRules(Schema $schema, array $extension = [], ValidationRule...$rules): self{
-        return new self(
-            $schema, $extension, $rules
-        );
-    }
-
     public function execute(
         string $query,
         Context $context,

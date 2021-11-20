@@ -18,17 +18,7 @@ final class QueryWithLazyRepositoryTest extends QueryWithNormalTypeResolverTest 
 
     protected function typeRepository(): TypeRepository {
         return new LazyRepository(
-            LazyRepository::createTypeMap(
-                [
-                    AnimalUnion::class,
-                    JsonScalar::class,
-                    LionType::class,
-                    MamelInterface::class,
-                    QueryType::class,
-                    TigerType::class,
-                    UserType::class,
-                ]
-            )
+            LazyRepository::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema')
         );
     }
 

@@ -7,19 +7,12 @@ namespace GraphQlTools\Definition;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\DefinesFields;
-use GraphQlTools\Definition\Shared\IsWrapable;
-use GraphQlTools\Resolver\ProxyResolver;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Strings;
 
 abstract class GraphQlType extends ObjectType {
-    use DefinesFields, HasDescription, IsWrapable;
-
-    /**
-     * Use this config key on a field to declare the field as
-     * beta. This will add a message to the response.
-     */
-    public const BETA_FIELD_CONFIG_KEY = 'isBeta';
+    private const CLASS_POSTFIX = 'Type';
+    use DefinesFields, HasDescription;
 
     public function __construct(
         protected TypeRepository $typeRepository
@@ -29,8 +22,7 @@ abstract class GraphQlType extends ObjectType {
                 'name' => static::typeName(),
                 'description' => $this->description(),
                 'fields' => fn() => $this->initFields(),
-                'resolveField' => [ProxyResolver::class, 'default'],
-                'interfaces' => array_map([$this, 'resolveFieldType'],$this->interfaces()),
+                'interfaces' => fn() => array_map([$this, 'declarationToType'], $this->interfaces()),
             ]
         );
     }
@@ -45,8 +37,8 @@ abstract class GraphQlType extends ObjectType {
 
     public static function typeName(): string {
         $typeName = Strings::baseClassName(static::class);
-        return str_ends_with($typeName, 'Type')
-            ? substr($typeName, 0, -strlen('Type'))
+        return str_ends_with($typeName, self::CLASS_POSTFIX)
+            ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))
             : $typeName;
     }
 

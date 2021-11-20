@@ -7,12 +7,12 @@ namespace GraphQlTools\Definition;
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQlTools\Definition\Shared\DefinesFields;
 use GraphQlTools\Definition\Shared\HasDescription;
-use GraphQlTools\Definition\Shared\IsWrapable;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Strings;
 
 abstract class GraphQlInputType extends InputObjectType {
-    use DefinesFields, HasDescription, IsWrapable;
+    private const CLASS_POSTFIX = 'Type';
+    use DefinesFields, HasDescription;
 
     public function __construct(protected TypeRepository $typeRepository){
         parent::__construct(
@@ -26,8 +26,8 @@ abstract class GraphQlInputType extends InputObjectType {
 
     public static function typeName(): string {
         $typeName = Strings::baseClassName(static::class);
-        return str_ends_with($typeName, 'Type')
-            ? substr($typeName, 0, -strlen('Type'))
+        return str_ends_with($typeName, self::CLASS_POSTFIX)
+            ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))
             : $typeName;
     }
 

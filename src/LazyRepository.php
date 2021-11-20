@@ -6,9 +6,26 @@ namespace GraphQlTools;
 
 use Closure;
 use GraphQL\Type\Definition\Type;
+use GraphQlTools\Definition\GraphQlEnum;
+use GraphQlTools\Definition\GraphQlInputType;
+use GraphQlTools\Definition\GraphQlInterface;
+use GraphQlTools\Definition\GraphQlScalar;
+use GraphQlTools\Definition\GraphQlType;
+use GraphQlTools\Definition\GraphQlUnion;
 use GraphQlTools\Utility\Classes;
+use GraphQlTools\Utility\Directories;
+use ReflectionClass;
 
 class LazyRepository extends TypeRepository {
+
+    private const CLASS_MAP_INSTANCES = [
+        GraphQlType::class,
+        GraphQlEnum::class,
+        GraphQlInputType::class,
+        GraphQlInterface::class,
+        GraphQlScalar::class,
+        GraphQlUnion::class,
+    ];
 
     /** @var Type[]  */
     private array $resolvedTypes = [];
@@ -17,17 +34,16 @@ class LazyRepository extends TypeRepository {
 
     }
 
-    /**
-     * Get a list of classes and create a Type Map which can be cached for faster execution.
-     *
-     * @param array $classes
-     * @return array
-     */
-    public static function createTypeMap(array $classes): array {
+    public static function createTypeMapFromDirectory(string $directory): array {
         $typeMap = [];
 
-        foreach ($classes as $class) {
-            $typeMap[($class . '::typeName')()] = $class;
+        foreach (Directories::fileIteratorWithRegex($directory, '/\.php$/') as $phpFile) {
+            $className = Classes::getDeclaredClassInFile($phpFile->getRealPath());
+            $reflection = new ReflectionClass($className);
+
+            if (in_array($reflection->getParentClass()?->getName(), self::CLASS_MAP_INSTANCES, true)) {
+                $typeMap[$className::typeName()] = $className;
+            }
         }
 
         return $typeMap;

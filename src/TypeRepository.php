@@ -10,6 +10,7 @@ use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
+use GraphQlTools\Definition\GraphQlField;
 
 class TypeRepository {
     /**
@@ -33,6 +34,16 @@ class TypeRepository {
     protected function makeType(string $classOrTypeName): mixed
     {
         return new $classOrTypeName($this);
+    }
+
+    /**
+     * Make a custom field class
+     *
+     * @param string $className
+     * @return GraphQlField
+     */
+    public function makeField(string $className): GraphQlField {
+        return new $className;
     }
 
     /**

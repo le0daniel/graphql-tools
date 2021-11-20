@@ -7,13 +7,13 @@ namespace GraphQlTools\Definition;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\UnionType;
 use GraphQlTools\Definition\Shared\HasDescription;
-use GraphQlTools\Definition\Shared\IsWrapable;
 use GraphQlTools\Definition\Shared\ResolvesType;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Strings;
 
 abstract class GraphQlUnion extends UnionType {
-    use HasDescription, ResolvesType, IsWrapable;
+    private const CLASS_POSTFIX = 'Union';
+    use HasDescription, ResolvesType;
 
     public function __construct(
         protected TypeRepository $typeRepository
@@ -47,8 +47,8 @@ abstract class GraphQlUnion extends UnionType {
 
     public static function typeName(): string {
         $typeName = Strings::baseClassName(static::class);
-        return str_ends_with($typeName, 'Union')
-            ? substr($typeName, 0, -strlen('Union'))
+        return str_ends_with($typeName, self::CLASS_POSTFIX)
+            ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))
             : $typeName;
     }
 

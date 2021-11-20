@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition\Shared;
 
-use Closure;
+use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\Type;
+use GraphQlTools\Definition\DefinitionException;
+use GraphQlTools\Definition\GraphQlField;
 use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
-use GraphQlTools\Definition\WrappedType;
+use GraphQlTools\Resolver\ProxyResolver;
 use GraphQlTools\Utility\Resolving;
 
-use function Sabre\Event\Loop\instance;
-
-trait DefinesFields {
+trait DefinesFields
+{
 
     /**
      * Return an array of fields of that specific type. The fields
@@ -28,15 +29,27 @@ trait DefinesFields {
      *
      * @param array $inputFields
      * @return array
+     * @throws DefinitionException
      */
-    private function initInputFields(array $inputFields): array {
+    private function initInputFields(array $inputFields): array
+    {
         $fields = [];
-        foreach ($inputFields as $key => $field) {
-            if (!$field) {
+        foreach ($inputFields as $name => $inputField) {
+            if (!$inputField) {
                 continue;
             }
 
-            $fields[$key] = $this->resolveFieldType($field);
+            if (!is_array($inputField)) {
+                $fields[] = [
+                    'name' => $name,
+                    'type' => $this->declarationToType($inputField)
+                ];
+                continue;
+            }
+
+            $inputField['name'] = $name;
+            $inputField['type'] = $this->declarationToType($inputField['type']);
+            $fields[] = $inputField;
         }
 
         return $fields;
@@ -45,73 +58,84 @@ trait DefinesFields {
     /**
      * Ensures the fields have the proxy attached to the resolve function
      *
-     * @param array $rawFields
      * @return array
+     * @throws DefinitionException
      */
-    private function initFields(): array {
+    private function initFields(): array
+    {
         /** @var GraphQlType|GraphQlInterface $this */
-
         $fields = [];
-        foreach ($this->fields() as $key => $field) {
-
-            // Skip empty fields. This is useful when using
-            // a dynamic schema.
-            if (!$field) {
+        foreach ($this->fields() as $fieldName => $fieldDeclaration) {
+            if (!$fieldDeclaration) {
                 continue;
             }
 
             // Attaches the field type from a given type name
-            $field = $this->resolveFieldType($field);
-
-            // Ensure the argument types are also resolved.
-            if (is_array($field) && isset($field['args'])) {
-                $field['args'] = $this->initInputFields($field['args']);
-            }
-
-            // Ensure every field has an attached proxy if necessary
-            // This enables extensions to work correctly.
-            $fields[$key] = Resolving::attachProxy($field);
+            $field = $this->createField($fieldName, $fieldDeclaration);
+            Resolving::attachProxyToField($field);
+            $fields[] = $field;
         }
 
         return $fields;
     }
 
-    /**
-     * Ensure the types are resolved.
-     *
-     * @param Type|string|array $field
-     * @return mixed
-     */
-    private function resolveFieldType(mixed $field): mixed {
-        // If it is a string, we assume it is either a class name or a
-        // type name which is resolved by the type repository
-        if (is_string($field)) {
-            return $this->typeRepository->type($field);
+    protected function declarationToType(mixed $declaration): mixed
+    {
+        if (is_string($declaration)) {
+            return $this->typeRepository->type($declaration);
         }
 
-        // We assume it is either already an internal type or something else
-        // we can not correctly resolve.
-        if (!is_array($field)) {
-            return $field instanceof WrappedType
-                ? $field->toType($this->typeRepository)
-                : $field;
+        if ($declaration instanceof Type || $declaration instanceof \Closure) {
+            return $declaration;
         }
 
-        // If it is a string, we assume it is either a class name or a
-        // type name which is resolved
-        if (is_string($field['type'])) {
-            $field['type'] = $this->typeRepository->type($field['type']);
-            return $field;
+        throw new DefinitionException('Could not cast type declaration to type');
+    }
+
+    private function createFieldFromString(string $className, mixed $name): FieldDefinition {
+        if (GraphQlField::isFieldClass($className)) {
+            return $this->typeRepository->makeField($className)->toField(
+                GraphQlField::guessFieldName($name), $this->typeRepository
+            );
         }
 
-        // If we have a wrapped type,
-        // we resolve it now that we have  access to the type repo
-        if ($field['type'] instanceof WrappedType) {
-            $field['type'] = $field['type']->toType($this->typeRepository);
-            return $field;
+        return FieldDefinition::create([
+            'name' => $name,
+            'type' => $this->declarationToType($className),
+            'resolve' => new ProxyResolver()
+        ]);
+    }
+
+    private function createField(mixed $name, mixed $fieldDeclaration): FieldDefinition
+    {
+        if ($fieldDeclaration instanceof GraphQlField) {
+            return $fieldDeclaration->toField(
+                GraphQlField::guessFieldName($name),
+                $this->typeRepository
+            );
         }
 
-        return $field;
+        if (is_string($fieldDeclaration)) {
+            return $this->createFieldFromString($fieldDeclaration, $name);
+        }
+
+        if (is_array($fieldDeclaration)) {
+            $fieldDeclaration['name'] = $name;
+            $fieldDeclaration['type'] = $this->declarationToType($fieldDeclaration['type']);
+            $fieldDeclaration['resolve'] = $fieldDeclaration['resolve'] ?? new ProxyResolver();
+            $fieldDeclaration['args'] = $this->initInputFields($fieldDeclaration['args'] ?? []);
+            return FieldDefinition::create($fieldDeclaration);
+        }
+
+        if ($fieldDeclaration instanceof Type) {
+            return FieldDefinition::create([
+                'name' => $name,
+                'type' => $fieldDeclaration,
+                'resolve' => new ProxyResolver(),
+            ]);
+        }
+
+        throw new DefinitionException('Could not create field based on your definition');
     }
 
 }

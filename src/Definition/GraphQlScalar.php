@@ -6,11 +6,12 @@ namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\ScalarType;
 use GraphQlTools\Definition\Shared\HasDescription;
-use GraphQlTools\Definition\Shared\IsWrapable;
 use GraphQlTools\Utility\Strings;
 
 abstract class GraphQlScalar extends ScalarType {
-    use HasDescription, IsWrapable;
+    private const CLASS_POSTFIX = 'Scalar';
+
+    use HasDescription;
 
     public function __construct() {
         parent::__construct(
@@ -23,8 +24,8 @@ abstract class GraphQlScalar extends ScalarType {
 
     public static function typeName(): string {
         $typeName = Strings::baseClassName(static::class);
-        return str_ends_with($typeName, 'Scalar')
-            ? substr($typeName, 0, -strlen('Scalar'))
+        return str_ends_with($typeName, self::CLASS_POSTFIX)
+            ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))
             : $typeName;
     }
 }

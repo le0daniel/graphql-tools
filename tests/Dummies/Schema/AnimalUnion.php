@@ -8,10 +8,8 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Context;
 use GraphQlTools\Definition\GraphQlUnion;
-use GraphQlTools\Definition\Shared\IsWrapable;
 
 final class AnimalUnion extends GraphQlUnion {
-    use IsWrapable;
 
     protected function possibleTypes(): array {
         return [

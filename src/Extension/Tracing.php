@@ -134,18 +134,17 @@ final class Tracing extends Extension
      * @param $typeData
      * @param array $arguments
      * @param ResolveInfo $info
-     * @return Closure(mixed $value): void
+     * @return Closure(mixed $value): mixed
      */
     public function fieldResolution(int $eventTimeInNanoseconds, $typeData, array $arguments, ResolveInfo $info): Closure
     {
-        return function () use ($eventTimeInNanoseconds, $info): void {
-
-            // Add trace as soon as the field is resolved
+        return function ($resolvedValue) use ($eventTimeInNanoseconds, $info): mixed {
             $this->fieldTraces[] = ResolverTrace::fromResolveInfo(
                 $info,
                 $eventTimeInNanoseconds,
                 $this->startTimeInNanoseconds
             );
+            return $resolvedValue;
         };
     }
 }

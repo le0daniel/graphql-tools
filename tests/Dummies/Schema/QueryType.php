@@ -20,31 +20,28 @@ final class QueryType extends GraphQlType {
 
     protected function fields(): array {
         return [
+            'currentUser' => CurrentUserField::class,
             'whoami' => [
                 'type' => Type::string(),
                 'resolve' => fn() => self::WHOAMI_DATA
             ],
             'user' => [
-                'type' => UserType::wrap(fn($type) => new NonNull($type)),
+                'type' => new NonNull($this->typeRepository->type(UserType::class)),
                 'resolve' => fn() => ['id' => self::USER_ID],
             ],
             'jsonInput' => [
                 'type' => JsonScalar::class,
                 'args' => [
-                    'json' => JsonScalar::wrap(fn($type) => new NonNull($type))
+                    'json' => new NonNull($this->typeRepository->type(JsonScalar::class))
                 ],
                 'resolve' => fn($d, array $arguments) => ['json' => $arguments['json']],
             ],
             'animals' => [
-                'type' => AnimalUnion::wrap(
-                    fn($type) => Type::nonNull(Type::listOf(Type::nonNull($type)))
-                ),
+                'type' => Type::nonNull(Type::listOf(Type::nonNull($this->typeRepository->type(AnimalUnion::class)))),
                 'resolve' => fn() => self::ANIMALS
             ],
             'mamels' => [
-                'type' => MamelInterface::wrap(
-                    fn($type) => Type::nonNull(Type::listOf(Type::nonNull($type)))
-                ),
+                'type' => Type::nonNull(Type::listOf(Type::nonNull($this->typeRepository->type(MamelInterface::class)))),
                 'resolve' => fn() => self::ANIMALS
             ],
         ];

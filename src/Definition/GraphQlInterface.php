@@ -7,13 +7,13 @@ namespace GraphQlTools\Definition;
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\DefinesFields;
-use GraphQlTools\Definition\Shared\IsWrapable;
 use GraphQlTools\Definition\Shared\ResolvesType;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Strings;
 
 abstract class GraphQlInterface extends InterfaceType {
-    use DefinesFields, HasDescription, ResolvesType, IsWrapable;
+    private const CLASS_POSTFIX = 'Interface';
+    use DefinesFields, HasDescription, ResolvesType;
 
     public function __construct(protected TypeRepository $typeRepository) {
         parent::__construct(
@@ -27,8 +27,8 @@ abstract class GraphQlInterface extends InterfaceType {
 
     public static function typeName(): string {
         $typeName = Strings::baseClassName(static::class);
-        return str_ends_with($typeName, 'Interface')
-            ? substr($typeName, 0, -strlen('Interface'))
+        return str_ends_with($typeName, self::CLASS_POSTFIX)
+            ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))
             : $typeName;
     }
 

@@ -18,6 +18,18 @@ class QueryWithNormalTypeResolverTest extends ExecutionTestCase {
         return QueryType::class;
     }
 
+    public function testFieldExecution(): void {
+        $result = $this->queryExecutor->execute('query { currentUser }', new Context());
+        $this->assertNoErrors($result);
+        self::assertEquals('Hello World!', $result->data['currentUser']);
+    }
+
+    public function testFieldExecutionWithArguments(): void {
+        $result = $this->queryExecutor->execute('query { currentUser(name: "Me") }', new Context());
+        $this->assertNoErrors($result);
+        self::assertEquals('Hello Me', $result->data['currentUser']);
+    }
+
     public function testSimpleExecution(): void {
         $result = $this->queryExecutor->execute('query { whoami }', new Context());
         $this->assertNoErrors($result);

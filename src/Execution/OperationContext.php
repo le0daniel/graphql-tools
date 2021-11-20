@@ -13,6 +13,10 @@ use GraphQlTools\Execution\Extensions;
  *
  * @phan-read-only Context $context
  * @phan-read-only ExtensionManager $context
+ *
+ * @property-read Context $context
+ * @property-read Extensions $extensions
+ *
  */
 final class OperationContext {
 

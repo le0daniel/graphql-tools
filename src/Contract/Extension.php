@@ -48,7 +48,7 @@ abstract class Extension implements \JsonSerializable {
      * This is called before a field is resolved by the Proxy Resolver
      *
      * An optional returning Closure is called as soon as the field has finally been resolved.
-     * Ex: return fn(mixed $value) => void
+     * Ex: return fn(mixed $value) => $value
      *
      * @param int $eventTimeInNanoseconds
      * @param $typeData

@@ -98,12 +98,12 @@ abstract class SyncDataLoader implements DataLoader {
      * @param string|int $identifier
      * @return SyncPromise
      */
-    public function loadSingleBy(string|int $identifier): SyncPromise {
+    public function loadSingleBy($identifier): SyncPromise {
         return $this->loadBy($identifier)
             ->then(fn(mixed $data) => $data ? $data[0] ?? null : null);
     }
 
-    public function loadBy(string|int ... $identifiers): SyncPromise {
+    public function loadBy(...$identifiers): SyncPromise {
         $this->loadedValues = null;
         array_push($this->queued, ...$identifiers);
 

@@ -17,8 +17,8 @@ final class Middlewares {
             }
         }
 
-        return static function() use ($callbackStack): void {
-            array_walk($callbackStack, static fn($callback) => $callback(...func_get_args()));
+        return static function($value) use ($callbackStack): mixed {
+            return array_reduce($callbackStack, static fn($carry, $callback) => $callback($carry), $value);
         };
     }
 
