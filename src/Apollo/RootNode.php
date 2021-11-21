@@ -14,7 +14,7 @@ final class RootNode
 
     private array $rootChildren = [];
 
-    public static function createFromResolverTrace(array $resolvers): self
+    public static function createFromResolverTrace(array $resolvers, array $errors = []): self
     {
         $instance = new self();
 

@@ -91,7 +91,7 @@ final class Formatter
     public static function createReport(SchemaInformation $schemaInformation, array $tracesWithAdditionalInformation): Report {
         $report = new Report();
 
-        return $report->setHeader(
+        $report->setHeader(
             (new ReportHeader())->setGraphRef($schemaInformation->graphReference)
         );
 

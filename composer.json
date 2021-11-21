@@ -13,7 +13,7 @@
   ],
   "require": {
     "php": "^8.0",
-    "webonyx/graphql-php": "^14.9",
+    "webonyx/graphql-php": "^14.11",
     "google/protobuf": "^3.17"
   },
   "require-dev": {
