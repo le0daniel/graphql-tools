@@ -109,7 +109,7 @@ class LazyRepository extends TypeRepository {
      * @return string
      */
     final protected function key(string $classOrTypeName): string {
-        return Classes::mightBeClassName($classOrTypeName)
+        return Classes::isClassName($classOrTypeName)
             ? $classOrTypeName::typeName()
             : $classOrTypeName;
     }

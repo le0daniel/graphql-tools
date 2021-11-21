@@ -6,6 +6,7 @@ namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\EnumType;
 use GraphQlTools\Definition\Shared\HasDescription;
+use GraphQlTools\Utility\Classes;
 use GraphQlTools\Utility\Strings;
 
 abstract class GraphQlEnum extends EnumType {
@@ -31,7 +32,7 @@ abstract class GraphQlEnum extends EnumType {
     abstract protected function values(): array;
 
     public static function typeName(): string {
-        $typeName = Strings::baseClassName(static::class);
+        $typeName = Classes::baseName(static::class);
         return str_ends_with($typeName, self::CLASS_POSTFIX)
             ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))
             : $typeName;

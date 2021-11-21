@@ -6,14 +6,19 @@ namespace GraphQlTools\Test\Resolver;
 
 use GraphQL\Deferred;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
+use GraphQlTools\Contract\Extension;
 use GraphQlTools\Execution\OperationContext;
 use GraphQlTools\Execution\Extensions;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use GraphQlTools\Context;
 use GraphQlTools\Resolver\ProxyResolver;
+use PhpParser\Node\Arg;
 use PHPUnit\Framework\TestCase;
+use Prophecy\Argument;
+use Prophecy\PhpUnit\ProphecyTrait;
 
 final class ProxyResolverTest extends TestCase {
+    use ProphecyTrait;
 
     private OperationContext $operationContext;
 
@@ -22,6 +27,30 @@ final class ProxyResolverTest extends TestCase {
             new Context(),
             Extensions::create([])
         );
+    }
+
+    public function testWithExtensions(){
+        $resolver = new ProxyResolver(fn() => 'Value');
+        $dummyExtension = $this->prophesize(Extension::class);
+        $dummyExtension->fieldResolution(Argument::any(), Argument::any(), Argument::any(), Argument::any())
+            ->willReturn(fn($value) => "Extension: {$value}");
+
+        $operationContext = new OperationContext(new Context(), new Extensions($dummyExtension->reveal()));
+        $result = $resolver(null, null, $operationContext, ResolveInfoDummy::withDefaults());
+        self::assertEquals('Extension: Value', $result);
+    }
+
+    public function testAsyncWithExtensions(){
+        $resolver = new ProxyResolver(fn() => Deferred::create(fn() => 'Value'));
+        $dummyExtension = $this->prophesize(Extension::class);
+        $dummyExtension->fieldResolution(Argument::any(), Argument::any(), Argument::any(), Argument::any())
+            ->willReturn(fn($value) => "Extension: {$value}");
+
+        $operationContext = new OperationContext(new Context(), new Extensions($dummyExtension->reveal()));
+        $result = $resolver(null, null, $operationContext, ResolveInfoDummy::withDefaults());
+        SyncPromise::runQueue();
+
+        self::assertEquals('Extension: Value', $result->result);
     }
 
     /**

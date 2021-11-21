@@ -22,8 +22,11 @@ final class Middlewares {
             return static fn($value) => $value;
         }
 
-        return static function($value) use ($callbackStack): mixed {
-            return array_reduce($callbackStack, static fn($carry, $callback) => $callback($carry), $value);
+        return static function($carry) use ($callbackStack): mixed {
+            foreach ($callbackStack as $next) {
+                $carry = $next($carry);
+            }
+            return $carry;
         };
     }
 

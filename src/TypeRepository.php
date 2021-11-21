@@ -12,6 +12,7 @@ use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
 use GraphQL\Utils\SchemaPrinter;
 use GraphQlTools\Definition\GraphQlField;
+use GraphQlTools\Utility\Types;
 
 class TypeRepository {
     /**
@@ -69,19 +70,6 @@ class TypeRepository {
     }
 
     /**
-     * Enforce creation of the type. This is important when using lazy loading
-     * as for example root query and mutation types must be loaded.
-     *
-     * @param Type|callable $type
-     * @return Type
-     */
-    private static function enforceTypeLoading(Type|callable $type): Type {
-        return $type instanceof Type
-            ? $type
-            : $type();
-    }
-
-    /**
      * Returns a specific type by either it's identifier or the type class
      * The default TypeRepository always expects a class name.
      *
@@ -111,12 +99,16 @@ class TypeRepository {
         return new NonNull($this->type($classOrTypeName));
     }
 
-    final public function listOfType(string $className, bool $typeIsNullable = true): ListOfType {
-        $type = $typeIsNullable
-            ? $this->type($className)
-            : new NonNull($this->type($className));
+    final public function listOfType(string $className): ListOfType {
+        return new ListOfType($this->type($className));
+    }
 
-        return new ListOfType($type);
+    final public function nonNullListOfType(string $className): NonNull {
+        return new NonNull(new ListOfType($this->type($className)));
+    }
+
+    final public function listOfNonNullType(string $className): ListOfType {
+        return new ListOfType(new NonNull($this->type($className)));
     }
 
     final public function toSchema(
@@ -128,12 +120,12 @@ class TypeRepository {
         return new Schema(
             SchemaConfig::create(
                 [
-                    'query' => self::enforceTypeLoading($this->type($queryClassOrTypeName)),
+                    'query' => Types::enforceTypeLoading($this->type($queryClassOrTypeName)),
                     'mutation' => $mutationClassOrTypeName
-                        ? self::enforceTypeLoading($this->type($mutationClassOrTypeName))
+                        ? Types::enforceTypeLoading($this->type($mutationClassOrTypeName))
                         : null,
                     'types' => array_map(
-                        fn(string $typeName) => self::enforceTypeLoading($this->type($typeName)),
+                        fn(string $typeName) => Types::enforceTypeLoading($this->type($typeName)),
                         $eagerlyLoadTypes
                     ),
                     'typeLoader' => $this->typeLoader(),

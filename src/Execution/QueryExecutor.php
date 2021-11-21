@@ -16,10 +16,14 @@ use GraphQlTools\Extension\Tracing;
 use GraphQlTools\Resolver\ProxyResolver;
 use GraphQlTools\Utility\SideEffects;
 
-final class QueryExecutor {
+final class QueryExecutor
+{
 
-    /** @var string[]|callable[]  */
+    /** @var string[]|callable[] */
     private array $extensions;
+
+    /** @var callable|null */
+    private $errorFormatter;
 
     /**
      * Extensions must be an array of factories or class names which can be constructed
@@ -34,12 +38,16 @@ final class QueryExecutor {
     public function __construct(
         private Schema $schema,
         ?array         $extensionFactories = null,
-        private ?array $validationRules = null
-    ){
+        private ?array $validationRules = null,
+        ?callable      $errorFormatter = null
+    )
+    {
         $this->extensions = $extensionFactories ?? self::defaultExtensions();
+        $this->errorFormatter = $errorFormatter;
     }
 
-    public static function defaultExtensions(): array{
+    public static function defaultExtensions(): array
+    {
         return [
             Tracing::class,
             FieldMessages::class,
@@ -47,12 +55,13 @@ final class QueryExecutor {
     }
 
     public function execute(
-        string $query,
+        string  $query,
         Context $context,
-        ?array $variables = null,
-        mixed $rootValue = null,
+        ?array  $variables = null,
+        mixed   $rootValue = null,
         ?string $operationName = null,
-    ): ExecutionResult {
+    ): ExecutionResult
+    {
         $extensions = Extensions::create($this->extensions);
         $extensions->dispatch(Extensions::START_EVENT, $query);
 
@@ -74,6 +83,10 @@ final class QueryExecutor {
         );
 
         $extensions->dispatch(Extensions::END_EVENT);
+
+        if ($this->errorFormatter) {
+            $result->setErrorFormatter($this->errorFormatter);
+        }
 
         // Append extensions to the result.
         $result->extensions = $extensions->jsonSerialize();

@@ -9,6 +9,14 @@ use PHPUnit\Framework\TestCase;
 
 final class ArraysTest extends TestCase
 {
+    public function testContainsOneOf(){
+        $testArray = ['one', 'two', 'three', 1, 2, 3];
+        self::assertTrue(Arrays::containsOneOf($testArray, [1, 'two']));
+        self::assertTrue(Arrays::containsOneOf($testArray, [1, '1two']));
+        self::assertTrue(Arrays::containsOneOf($testArray, [12, 'two']));
+        self::assertFalse(Arrays::containsOneOf($testArray, [12, '1']));
+        self::assertFalse(Arrays::containsOneOf($testArray, [12, '2']));
+    }
 
     /** @dataProvider sortByColumnProvider */
     public function testSortByColumn(array $array, string $column, array $expected): void

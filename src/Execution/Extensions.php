@@ -9,12 +9,12 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\Extension;
 use GraphQlTools\Utility\Middlewares;
 use GraphQlTools\Utility\Time;
+use RuntimeException;
 
 final class Extensions implements \JsonSerializable {
 
     public const START_EVENT = 'start';
     public const END_EVENT = 'end';
-    public const FIELD_RESOLUTION_EVENT = 'fieldResolution';
 
     /** @var Extension[] */
     private array $extensions;
@@ -61,7 +61,7 @@ final class Extensions implements \JsonSerializable {
         return Middlewares::executeAndReturnNext(
             $this->extensions,
             /** @suppress PhanTypeMismatchArgument */
-            fn(Extension $extension) => $extension->fieldResolution($eventTime, $typeData, $arguments, $info)
+            static fn(Extension $extension) => $extension->fieldResolution($eventTime, $typeData, $arguments, $info)
         );
     }
 
@@ -85,7 +85,7 @@ final class Extensions implements \JsonSerializable {
                 return;
         }
 
-        throw new \RuntimeException("Unexpected event with name: `{$eventName}`");
+        throw new RuntimeException("Unexpected event with name: `{$eventName}`");
     }
 
     public function jsonSerialize(): array {

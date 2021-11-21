@@ -89,11 +89,11 @@ class ProxyResolver
             return self::isPromise($promiseOrValue)
                 ? $promiseOrValue
                     ->then(static fn($resolvedValue) => $next($resolvedValue))
-                    ->catch(static fn(\Throwable $error) => SideEffects::tap($error, $next))
+                    ->catch(static fn(\Throwable $error) => $next($error))
                 : $next($promiseOrValue);
 
         } catch (\Throwable $error) {
-            return SideEffects::tap($error, $next);
+            return $next($error);
         }
     }
 }

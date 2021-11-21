@@ -6,8 +6,14 @@ namespace GraphQlTools\Utility;
 
 final class Classes {
 
-    public static function mightBeClassName(string $possibleClassName): bool {
+    public static function isClassName(string $possibleClassName): bool {
         return str_contains($possibleClassName, '\\');
+    }
+
+    public static function baseName(string $className): string
+    {
+        $parts = explode('\\', $className);
+        return end($parts);
     }
 
     public static function getDeclaredClassInFile(string $file): ?string {

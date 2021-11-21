@@ -8,6 +8,7 @@ use GraphQL\Type\Definition\InputObjectType;
 use GraphQlTools\Definition\Shared\DefinesFields;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\TypeRepository;
+use GraphQlTools\Utility\Classes;
 use GraphQlTools\Utility\Strings;
 
 abstract class GraphQlInputType extends InputObjectType {
@@ -25,7 +26,7 @@ abstract class GraphQlInputType extends InputObjectType {
     }
 
     public static function typeName(): string {
-        $typeName = Strings::baseClassName(static::class);
+        $typeName = Classes::baseName(static::class);
         return str_ends_with($typeName, self::CLASS_POSTFIX)
             ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))
             : $typeName;
