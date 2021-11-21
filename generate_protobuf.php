@@ -14,7 +14,10 @@ function generateProtobuf(): void {
         unlink($file->getRealPath());
     }
 
-    exec("protoc --php_out=build ./report.proto");
+    exec("protoc --php_out=build ./report.proto", result_code: $resultCode);
+    if ($resultCode !== 0) {
+        throw new RuntimeException('Error generating protobuf files using protoc.');
+    }
 
     $files = Directories::fileIteratorWithRegex(BUILD_DIRECTORY, '/\.php$/');
     foreach ($files as $file) {
