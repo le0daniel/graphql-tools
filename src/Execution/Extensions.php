@@ -7,14 +7,14 @@ namespace GraphQlTools\Execution;
 use Closure;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\Extension;
+use GraphQlTools\Events\FieldResolutionEvent;
+use GraphQlTools\Events\StartEvent;
+use GraphQlTools\Events\StopEvent;
 use GraphQlTools\Utility\Middlewares;
 use GraphQlTools\Utility\Time;
 use RuntimeException;
 
 final class Extensions implements \JsonSerializable {
-
-    public const START_EVENT = 'start';
-    public const END_EVENT = 'end';
 
     /** @var Extension[] */
     private array $extensions;
@@ -30,7 +30,7 @@ final class Extensions implements \JsonSerializable {
      * considered contextual for each execution.
      *
      * @param array $extensions
-     * @return \GraphQlTools\Execution\Extensions
+     * @return Extensions
      */
     public static function create(array $extensions): Extensions {
         $instances = [];
@@ -55,36 +55,26 @@ final class Extensions implements \JsonSerializable {
      * @param ResolveInfo $info
      * @return Closure
      */
-    public function middlewareFieldResolution(mixed $typeData, array $arguments, ResolveInfo $info): Closure {
-        $eventTime = Time::nanoSeconds();
+    public function middlewareFieldResolution(FieldResolutionEvent $event): Closure {
 
         return Middlewares::executeAndReturnNext(
             $this->extensions,
             /** @suppress PhanTypeMismatchArgument */
-            static fn(Extension $extension) => $extension->fieldResolution($eventTime, $typeData, $arguments, $info)
+            static fn(Extension $extension) => $extension->fieldResolution($event)
         );
     }
 
-    /**
-     * @suppress PhanTypeMismatchArgument
-     *
-     * @param string $eventName
-     * @param ...$payload
-     * @return void
-     */
-    public function dispatch(string $eventName, ... $payload): void {
-        // The time of the event is always added as the first
-        $eventTime = Time::nanoSeconds();
-
-        switch ($eventName) {
-            case self::START_EVENT:
-                array_walk($this->extensions, static fn(Extension $extension) => $extension->start($eventTime, ... $payload));
+    public function dispatch(StopEvent|StartEvent $event): void {
+        switch ($event::class) {
+            case StartEvent::class:
+                array_walk($this->extensions, static fn(Extension $extension) => $extension->start($event));
                 return;
-            case self::END_EVENT:
-                array_walk($this->extensions, static fn(Extension $extension) => $extension->end($eventTime));
+            case StopEvent::class:
+                array_walk($this->extensions, static fn(Extension $extension) => $extension->end($event));
                 return;
         }
 
+        $eventName = $event::class;
         throw new RuntimeException("Unexpected event with name: `{$eventName}`");
     }
 

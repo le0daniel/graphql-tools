@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace GraphQlTools\Utility;
 
 
+use RuntimeException;
+
 final class Arrays
 {
 
@@ -17,20 +19,6 @@ final class Arrays
         return false;
     }
 
-    public static function mergeKeyValue(array $array, array $arrayToPush): array
-    {
-        foreach ($arrayToPush as $key => $value) {
-            $array[$key] = $value;
-        }
-        return $array;
-    }
-
-    public static function append(array $array, mixed $append): array
-    {
-        $array[] = $append;
-        return $array;
-    }
-
     public static function oneKeyExists(array $array, array $keys): bool
     {
         foreach ($keys as $key) {
@@ -41,14 +29,18 @@ final class Arrays
         return false;
     }
 
-    public static function keysExist(array $array, array $keys): bool
-    {
+    public static function onlyKeys(array $array, array $keys, bool $throwOnNonExistentKey = true): array {
+        $result = [];
         foreach ($keys as $key) {
-            if (!array_key_exists($key, $array)) {
-                return false;
+            if (!array_key_exists($key, $array) && $throwOnNonExistentKey) {
+                $gottenArrayKeys = implode(', ', array_keys($array));
+                $expectedArrayKeys = implode(', ', $keys);
+                throw new RuntimeException("Not all required keys were set. Got: {$gottenArrayKeys}. Expected: {$expectedArrayKeys}");
             }
+
+            $result[$key] = $array[$key] ?? null;
         }
-        return true;
+        return $result;
     }
 
     private static function isArrayAccessible(mixed $value): bool
@@ -109,7 +101,14 @@ final class Arrays
     }
 
     public static function removeNullValues(array $array): array {
-        return array_filter($array, fn($value): bool => $value !== null);
+        $result = [];
+        foreach ($array as $key => $value) {
+            if ($value !== null) {
+                $result[$key] = $value;
+            }
+        }
+
+        return $result;
     }
 
 }

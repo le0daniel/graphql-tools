@@ -6,6 +6,7 @@ namespace GraphQlTools\Test\Utility;
 
 use GraphQlTools\Utility\Arrays;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 final class ArraysTest extends TestCase
 {
@@ -43,7 +44,17 @@ final class ArraysTest extends TestCase
     /** @dataProvider keysExistProvider */
     public function testKeysExist(bool $expected, array $array, array $keys): void
     {
-        self::assertEquals($expected, Arrays::keysExist($array, $keys));
+        if (!$expected) {
+            $this->expectException(RuntimeException::class);
+
+            $gottenArrayKeys = implode(', ', array_keys($array));
+            $expectedArrayKeys = implode(', ', $keys);
+            $this->expectExceptionMessage(
+                "Not all required keys were set. Got: {$gottenArrayKeys}. Expected: {$expectedArrayKeys}"
+            );
+        }
+
+        self::assertEquals($keys, array_keys(Arrays::onlyKeys($array, $keys, true)));
     }
 
     public function keysExistProvider(): array
@@ -62,6 +73,10 @@ final class ArraysTest extends TestCase
         ];
     }
 
+    public function testRemoveNullValues() {
+        self::assertEquals(['key' => 0], Arrays::removeNullValues(['key' => 0, 0 => null, 'value' => null]));
+    }
+
     public function testOneKeyExists(): void
     {
         $array = ['key' => 'value', 'key2' => 'value'];
@@ -70,26 +85,6 @@ final class ArraysTest extends TestCase
         self::assertTrue(Arrays::oneKeyExists($array, ['key2']));
         self::assertTrue(Arrays::oneKeyExists($array, ['key', 'key2']));
         self::assertFalse(Arrays::oneKeyExists($array, ['key3']));
-    }
-
-    public function testAppend(): void
-    {
-        $array = ['test'];
-        self::assertEquals(['test', 'append'], Arrays::append($array, 'append'));
-    }
-
-    public function testMergeKeyValue(): void
-    {
-        $array = ['key' => 'value'];
-        self::assertEquals(
-            ['key' => 'value', 'key2' => 'value'],
-            Arrays::mergeKeyValue(
-                $array,
-                [
-                    'key2' => 'value',
-                ]
-            )
-        );
     }
 
     public function testLast()

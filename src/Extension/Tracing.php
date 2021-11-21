@@ -8,6 +8,9 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\Extension;
+use GraphQlTools\Events\FieldResolutionEvent;
+use GraphQlTools\Events\StartEvent;
+use GraphQlTools\Events\StopEvent;
 use GraphQlTools\Immutable\ExecutionTrace;
 use GraphQlTools\Immutable\ResolverTrace;
 use Closure;
@@ -116,32 +119,24 @@ final class Tracing extends Extension
             : null;
     }
 
-    public function start(int $eventTimeInNanoseconds, string $query): void
+    public function start(StartEvent $event): void
     {
-        $this->query = $query;
+        $this->query = $event->query;
         $this->startTime = new DateTimeImmutable();
-        $this->startTimeInNanoseconds = $eventTimeInNanoseconds;
+        $this->startTimeInNanoseconds = $event->eventTimeInNanoSeconds;
     }
 
-    public function end(int $eventTimeInNanoseconds): void
+    public function end(StopEvent $event): void
     {
         $this->endTime = new DateTimeImmutable();
-        $this->endTimeInNanoseconds = $eventTimeInNanoseconds;
+        $this->endTimeInNanoseconds = $event->eventTimeInNanoSeconds;
     }
 
-    /**
-     * @param int $eventTimeInNanoseconds
-     * @param $typeData
-     * @param array $arguments
-     * @param ResolveInfo $info
-     * @return Closure(mixed $value): mixed
-     */
-    public function fieldResolution(int $eventTimeInNanoseconds, $typeData, array $arguments, ResolveInfo $info): Closure
+    public function fieldResolution(FieldResolutionEvent $event): Closure
     {
-        return function ($resolvedValue) use ($eventTimeInNanoseconds, $info): mixed {
-            $this->fieldTraces[] = ResolverTrace::fromResolveInfo(
-                $info,
-                $eventTimeInNanoseconds,
+        return function ($resolvedValue) use ($event): mixed {
+            $this->fieldTraces[] = ResolverTrace::fromEvent(
+                $event,
                 $this->startTimeInNanoseconds
             );
             return $resolvedValue;

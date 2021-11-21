@@ -8,6 +8,7 @@ use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Executor\Promise\Promise;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
+use GraphQlTools\Events\FieldResolutionEvent;
 use GraphQlTools\Execution\OperationContext;
 use GraphQlTools\Utility\SideEffects;
 
@@ -76,7 +77,9 @@ class ProxyResolver
     final public function __invoke(mixed $typeData, ?array $arguments, OperationContext $operationContext, ResolveInfo $info): mixed
     {
         $arguments ??= [];
-        $next = $operationContext->extensions->middlewareFieldResolution($typeData, $arguments, $info);
+        $next = $operationContext->extensions->middlewareFieldResolution(
+            FieldResolutionEvent::create($typeData, $arguments, $info)
+        );
 
         try {
             $promiseOrValue = $this->resolveFieldToValue(

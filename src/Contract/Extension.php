@@ -6,6 +6,9 @@ namespace GraphQlTools\Contract;
 
 use Closure;
 use GraphQL\Type\Definition\ResolveInfo;
+use GraphQlTools\Events\FieldResolutionEvent;
+use GraphQlTools\Events\StartEvent;
+use GraphQlTools\Events\StopEvent;
 
 abstract class Extension implements \JsonSerializable {
 
@@ -24,14 +27,7 @@ abstract class Extension implements \JsonSerializable {
         return self::DEFAULT_PRIORITY;
     }
 
-    /**
-     * called when the query execution is started.
-     * This happens before parsing
-     *
-     * @param int $eventTimeInNanoseconds
-     * @param string $query
-     */
-    public function start(int $eventTimeInNanoseconds, string $query): void {
+    public function start(StartEvent $startEvent): void {
 
     }
 
@@ -40,7 +36,7 @@ abstract class Extension implements \JsonSerializable {
      *
      * @param int $eventTimeInNanoseconds
      */
-    public function end(int $eventTimeInNanoseconds): void {
+    public function end(StopEvent $event): void {
 
     }
 
@@ -50,13 +46,10 @@ abstract class Extension implements \JsonSerializable {
      * An optional returning Closure is called as soon as the field has finally been resolved.
      * Ex: return fn(mixed $value) => $value
      *
-     * @param int $eventTimeInNanoseconds
-     * @param $typeData
-     * @param array $arguments
-     * @param ResolveInfo $info
-     * @return Closure(mixed $value): void|null
+     * @param FieldResolutionEvent $event
+     * @return null|Closure(mixed $value) => $value
      */
-    public function fieldResolution(int $eventTimeInNanoseconds, $typeData, array $arguments, ResolveInfo $info): ?Closure {
+    public function fieldResolution(FieldResolutionEvent $event): ?Closure {
         return null;
     }
 }

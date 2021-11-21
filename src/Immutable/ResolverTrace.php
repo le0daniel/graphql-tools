@@ -7,6 +7,7 @@ namespace GraphQlTools\Immutable;
 
 
 use GraphQL\Type\Definition\ResolveInfo;
+use GraphQlTools\Events\FieldResolutionEvent;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Time;
 use RuntimeException;
@@ -37,19 +38,15 @@ final class ResolverTrace extends Holder
 
     public static function fromSerialized(array $data): self
     {
-        if (!Arrays::keysExist($data, self::REQUIRED_ARRAY_KEYS)) {
-            $gottenArrayKeys = implode(', ', array_keys($data));
-            $expectedArrayKeys = implode(', ', self::REQUIRED_ARRAY_KEYS);
-            throw new RuntimeException("Not all required keys were set. Got: {$gottenArrayKeys}. Expected: {$expectedArrayKeys}");
-        }
+        $verifiedData = Arrays::onlyKeys($data, self::REQUIRED_ARRAY_KEYS);
 
         return new self([
-            'path' => $data['path'],
-            'parentType' => $data['parentType'],
-            'fieldName' => $data['fieldName'],
-            'returnType' => $data['returnType'],
-            'duration' => $data['duration'],
-            'startOffset' => $data['startOffset'],
+            'path' => $verifiedData['path'],
+            'parentType' => $verifiedData['parentType'],
+            'fieldName' => $verifiedData['fieldName'],
+            'returnType' => $verifiedData['returnType'],
+            'duration' => $verifiedData['duration'],
+            'startOffset' => $verifiedData['startOffset'],
         ]);
     }
 
@@ -62,19 +59,19 @@ final class ResolverTrace extends Holder
         };
     }
 
-    public static function fromResolveInfo(ResolveInfo $info, int $preciseResolveStart, int $preciseExecutionStart): ResolverTrace
+    public static function fromEvent(FieldResolutionEvent $event, int $preciseExecutionStart): ResolverTrace
     {
         $endTimeInNanoseconds = Time::nanoSeconds();
-        $durationInNanoseconds = $endTimeInNanoseconds - $preciseResolveStart;
+        $durationInNanoseconds = $endTimeInNanoseconds - $event->eventTimeInNanoSeconds;
 
         return new self(
             [
-                'path' => $info->path,
-                'parentType' => $info->parentType->name,
-                'fieldName' => $info->fieldName,
-                'returnType' => (string)$info->returnType,
+                'path' => $event->info->path,
+                'parentType' => $event->info->parentType->name,
+                'fieldName' => $event->info->fieldName,
+                'returnType' => (string)$event->info->returnType,
                 'duration' => $durationInNanoseconds,
-                'startOffset' => $preciseResolveStart - $preciseExecutionStart,
+                'startOffset' => $event->eventTimeInNanoSeconds - $preciseExecutionStart,
             ]
         );
     }
