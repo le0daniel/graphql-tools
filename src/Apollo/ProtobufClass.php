@@ -3,6 +3,7 @@
 namespace GraphQlTools\Apollo;
 
 use GraphQlTools\Utility\Arrays;
+use GraphQlTools\Utility\Classes;
 
 final class ProtobufClass
 {
@@ -22,17 +23,40 @@ final class ProtobufClass
         return implode(PHP_EOL, $lines);
     }
 
+    private function pregMatchAllContent(string $regex): array {
+        preg_match_all($regex, $this->content, $matches);
+        return $matches ?? [];
+    }
+
+    private function pregMatchContent(string $regex, ?string $key): mixed {
+        preg_match($regex, $this->content, $matches);
+
+        return $key
+            ? ($matches[$key] ?? null)
+            : $matches;
+    }
+
+    private function pregReplaceContent(string $regex, string $replace): void
+    {
+        $this->content = preg_replace($regex, $replace, $this->content);
+    }
+
+    private function replaceContent(string $search, string $replace): void
+    {
+        $this->content = str_replace($search, $replace, $this->content);
+    }
+
     public function prefixNamespace(string $prefix): void
     {
         $namespace = $this->declaredNameSpace();
 
         if (!$namespace) {
-            $this->content = str_replace('<?php', implode(PHP_EOL, [
+            $this->replaceContent('<?php', self::toLines([
                 '<?php',
                 '# Generated Namespace Prefix',
                 "namespace {$prefix};",
-                '',
-            ]), $this->content);
+                ''
+            ]));
             return;
         }
 
@@ -40,44 +64,41 @@ final class ProtobufClass
             return;
         }
 
-        $this->content = preg_replace(self::NAMESPACE_REGEX, self::toLines([
+        $this->pregReplaceContent(self::NAMESPACE_REGEX, self::toLines([
             '# Modified Namespace Prefix',
             "namespace {$prefix}\\{$namespace};",
             '',
-        ]), $this->content);
+        ]));
     }
 
     public function prefixUsedClasses(string $prefix): void
     {
-        preg_match_all(self::CLASS_USAGE_PREFIX, $this->content, $matches);
+        $matches = $this->pregMatchAllContent(self::CLASS_USAGE_PREFIX);
 
         $classUsages = Arrays::removeNullValues(array_map(function (string $classUsage) use ($prefix) {
-            $parts = array_values(array_filter(explode('\\', $classUsage)));
-
-            if ($parts[0] === $prefix) {
-                return null;
-            }
-
-            return in_array('Google', $parts) || in_array('Internal', $parts) ? null : $classUsage;
+            $parts = Classes::classNameAsArray($classUsage);
+            return $parts[0] === $prefix || Arrays::containsOneOf($parts, ['Google', 'Internal'])
+                ? null
+                : $classUsage;
         }, $matches[0] ?? []));
 
-        $classUsages = array_values(array_unique($classUsages));
+        $uniqueOccurrences = array_unique($classUsages);
 
-        foreach ($classUsages as $classUsage) {
+        foreach ($uniqueOccurrences as $classUsage) {
             $escapedRegex = preg_quote($classUsage);
             $regex = "/\s{$escapedRegex}/";
-            $this->content = preg_replace($regex, " \\{$prefix}{$classUsage}", $this->content);
+            $this->pregReplaceContent($regex, " \\{$prefix}{$classUsage}");
         }
     }
 
-    public function removeClassAliases(): void {
-        $this->content = preg_replace(self::CLASS_ALIAS_REGEX, '', $this->content);
+    public function removeClassAliases(): void
+    {
+        $this->pregReplaceContent(self::CLASS_ALIAS_REGEX, '# Removed class alias');
     }
 
     public function declaredNameSpace(): ?string
     {
-        preg_match(self::NAMESPACE_REGEX, $this->content, $matches);
-        return $matches['namespace'] ?? null;
+        return $this->pregMatchContent(self::NAMESPACE_REGEX, 'namespace');
     }
 
     public function save(): void

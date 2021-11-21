@@ -4,7 +4,7 @@ namespace GraphQlTools\Apollo;
 
 use GraphQlTools\Immutable\ResolverTrace;
 use GraphQlTools\Utility\Arrays;
-use Mdg\Trace\Node;
+use Protobuf\Trace\Node;
 
 final class RootNode
 {

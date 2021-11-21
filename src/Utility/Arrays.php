@@ -4,8 +4,18 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Utility;
 
+
 final class Arrays
 {
+
+    public static function containsOneOf(array $array, array $values): bool {
+        foreach ($values as $value) {
+            if (in_array($value, $array, true)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public static function mergeKeyValue(array $array, array $arrayToPush): array
     {

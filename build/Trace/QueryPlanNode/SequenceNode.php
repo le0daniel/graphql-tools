@@ -61,5 +61,5 @@ class SequenceNode extends \Google\Protobuf\Internal\Message
 }
 
 // Adding a class alias for backwards compatibility with the previous class name.
-
+# Removed class alias
 

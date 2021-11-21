@@ -11,10 +11,10 @@ use GraphQlTools\Immutable\ExecutionTrace;
 use GraphQlTools\Immutable\SchemaInformation;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Http;
-use Mdg\Report;
-use Mdg\ReportHeader;
-use Mdg\Trace;
-use Mdg\TracesAndStats;
+use Protobuf\Report;
+use Protobuf\ReportHeader;
+use Protobuf\Trace;
+use Protobuf\TracesAndStats;
 
 final class Formatter
 {
@@ -111,16 +111,9 @@ final class Formatter
         return $report;
     }
 
-    //public static function fullTraceReport(): Report {
-    //    $report = new Report();
-    //    $report->setHeader();
-
-    //    $message = new Message
-
-    //    //$mapField = new MapField();
-    //    //$mapField->
-
-    //    $report->setTracesPerQuery();
-    //}
+    public static function fullTraceReport(): Report {
+        $report = new Report();
+        $report->setHeader(new ReportHeader());
+    }
 
 }

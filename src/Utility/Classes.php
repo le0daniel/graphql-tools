@@ -39,4 +39,8 @@ final class Classes {
         return $classes[0] ?? null;
     }
 
+    public static function classNameAsArray(string $fullyQualifiedClassName): array {
+        return array_values(array_filter(explode('\\', $fullyQualifiedClassName)));
+    }
+
 }
