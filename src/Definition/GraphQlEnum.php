@@ -7,7 +7,6 @@ namespace GraphQlTools\Definition;
 use GraphQL\Type\Definition\EnumType;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Utility\Classes;
-use GraphQlTools\Utility\Strings;
 
 abstract class GraphQlEnum extends EnumType {
     private const CLASS_POSTFIX = 'Scalar';

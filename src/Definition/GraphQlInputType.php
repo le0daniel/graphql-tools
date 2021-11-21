@@ -9,7 +9,6 @@ use GraphQlTools\Definition\Shared\DefinesFields;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Classes;
-use GraphQlTools\Utility\Strings;
 
 abstract class GraphQlInputType extends InputObjectType {
     private const CLASS_POSTFIX = 'Type';

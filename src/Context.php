@@ -6,7 +6,7 @@ namespace GraphQlTools;
 
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\DataLoader;
-use GraphQlTools\Utility\Strings;
+use GraphQlTools\Utility\Paths;
 
 class Context {
 
@@ -43,7 +43,7 @@ class Context {
      */
     protected function dataLoaderKey(ResolveInfo $info, string $className, ?array $options = null): string {
         $optionsKey = $options ? json_encode($options, JSON_THROW_ON_ERROR) : 'none';
-        $path = Strings::pathToString($info->path);
+        $path = Paths::toString($info->path);
         return "{$className}::{$path}-{$optionsKey}";
     }
 

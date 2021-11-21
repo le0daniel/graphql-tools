@@ -10,7 +10,6 @@ use GraphQlTools\Definition\Shared\DefinesFields;
 use GraphQlTools\Definition\Shared\ResolvesType;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Classes;
-use GraphQlTools\Utility\Strings;
 
 abstract class GraphQlInterface extends InterfaceType {
     private const CLASS_POSTFIX = 'Interface';

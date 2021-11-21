@@ -15,13 +15,14 @@ final class ResolveInfoDummy {
     public static function withDefaults(
         ?string $deprecationReason = null,
         ?bool $isBeta = null,
-        string $parentTypeClass = self::DEFAULT_PARENT_TYPE_CLASS
+        string $parentTypeClass = self::DEFAULT_PARENT_TYPE_CLASS,
+        array $path = ['my-path', 'sub']
     ): BaseResolveInfo{
         $reflection = new \ReflectionClass(BaseResolveInfo::class);
 
         /** @var BaseResolveInfo $instance */
         $instance = $reflection->newInstanceWithoutConstructor();
-        $instance->path = ['my-path', 'sub'];
+        $instance->path = $path;
         $instance->fieldName = 'TestFieldName';
         $instance->parentType = new $parentTypeClass(new TypeRepository());
         $instance->fieldDefinition = FieldDefinition::create(
