@@ -9,6 +9,7 @@ use Closure;
 final class Middlewares {
 
     public static function executeAndReturnNext(array &$stack, callable $callback): Closure {
+        /** @var callable[] $callbackStack */
         $callbackStack = [];
 
         foreach ($stack as $resolver) {

@@ -39,10 +39,6 @@ final class FieldMessages extends Extension {
             $this->messages[] = Message::beta($info);
         }
 
-        if (empty($arguments)) {
-            return null;
-        }
-
         return null;
     }
 }

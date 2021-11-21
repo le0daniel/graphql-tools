@@ -12,4 +12,9 @@ final class Strings {
         return end($parts);
     }
 
+    public static function pathToString(array $path): string {
+        $parts = array_map(fn($part) => is_string($part) ? $part : '[]', $path);
+        return implode('.', $parts);
+    }
+
 }

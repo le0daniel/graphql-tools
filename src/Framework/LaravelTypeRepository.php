@@ -27,4 +27,6 @@ final class LaravelTypeRepository extends LazyRepository
         return $this->application->make($className);
     }
 
+
+
 }

@@ -10,6 +10,7 @@ use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
+use GraphQL\Utils\SchemaPrinter;
 use GraphQlTools\Definition\GraphQlField;
 
 class TypeRepository {
@@ -140,6 +141,10 @@ class TypeRepository {
                 ]
             )
         );
+    }
+
+    final public static function print(Schema $schema): string {
+        return SchemaPrinter::doPrint($schema);
     }
 
 }

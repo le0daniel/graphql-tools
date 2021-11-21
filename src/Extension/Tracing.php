@@ -87,7 +87,7 @@ final class Tracing extends Extension
      */
     public function __construct(
         private bool $addTraceToResult = false,
-        mixed $storeTraceInformation = null
+        ?callable $storeTraceInformation = null
     )
     {
         $this->storeTraceInformation = $storeTraceInformation;

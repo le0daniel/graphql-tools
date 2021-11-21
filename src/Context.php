@@ -6,6 +6,7 @@ namespace GraphQlTools;
 
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\DataLoader;
+use GraphQlTools\Utility\Strings;
 
 class Context {
 
@@ -26,7 +27,7 @@ class Context {
      * @param array $parameters
      * @return mixed
      */
-    protected function makeClass(string $className, array $parameters = []): mixed {
+    protected function makeDataLoaderInstance(string $className, array $parameters = []): mixed {
         return $parameters ? new $className($parameters['options'] ?? null) : new $className;
     }
 
@@ -42,8 +43,8 @@ class Context {
      */
     protected function dataLoaderKey(ResolveInfo $info, string $className, ?array $options = null): string {
         $optionsKey = $options ? json_encode($options, JSON_THROW_ON_ERROR) : 'none';
-        $level = count($info->path);
-        return "{$className}::{$level}-{$info->parentType}-{$optionsKey}";
+        $path = Strings::pathToString($info->path);
+        return "{$className}::{$path}-{$optionsKey}";
     }
 
     /**
@@ -60,7 +61,7 @@ class Context {
         $dataLoaderKey = $this->dataLoaderKey($info, $className, $options);
 
         if (!isset($this->loaders[$dataLoaderKey])) {
-            $this->loaders[$dataLoaderKey] = $this->makeClass($className, [
+            $this->loaders[$dataLoaderKey] = $this->makeDataLoaderInstance($className, [
                 'options' => $options
             ]);
         }
