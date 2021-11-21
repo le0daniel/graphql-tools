@@ -32,4 +32,9 @@ final class CurrentUserField extends GraphQlField
 
         return 'Hello World!';
     }
+
+    protected function description(): ?string
+    {
+        return 'Type description';
+    }
 }
