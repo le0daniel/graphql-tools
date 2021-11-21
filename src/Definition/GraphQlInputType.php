@@ -11,8 +11,9 @@ use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Classes;
 
 abstract class GraphQlInputType extends InputObjectType {
-    private const CLASS_POSTFIX = 'Type';
     use DefinesFields, HasDescription;
+
+    private const CLASS_POSTFIX = 'Type';
 
     public function __construct(protected TypeRepository $typeRepository){
         parent::__construct(

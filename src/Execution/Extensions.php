@@ -9,9 +9,8 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\Extension;
 use GraphQlTools\Events\FieldResolutionEvent;
 use GraphQlTools\Events\StartEvent;
-use GraphQlTools\Events\StopEvent;
+use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Utility\Middlewares;
-use GraphQlTools\Utility\Time;
 use RuntimeException;
 
 final class Extensions implements \JsonSerializable {
@@ -56,7 +55,6 @@ final class Extensions implements \JsonSerializable {
      * @return Closure
      */
     public function middlewareFieldResolution(FieldResolutionEvent $event): Closure {
-
         return Middlewares::executeAndReturnNext(
             $this->extensions,
             /** @suppress PhanTypeMismatchArgument */
@@ -64,12 +62,12 @@ final class Extensions implements \JsonSerializable {
         );
     }
 
-    public function dispatch(StopEvent|StartEvent $event): void {
+    public function dispatch(EndEvent|StartEvent $event): void {
         switch ($event::class) {
             case StartEvent::class:
                 array_walk($this->extensions, static fn(Extension $extension) => $extension->start($event));
                 return;
-            case StopEvent::class:
+            case EndEvent::class:
                 array_walk($this->extensions, static fn(Extension $extension) => $extension->end($event));
                 return;
         }

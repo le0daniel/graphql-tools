@@ -8,7 +8,7 @@ use Closure;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Events\FieldResolutionEvent;
 use GraphQlTools\Events\StartEvent;
-use GraphQlTools\Events\StopEvent;
+use GraphQlTools\Events\EndEvent;
 
 abstract class Extension implements \JsonSerializable {
 
@@ -36,7 +36,7 @@ abstract class Extension implements \JsonSerializable {
      *
      * @param int $eventTimeInNanoseconds
      */
-    public function end(StopEvent $event): void {
+    public function end(EndEvent $event): void {
 
     }
 

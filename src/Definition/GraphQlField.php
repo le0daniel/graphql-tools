@@ -12,37 +12,107 @@ use ReflectionClass;
 abstract class GraphQlField
 {
     public const BETA_FIELD_CONFIG_KEY = 'isBeta';
+    public const NOTICE_CONFIG_KEY = 'notice';
 
+    /**
+     * Define the type of the field. You can either return a classname / typename
+     * or use the TypeRepository to get the correct type.
+     *
+     * @param TypeRepository $repository
+     * @return mixed
+     */
     abstract protected function fieldType(TypeRepository $repository);
 
+    /**
+     * Resolve the field to the correct value.
+     *
+     * @param mixed $typeData
+     * @param array $arguments
+     * @param Context $context
+     * @param ResolveInfo $info
+     * @return mixed
+     */
     abstract protected function resolve(mixed $typeData, array $arguments, Context $context, ResolveInfo $info);
 
-    protected function arguments(TypeRepository $repository): ?array {
+    /**
+     * Return a description for this field.
+     *
+     * @return string|null
+     */
+    abstract protected function description(): ?string;
+
+    /**
+     * Define an array of arguments
+     *
+     * @param TypeRepository $repository
+     * @return array|null
+     */
+    protected function arguments(TypeRepository $repository): ?array
+    {
         return null;
     }
 
-    protected function name(): ?string {
+    /**
+     * Optional, name of the field. This is used as a Fallback if no
+     * name has been defined when using the field
+     *
+     * @return string|null
+     */
+    protected function name(): ?string
+    {
         return null;
     }
 
-    protected function deprecationReason(): ?string {
+    /**
+     * If the field is deprecated, return a string
+     * @return string|null
+     */
+    protected function deprecationReason(): ?string
+    {
         return null;
     }
 
-    protected function isBeta(): bool {
+    /**
+     * Defines if this field is in BETA or not.
+     *
+     * @return bool
+     */
+    protected function isBeta(): bool
+    {
         return false;
     }
 
-    final public static function guessFieldName(mixed $name): ?string {
+    /**
+     * Adds a notice, which is caught by the FieldMessages extension
+     *
+     * @return string|null
+     */
+    protected function notice(): ?string {
+        return null;
+    }
+
+    final public static function guessFieldName(mixed $name): ?string
+    {
         return is_string($name) ? $name : null;
     }
 
-    final public static function isFieldClass(string $className): bool {
+    final public static function isFieldClass(string $className): bool
+    {
         $reflection = new ReflectionClass($className);
-        return $reflection->isSubclassOf(GraphQlField::class);
+        return $reflection->isSubclassOf(self::class);
     }
 
-    final public function toField(?string $name, TypeRepository $repository): FieldDefinition {
+    final public static function isBetaField(FieldDefinition $definition): bool
+    {
+        return ($definition->config[self::BETA_FIELD_CONFIG_KEY] ?? false) === true;
+    }
+
+    final public static function getFieldNotice(FieldDefinition $definition): ?string {
+        return $definition->config[self::NOTICE_CONFIG_KEY] ?? null;
+    }
+
+    final public function toField(?string $name, TypeRepository $repository): FieldDefinition
+    {
         if (!$name && !$this->name()) {
             throw new DefinitionException("A field name must always be provided.");
         }
@@ -53,7 +123,9 @@ abstract class GraphQlField
             'args' => $this->arguments($repository),
             'type' => $this->fieldType($repository),
             'deprecationReason' => $this->deprecationReason(),
+            'description' => $this->description(),
             self::BETA_FIELD_CONFIG_KEY => $this->isBeta(),
+            self::NOTICE_CONFIG_KEY => $this->notice(),
         ]);
     }
 

@@ -11,24 +11,31 @@ use GraphQlTools\Definition\Shared\ResolvesType;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Classes;
 
-abstract class GraphQlUnion extends UnionType {
-    private const CLASS_POSTFIX = 'Union';
+abstract class GraphQlUnion extends UnionType
+{
     use HasDescription, ResolvesType;
+
+    private const CLASS_POSTFIX = 'Union';
 
     public function __construct(
         protected TypeRepository $typeRepository
-    ){
+    )
+    {
         parent::__construct(
             [
                 'name' => static::typeName(),
                 'description' => $this->description(),
-                'types' => fn() => array_map(function($type){
-                    return is_string($type)
-                        ? $this->typeRepository->type($type)
-                        : $type;
-                }, $this->possibleTypes()),
+                'types' => fn() => $this->initTypes(),
             ]
         );
+    }
+
+    private function initTypes(): array {
+        $types = [];
+        foreach ($this->possibleTypes() as $type) {
+            $types[] = $type instanceof Type ? $type : $this->typeRepository->type($type);
+        }
+        return $types;
     }
 
     /**
@@ -45,7 +52,8 @@ abstract class GraphQlUnion extends UnionType {
      */
     abstract protected function possibleTypes(): array;
 
-    public static function typeName(): string {
+    public static function typeName(): string
+    {
         $typeName = Classes::baseName(static::class);
         return str_ends_with($typeName, self::CLASS_POSTFIX)
             ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))

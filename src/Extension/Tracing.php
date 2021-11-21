@@ -10,7 +10,7 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\Extension;
 use GraphQlTools\Events\FieldResolutionEvent;
 use GraphQlTools\Events\StartEvent;
-use GraphQlTools\Events\StopEvent;
+use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Immutable\ExecutionTrace;
 use GraphQlTools\Immutable\ResolverTrace;
 use Closure;
@@ -126,7 +126,7 @@ final class Tracing extends Extension
         $this->startTimeInNanoseconds = $event->eventTimeInNanoSeconds;
     }
 
-    public function end(StopEvent $event): void
+    public function end(EndEvent $event): void
     {
         $this->endTime = new DateTimeImmutable();
         $this->endTimeInNanoseconds = $event->eventTimeInNanoSeconds;

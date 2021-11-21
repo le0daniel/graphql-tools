@@ -4,7 +4,7 @@ namespace GraphQlTools\Events;
 
 use GraphQlTools\Contract\Event;
 
-final class StopEvent extends Event
+final class EndEvent extends Event
 {
 
 }

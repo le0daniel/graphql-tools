@@ -12,7 +12,7 @@ use GraphQL\Type\Schema;
 use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Context;
 use GraphQlTools\Events\StartEvent;
-use GraphQlTools\Events\StopEvent;
+use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Extension\FieldMessages;
 use GraphQlTools\Extension\Tracing;
 use GraphQlTools\Resolver\ProxyResolver;
@@ -84,7 +84,7 @@ final class QueryExecutor
             $this->validationRules
         );
 
-        $extensions->dispatch(StopEvent::create());
+        $extensions->dispatch(EndEvent::create());
 
         if ($this->errorFormatter) {
             $result->setErrorFormatter($this->errorFormatter);

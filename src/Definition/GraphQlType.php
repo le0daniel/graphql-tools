@@ -11,8 +11,9 @@ use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Classes;
 
 abstract class GraphQlType extends ObjectType {
-    private const CLASS_POSTFIX = 'Type';
     use DefinesFields, HasDescription;
+
+    private const CLASS_POSTFIX = 'Type';
 
     public function __construct(
         protected TypeRepository $typeRepository

@@ -36,8 +36,12 @@ final class FieldMessages extends Extension {
         }
 
         // Adds a message if the field contains the isBeta flag in the config
-        if ($event->info->fieldDefinition->config[GraphQlField::BETA_FIELD_CONFIG_KEY] ?? false) {
+        if (GraphQlField::isBetaField($event->info->fieldDefinition)) {
             $this->messages[] = Message::beta($event->info);
+        }
+
+        if (GraphQlField::getFieldNotice($event->info->fieldDefinition)) {
+            $this->messages[] = Message::notice(GraphQlField::getFieldNotice($event->info->fieldDefinition));
         }
 
         return null;

@@ -9,9 +9,9 @@ use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Utility\Classes;
 
 abstract class GraphQlScalar extends ScalarType {
-    private const CLASS_POSTFIX = 'Scalar';
-
     use HasDescription;
+
+    private const CLASS_POSTFIX = 'Scalar';
 
     public function __construct() {
         parent::__construct(

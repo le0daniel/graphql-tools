@@ -27,19 +27,11 @@ trait ResolvesType {
      */
     abstract protected function resolveToType(mixed $typeValue, Context $context, ResolveInfo $info): callable|Type|string;
 
-    /**
-     * Delegates to the type resolve method.
-     *
-     * @param object $objectValue
-     * @param OperationContext $context
-     * @param ResolveInfo $info
-     * @return callable|null
-     */
-    final public function resolveType($objectValue, $context, ResolveInfo $info): Type|callable {
-        $type = $this->resolveToType($objectValue, $context->context, $info);
-        return is_string($type)
-            ? $this->typeRepository->type($type)
-            : $type;
+    final public function resolveType($typeValue, $context, ResolveInfo $info): Type|callable {
+        $type = $this->resolveToType($typeValue, $context->context, $info);
+        return $type instanceof Type
+            ? $type
+            : $this->typeRepository->type($type);
     }
 
 }

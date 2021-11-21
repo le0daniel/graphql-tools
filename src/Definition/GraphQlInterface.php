@@ -12,8 +12,9 @@ use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Classes;
 
 abstract class GraphQlInterface extends InterfaceType {
-    private const CLASS_POSTFIX = 'Interface';
     use DefinesFields, HasDescription, ResolvesType;
+
+    private const CLASS_POSTFIX = 'Interface';
 
     public function __construct(protected TypeRepository $typeRepository) {
         parent::__construct(

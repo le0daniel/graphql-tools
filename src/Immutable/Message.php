@@ -20,6 +20,7 @@ class Message extends Holder
     public const TYPE_DEPRECATION = 'deprecation';
     public const TYPE_BETA = 'beta';
     public const TYPE_INFO = 'info';
+    public const TYPE_NOTICE = 'notice';
 
     final public static function from(string $message, string $type){
         return new self([
@@ -41,6 +42,13 @@ class Message extends Holder
             "You used the beta field / argument `{$resolveInfo->fieldName}` at path: `{$pathString}`:" .
             " This field can still change without a notice. Make sure not to use this field in production. {$infoMessage}",
             self::TYPE_BETA
+        );
+    }
+
+    public static function notice(string $notice): static {
+        return self::from(
+            $notice,
+            self::TYPE_NOTICE
         );
     }
 
