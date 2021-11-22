@@ -124,6 +124,8 @@ abstract class GraphQlField
             'type' => $this->fieldType($repository),
             'deprecationReason' => $this->deprecationReason(),
             'description' => $this->description(),
+
+            // Separate config keys for additional value
             self::BETA_FIELD_CONFIG_KEY => $this->isBeta(),
             self::NOTICE_CONFIG_KEY => $this->notice(),
         ]);
