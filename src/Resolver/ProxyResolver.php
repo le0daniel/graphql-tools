@@ -6,6 +6,7 @@ namespace GraphQlTools\Resolver;
 
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Executor\Promise\Promise;
+use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
 use GraphQlTools\Events\FieldResolutionEvent;
@@ -33,6 +34,12 @@ class ProxyResolver
     final public static function default(): mixed
     {
         return (new static())->__invoke(...func_get_args());
+    }
+
+    final public static function attachToField(FieldDefinition &$field): void {
+        if ($field->resolveFn && !$field->resolveFn instanceof ProxyResolver) {
+            $field->resolveFn = new ProxyResolver($field->resolveFn);
+        }
     }
 
     /**

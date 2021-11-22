@@ -72,7 +72,7 @@ trait DefinesFields
 
             // Attaches the field type from a given type name
             $field = $this->createField($fieldName, $fieldDeclaration);
-            Resolving::attachProxyToField($field);
+            ProxyResolver::attachToField($field);
             $fields[] = $field;
         }
 

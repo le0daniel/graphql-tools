@@ -6,13 +6,13 @@ namespace GraphQlTools\Test\Resolver;
 
 use GraphQL\Deferred;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
+use GraphQL\Type\Definition\FieldDefinition;
 use GraphQlTools\Contract\Extension;
 use GraphQlTools\Execution\OperationContext;
 use GraphQlTools\Execution\Extensions;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use GraphQlTools\Context;
 use GraphQlTools\Resolver\ProxyResolver;
-use PhpParser\Node\Arg;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -98,5 +98,20 @@ final class ProxyResolverTest extends TestCase {
         SyncPromise::runQueue();
         self::assertEquals('Test', $promise->result);
         self::assertCount(0, $this->operationContext->context->getUsedLoaders());
+    }
+
+    public function testAttachProxyToField()
+    {
+        /** @var FieldDefinition $field */
+        $field = $this->prophesize(FieldDefinition::class)->reveal();
+        $field->resolveFn = fn() => null;
+        $proxyResolver = new ProxyResolver();
+
+        ProxyResolver::attachToField($field);
+        self::assertInstanceOf(ProxyResolver::class, $field->resolveFn);
+
+        $field->resolveFn = $proxyResolver;
+        ProxyResolver::attachToField($field);
+        self::assertSame($proxyResolver, $field->resolveFn);
     }
 }

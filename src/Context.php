@@ -8,10 +8,18 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\DataLoader;
 use GraphQlTools\Utility\Paths;
 
-class Context {
+class Context
+{
 
     /** @var DataLoader[] */
     private array $loaders = [];
+
+    private function dataLoaderKey(ResolveInfo $info, string $className, ?array $options = null): string
+    {
+        $optionsKey = $options ? json_encode($options, JSON_THROW_ON_ERROR) : 'none';
+        $path = Paths::toString($info->path);
+        return "{$className}::{$path}-{$optionsKey}";
+    }
 
     /**
      * Creates an instance of a class with some additional parameters. This is used by the
@@ -27,25 +35,13 @@ class Context {
      * @param array $parameters
      * @return mixed
      */
-    protected function makeDataLoaderInstance(string $className, array $parameters = []): mixed {
-        return $parameters ? new $className($parameters['options'] ?? null) : new $className;
+    protected function makeDataLoaderInstance(string $className, ?array $options): mixed
+    {
+        return $options
+            ? new $className($options)
+            : new $className;
     }
 
-    /**
-     * Computes a cache key for a specific data loader given it's resolve info and options.
-     * Be careful when implementing this yourself.
-     *
-     * @param ResolveInfo $info
-     * @param string $className
-     * @param array|null $options
-     * @return string
-     * @throws \JsonException
-     */
-    protected function dataLoaderKey(ResolveInfo $info, string $className, ?array $options = null): string {
-        $optionsKey = $options ? json_encode($options, JSON_THROW_ON_ERROR) : 'none';
-        $path = Paths::toString($info->path);
-        return "{$className}::{$path}-{$optionsKey}";
-    }
 
     /**
      * Returns an instance of a data loader. If already initialized, it will return the same dataloader that
@@ -57,19 +53,19 @@ class Context {
      * @return DataLoader
      * @throws \JsonException
      */
-    final public function getDataLoader(ResolveInfo $info, string $className, ?array $options = null): DataLoader {
+    final public function getDataLoader(ResolveInfo $info, string $className, ?array $options = null): DataLoader
+    {
         $dataLoaderKey = $this->dataLoaderKey($info, $className, $options);
 
         if (!isset($this->loaders[$dataLoaderKey])) {
-            $this->loaders[$dataLoaderKey] = $this->makeDataLoaderInstance($className, [
-                'options' => $options
-            ]);
+            $this->loaders[$dataLoaderKey] = $this->makeDataLoaderInstance($className, $options);
         }
 
         return $this->loaders[$dataLoaderKey];
     }
 
-    final public function getUsedLoaders(): array {
+    final public function getUsedLoaders(): array
+    {
         return array_keys($this->loaders);
     }
 

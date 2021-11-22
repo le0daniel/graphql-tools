@@ -14,7 +14,7 @@
   "require": {
     "php": "^8.0",
     "webonyx/graphql-php": "^14.11",
-    "google/protobuf": "^3.17"
+    "google/protobuf": "^3.19"
   },
   "require-dev": {
     "phan/phan": "^4.0",

@@ -40,8 +40,8 @@ final class FieldMessages extends Extension {
             $this->messages[] = Message::beta($event->info);
         }
 
-        if (GraphQlField::getFieldNotice($event->info->fieldDefinition)) {
-            $this->messages[] = Message::notice(GraphQlField::getFieldNotice($event->info->fieldDefinition));
+        if ($notice = GraphQlField::getFieldNotice($event->info->fieldDefinition)) {
+            $this->messages[] = Message::notice($notice);
         }
 
         return null;
