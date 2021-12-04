@@ -48,6 +48,17 @@ final class Arrays
         return is_array($value) || $value instanceof \ArrayAccess;
     }
 
+    public static function nonRecursiveFlatten(&$array): array {
+        $flattened = [];
+        foreach ($array as $potentialArray) {
+            $valueToPush = is_array($potentialArray)
+                ? array_values($potentialArray)
+                : [$potentialArray];
+            array_push($flattened, ...$valueToPush);
+        }
+        return $flattened;
+    }
+
     private static function getValueByDotNotation(mixed $array, string $key, mixed $defaultValue = null): mixed
     {
         $keyParts = explode('.', $key);

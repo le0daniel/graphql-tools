@@ -15,6 +15,7 @@ use GraphQL\Language\AST\FragmentSpreadNode;
 use GraphQL\Language\AST\InlineFragmentNode;
 use GraphQL\Language\AST\IntValueNode;
 use GraphQL\Language\AST\ListValueNode;
+use GraphQL\Language\AST\Node;
 use GraphQL\Language\AST\NodeKind;
 use GraphQL\Language\AST\NodeList;
 use GraphQL\Language\AST\ObjectValueNode;
@@ -56,6 +57,23 @@ final class QuerySignature
         return md5(self::createSignatureString($query, $pipeline));
     }
 
+    /**
+     * @param Node[] $nodes
+     * @return array
+     */
+    private static function splitByNodeKind(array $nodes): array {
+        $splitNodes = [];
+
+        foreach ($nodes as $node) {
+            if (!isset($splitNodes[$node->kind])) {
+                $splitNodes[$node->kind] = [];
+            }
+            $splitNodes[$node->kind][] = $node;
+        }
+
+        return $splitNodes;
+    }
+
     private static function sortBy(array|\Traversable|null $nodes, string ...$keys): array
     {
         if (!$nodes) {
@@ -82,7 +100,19 @@ final class QuerySignature
                 return $node;
             },
             NodeKind::SELECTION_SET => static function (SelectionSetNode $node) {
-                $node->selections = NodeList::create(self::sortBy($node->selections, 'kind', 'name.value'));
+                $splitNodeList = self::splitByNodeKind(
+                    self::sortBy($node->selections, 'kind', 'name.value')
+                );
+
+                // Sort inline fragments by name
+                if (array_key_exists(NodeKind::INLINE_FRAGMENT, $splitNodeList)) {
+                    $splitNodeList[NodeKind::INLINE_FRAGMENT] = self::sortBy(
+                        $splitNodeList[NodeKind::INLINE_FRAGMENT],
+                        'typeCondition.name.value'
+                    );
+                }
+
+                $node->selections = NodeList::create(Arrays::nonRecursiveFlatten($splitNodeList));
                 return $node;
             },
 

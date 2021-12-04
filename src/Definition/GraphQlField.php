@@ -119,7 +119,7 @@ abstract class GraphQlField
 
         return FieldDefinition::create([
             'name' => $name ?? $this->name(),
-            'resolve' => new ProxyResolver(fn(...$args) => $this->resolve(...$args)),
+            'resolve' => new ProxyResolver($this->resolve(...)),
             'args' => $this->arguments($repository),
             'type' => $this->fieldType($repository),
             'deprecationReason' => $this->deprecationReason(),
