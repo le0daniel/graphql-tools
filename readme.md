@@ -29,13 +29,17 @@ Everything begins by defining a new Type Repository. The Type Repository makes s
     require_once __DIR__ . '/vendor/autoload.php';   
 
     // Extend this class to implement specific methods
-    $typeRepository = new TypeRepository();
+    $typeRepository = new TypeRepository(
+        // This should be cached for production, usually in build process
+        TypeRepository::createTypeMapFromDirectory(__DIR__ . '/YOUR_DIRECTORY_WITH_ALL_TYPE_DECLARATIONS')
+    );
 
     $executor = new QueryExecutor(
         $typeRepository->toSchema(
             RootQueryType::class, // Your own root query type
             RootMutationType::class, // Your own root mutation type
-            [] // Array of directives
+            [], // Eagerly loaded types
+            [], // Array of directives
         )
     );
 
@@ -59,7 +63,9 @@ When defining fields with custom types, you must use the TypeRepository.
 
 ```php
     use GraphQlTools\TypeRepository;
-    $typeRepository = new TypeRepository();
+    $typeRepository = new TypeRepository(
+        TypeRepository::createTypeMapFromDirectory(__DIR__ . '/YOUR_DIRECTORY_WITH_ALL_TYPE_DECLARATIONS')
+    );
 
     // This will return the instance of the Root Query Type
     // and if not available, create if for the first time
@@ -67,16 +73,6 @@ When defining fields with custom types, you must use the TypeRepository.
     
     // Therefore the following comparison will return true
     $query === $typeRepository->type(RootQueryType::class); // => true
-```
-
-The default implementation (TypeRepository) expects a classname to be provided. This is in most cases enough, but if you have a large schema, you may want to extend this class and overwrite `type` method and provide a custom typeLoader function to use LazyLoading. 
-Out of the box we provide a `LazyRepository` implementation which resolves either a TypeName or a ClassName to the correct type. 
-
-```php
-    use GraphQlTools\LazyRepository;
-    $typeRepository = new LazyRepository([
-        RootQueryType::typeName() => RootQueryType::class,
-    ]);
 ```
 
 Default helpers are provided for getting list of types
@@ -88,8 +84,6 @@ Default helpers are provided for getting list of types
     $typeRepository = new TypeRepository();
     
     $typeRepository->listOfType(AnimalType::class); // graphql => [Animal]
-    $typeRepository->listOfType(AnimalType::class, false); // graphql => [Animal!]
-    new NonNull($typeRepository->listOfType(AnimalType::class, false)); // graphql => [Animal!]!
 ```
 
 Every Type / Union / Interface / InputType / Enum will be injected automatically with the instance of the TypeRepository.
@@ -144,7 +138,13 @@ All of your types must extend our implementation of the webonix/graphql types. T
         // with slightly different endings being removed.
         public static function typeName(): string {
             return 'Animal';
-        }  
+        }
+        
+        protected function metadata() : mixed{
+            return [
+                'My Custom metadata for introspection'
+            ]       
+        }
     }
 ```
 
