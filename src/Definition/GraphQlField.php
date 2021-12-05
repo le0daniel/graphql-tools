@@ -13,6 +13,7 @@ abstract class GraphQlField
 {
     public const BETA_FIELD_CONFIG_KEY = 'isBeta';
     public const NOTICE_CONFIG_KEY = 'notice';
+    public const METADATA_CONFIG_KEY = '__custom_metadata';
 
     /**
      * Define the type of the field. You can either return a classname / typename
@@ -91,6 +92,15 @@ abstract class GraphQlField
         return null;
     }
 
+    /**
+     * Return Field metadata. Must be json serializable.
+     *
+     * @return mixed
+     */
+    protected function metadata(): mixed {
+        return null;
+    }
+
     final public static function guessFieldName(mixed $name): ?string
     {
         return is_string($name) ? $name : null;
@@ -128,6 +138,7 @@ abstract class GraphQlField
             // Separate config keys for additional value
             self::BETA_FIELD_CONFIG_KEY => $this->isBeta(),
             self::NOTICE_CONFIG_KEY => $this->notice(),
+            self::METADATA_CONFIG_KEY => $this->metadata(),
         ]);
     }
 

@@ -18,6 +18,8 @@ use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlScalar;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Definition\GraphQlUnion;
+use GraphQlTools\CustomIntrospection\TypeMetadataType;
+use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Classes;
 use GraphQlTools\Utility\Directories;
 use GraphQlTools\Utility\Reflections;
@@ -60,7 +62,9 @@ class TypeRepository {
             }
         }
 
-        return $typeMap;
+        return $includeMetadataTypeExtension
+            ? Arrays::mergeKeyValues($typeMap, TypeMetadataType::typeMap())
+            : $typeMap;
     }
     
     /**
@@ -106,8 +110,14 @@ class TypeRepository {
      */
     private function resolveTypeByName(string $typeName): mixed {
         if (!isset($this->typeInstances[$typeName])) {
+            $className = $this->typeResolutionMap[$typeName] ?? null;
+
+            if (!$className) {
+                throw new \RuntimeException("Could not resolve type `{$typeName}`. Is it in the type-map?");
+            }
+
             $this->typeInstances[$typeName] = $this->makeInstanceOfType(
-                $this->typeResolutionMap[$typeName]
+                $className
             );
         }
 
@@ -146,10 +156,18 @@ class TypeRepository {
         array $eagerlyLoadTypes = [],
         ?array $directives = null
     ): Schema {
+        /** @var GraphQlType $rootQueryType */
+        $rootQueryType = Types::enforceTypeLoading($this->type($queryClassOrTypeName));
+
+        // Append Metadata Query to the root query.
+        if (array_key_exists(TypeMetadataType::TYPE_NAME, $this->typeResolutionMap)) {
+            $rootQueryType->appendField(TypeMetadataType::rootQueryField($this));
+        }
+
         return new Schema(
             SchemaConfig::create(
                 [
-                    'query' => Types::enforceTypeLoading($this->type($queryClassOrTypeName)),
+                    'query' => $rootQueryType,
                     'mutation' => $mutationClassOrTypeName
                         ? Types::enforceTypeLoading($this->type($mutationClassOrTypeName))
                         : null,

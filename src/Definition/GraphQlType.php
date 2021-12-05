@@ -12,7 +12,6 @@ use GraphQlTools\Utility\Classes;
 
 abstract class GraphQlType extends ObjectType {
     use DefinesFields, HasDescription;
-
     private const CLASS_POSTFIX = 'Type';
 
     public function __construct(
@@ -24,8 +23,13 @@ abstract class GraphQlType extends ObjectType {
                 'description' => $this->description(),
                 'fields' => fn() => $this->initFields(),
                 'interfaces' => fn() => array_map([$this, 'declarationToType'], $this->interfaces()),
+                GraphQlField::METADATA_CONFIG_KEY => $this->metadata(),
             ]
         );
+    }
+
+    protected function metadata(): mixed {
+        return null;
     }
 
     /**

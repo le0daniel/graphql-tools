@@ -11,10 +11,12 @@ use GraphQlTools\Definition\GraphQlField;
 use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Resolver\ProxyResolver;
-use GraphQlTools\Utility\Resolving;
+use RuntimeException;
 
 trait DefinesFields
 {
+    private bool $fieldAreInitialized = false;
+    private array $fieldsToAppend = [];
 
     /**
      * Return an array of fields of that specific type. The fields
@@ -63,9 +65,12 @@ trait DefinesFields
      */
     private function initFields(): array
     {
+        $this->fieldAreInitialized = true;
+        $allDeclaredFields = array_merge($this->fields(), $this->fieldsToAppend);
+
         /** @var GraphQlType|GraphQlInterface $this */
         $fields = [];
-        foreach ($this->fields() as $fieldName => $fieldDeclaration) {
+        foreach ($allDeclaredFields as $fieldName => $fieldDeclaration) {
             if (!$fieldDeclaration) {
                 continue;
             }
@@ -143,6 +148,23 @@ trait DefinesFields
         }
 
         throw new DefinitionException('Could not create field based on your definition');
+    }
+
+    /**
+     * This is used internally for appending fields automatically to the root query type.
+     *
+     * @param FieldDefinition ...$fields
+     * @return void
+     */
+    final public function appendField(FieldDefinition $field): void {
+        if ($this->fieldAreInitialized) {
+            throw new RuntimeException(implode(PHP_EOL, [
+                "You can not append fields if the fields are already initialized.",
+                "THIS METHOD is intended for internal functionality ONLY: DO NOT USE THIS."
+            ]));
+        }
+
+        $this->fieldsToAppend[] = $field;
     }
 
 }

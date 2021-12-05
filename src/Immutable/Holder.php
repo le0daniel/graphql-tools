@@ -9,7 +9,12 @@ namespace GraphQlTools\Immutable;
 
 abstract class Holder implements \ArrayAccess, \JsonSerializable
 {
-    protected array $appends = [];
+    /**
+     * Append getters when serializing
+     *
+     * @var array
+     */
+    protected array $appendToJsonSerialize = [];
 
     final protected function __construct(private array $items) {}
 
@@ -33,10 +38,6 @@ abstract class Holder implements \ArrayAccess, \JsonSerializable
         return $this->getValue($name) !== null;
     }
 
-    final public function __set(string $name, mixed $value): void{
-        throw new \RuntimeException("Can not set value `{$name}` of immutable holder to: `{$value}`");
-    }
-
     public function offsetExists($offset): bool {
         return $this->__isset($offset);
     }
@@ -53,9 +54,13 @@ abstract class Holder implements \ArrayAccess, \JsonSerializable
         throw new \RuntimeException("Can not unset value `{$offset}` of immutable holder");
     }
 
+    final public function __set(string $name, mixed $value): void{
+        throw new \RuntimeException("Can not set value `{$name}` of immutable holder to: `{$value}`");
+    }
+
     public function jsonSerialize(): array {
         $keys = array_keys($this->items);
-        array_push($keys, ...$this->appends);
+        array_push($keys, ...$this->appendToJsonSerialize);
 
         $data = [];
         foreach ($keys as $key) {

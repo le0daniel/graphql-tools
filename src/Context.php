@@ -14,11 +14,10 @@ class Context
     /** @var DataLoader[] */
     private array $loaders = [];
 
-    private function dataLoaderKey(ResolveInfo $info, string $className, ?array $options = null): string
+    private function dataLoaderKey(ResolveInfo $info, string $className): string
     {
-        $optionsKey = $options ? json_encode($options, JSON_THROW_ON_ERROR) : 'none';
         $path = Paths::toString($info->path);
-        return "{$className}::{$path}-{$optionsKey}";
+        return "{$className}::{$path}";
     }
 
     /**
@@ -32,14 +31,11 @@ class Context
      * are the same.
      *
      * @param string $className
-     * @param array $parameters
      * @return mixed
      */
-    protected function makeDataLoaderInstance(string $className, ?array $options): mixed
+    protected function makeDataLoaderInstance(string $className): mixed
     {
-        return $options
-            ? new $className($options)
-            : new $className;
+        return new $className;
     }
 
 
@@ -49,16 +45,14 @@ class Context
      *
      * @param ResolveInfo $info
      * @param string $className
-     * @param array|null $options
      * @return DataLoader
-     * @throws \JsonException
      */
-    final public function getDataLoader(ResolveInfo $info, string $className, ?array $options = null): DataLoader
+    final public function getDataLoader(ResolveInfo $info, string $className): DataLoader
     {
-        $dataLoaderKey = $this->dataLoaderKey($info, $className, $options);
+        $dataLoaderKey = $this->dataLoaderKey($info, $className);
 
         if (!isset($this->loaders[$dataLoaderKey])) {
-            $this->loaders[$dataLoaderKey] = $this->makeDataLoaderInstance($className, $options);
+            $this->loaders[$dataLoaderKey] = $this->makeDataLoaderInstance($className);
         }
 
         return $this->loaders[$dataLoaderKey];

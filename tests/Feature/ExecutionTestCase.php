@@ -5,22 +5,18 @@ declare(strict_types=1);
 namespace GraphQlTools\Test\Feature;
 
 use GraphQL\Executor\ExecutionResult;
+use GraphQlTools\Context;
 use GraphQlTools\Execution\QueryExecutor;
 use GraphQlTools\TypeRepository;
 use PHPUnit\Framework\TestCase;
 
 abstract class ExecutionTestCase extends TestCase {
-
-    private TypeRepository $typeRepository;
-
-    protected QueryExecutor $queryExecutor;
-
     /**
      * Must return an instance of a repository
      *
      * @return TypeRepository
      */
-    abstract protected function typeRepository(): TypeRepository;
+    abstract protected function typeRepository(bool $withMetadataIntrospection = true): TypeRepository;
 
     /**
      * Defines the root query type
@@ -28,14 +24,6 @@ abstract class ExecutionTestCase extends TestCase {
      * @return string
      */
     abstract protected function queryType(): string;
-
-    /**
-     * Returns the mode in which the types are defined, either classname of typename
-     * @return string
-     */
-    protected function mode(): string {
-        return 'classname';
-    }
 
     protected function extensions(): ?array {
         return null;
@@ -73,16 +61,17 @@ abstract class ExecutionTestCase extends TestCase {
         self::assertEquals($expectedCount, $count);
     }
 
-    protected function setUp(): void {
-        $this->typeRepository = $this->typeRepository();
-        $this->queryExecutor = new QueryExecutor(
-            $this->typeRepository->toSchema(
+    protected function execute(string $query, bool $withMetadataIntrospection = true) {
+        $repository = $this->typeRepository($withMetadataIntrospection);
+        $executor = new QueryExecutor(
+            $repository->toSchema(
                 $this->queryType(),
                 $this->mutationType(),
                 $this->eagerlyLoadedTypes(),
             ),
-            $this->extensions(),
+            $this->extensions()
         );
+        return $executor->execute($query, new Context());
     }
 
     protected function tearDown(): void {}

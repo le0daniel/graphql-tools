@@ -19,6 +19,13 @@ final class Arrays
         return false;
     }
 
+    public static function mergeKeyValues(array $array, array $arrayToMerge): array {
+        foreach ($arrayToMerge as $key => $value) {
+            $array[$key] = $value;
+        }
+        return $array;
+    }
+
     public static function oneKeyExists(array $array, array $keys): bool
     {
         foreach ($keys as $key) {
