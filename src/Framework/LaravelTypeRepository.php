@@ -4,10 +4,10 @@ namespace GraphQlTools\Framework;
 
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\GraphQlField;
-use GraphQlTools\LazyRepository;
+use GraphQlTools\TypeRepository;
 use Illuminate\Contracts\Foundation\Application;
 
-final class LaravelTypeRepository extends LazyRepository
+final class LaravelTypeRepository extends TypeRepository
 {
 
     public function __construct(private Application $application, array $typeResolutionMap)
@@ -22,7 +22,7 @@ final class LaravelTypeRepository extends LazyRepository
         ]);
     }
 
-    public function makeField(string $className): GraphQlField
+    public function makeInstanceOfField(string $className): GraphQlField
     {
         return $this->application->make($className);
     }

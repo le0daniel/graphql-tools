@@ -24,7 +24,7 @@ final class ResolveInfoDummy {
         $instance = $reflection->newInstanceWithoutConstructor();
         $instance->path = $path;
         $instance->fieldName = 'TestFieldName';
-        $instance->parentType = new $parentTypeClass(new TypeRepository());
+        $instance->parentType = new $parentTypeClass(new TypeRepository([]));
         $instance->fieldDefinition = FieldDefinition::create(
             [
                 'deprecationReason' => $deprecationReason,

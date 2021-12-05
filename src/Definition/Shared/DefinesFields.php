@@ -94,7 +94,7 @@ trait DefinesFields
 
     private function createFieldFromString(string $className, mixed $name): FieldDefinition {
         if (GraphQlField::isFieldClass($className)) {
-            return $this->typeRepository->makeField($className)->toField(
+            return $this->typeRepository->makeInstanceOfField($className)->toField(
                 GraphQlField::guessFieldName($name), $this->typeRepository
             );
         }
@@ -111,6 +111,10 @@ trait DefinesFields
      */
     private function createField(mixed $name, mixed $fieldDeclaration): FieldDefinition
     {
+        if ($fieldDeclaration instanceof FieldDefinition) {
+            return $fieldDeclaration;
+        }
+
         if ($fieldDeclaration instanceof GraphQlField) {
             return $fieldDeclaration->toField(
                 GraphQlField::guessFieldName($name),

@@ -11,10 +11,58 @@ use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
 use GraphQL\Utils\SchemaPrinter;
+use GraphQlTools\Definition\GraphQlEnum;
 use GraphQlTools\Definition\GraphQlField;
+use GraphQlTools\Definition\GraphQlInputType;
+use GraphQlTools\Definition\GraphQlInterface;
+use GraphQlTools\Definition\GraphQlScalar;
+use GraphQlTools\Definition\GraphQlType;
+use GraphQlTools\Definition\GraphQlUnion;
+use GraphQlTools\Utility\Classes;
+use GraphQlTools\Utility\Directories;
+use GraphQlTools\Utility\Reflections;
 use GraphQlTools\Utility\Types;
 
 class TypeRepository {
+
+    private const CLASS_MAP_INSTANCES = [
+        GraphQlType::class,
+        GraphQlEnum::class,
+        GraphQlInputType::class,
+        GraphQlInterface::class,
+        GraphQlScalar::class,
+        GraphQlUnion::class,
+    ];
+
+    /**
+     * Load All types
+     * 
+     * @param string $directory
+     * @return array
+     * @throws \ReflectionException
+     */
+    public static function createTypeMapFromDirectory(string $directory, bool $includeMetadataTypeExtension = false): array {
+        $typeMap = [];
+
+        foreach (Directories::fileIteratorWithRegex($directory, '/\.php$/') as $phpFile) {
+            $className = Classes::getDeclaredClassInFile($phpFile->getRealPath());
+            if (!$className) {
+                continue;
+            }
+
+            $parentClassNames = Reflections::getAllParentClasses(new \ReflectionClass($className));
+            foreach ($parentClassNames as $parentClassName) {
+                if (in_array($parentClassName, self::CLASS_MAP_INSTANCES, true)) {
+                    /** @var $className GraphQlUnion|GraphQlType|GraphQlScalar|GraphQlInterface|GraphQlEnum|GraphQlInputType */
+                    $typeMap[$className::typeName()] = $className;
+                    break;
+                }
+            }
+        }
+
+        return $typeMap;
+    }
+    
     /**
      * Array containing already initialized types. This ensures the
      * types are only initialized once. The instance of this repository
@@ -23,19 +71,21 @@ class TypeRepository {
      *
      * @var array
      */
-    private array $types = [];
+    private array $typeInstances = [];
+
+    public function __construct(private array $typeResolutionMap) {}
 
     /**
      * Create an instance of a given type by either the classname or the type name
      * The default implementation of the Type Repository always expects the types to be
      * a classname and does not work with type names.
      *
-     * @param string $classOrTypeName
+     * @param string $className
      * @return mixed
      */
-    protected function makeType(string $classOrTypeName): mixed
+    protected function makeInstanceOfType(string $className): mixed
     {
-        return new $classOrTypeName($this);
+        return new $className($this);
     }
 
     /**
@@ -44,31 +94,26 @@ class TypeRepository {
      * @param string $className
      * @return GraphQlField
      */
-    public function makeField(string $className): GraphQlField {
+    public function makeInstanceOfField(string $className): GraphQlField {
         return new $className;
     }
 
     /**
-     * Used to define the key to cache the types. Types are only initialized once
-     * per Schema and cached. It is crucial that types only exist once in a specific
-     * Schema
-     *
-     * @param string $classOrTypeName
-     * @return string
+     * Resolve a given type name to a type
+     * 
+     * @param string $typeName
+     * @return mixed
      */
-    protected function key(string $classOrTypeName): string {
-        return $classOrTypeName;
-    }
+    private function resolveTypeByName(string $typeName): mixed {
+        if (!isset($this->typeInstances[$typeName])) {
+            $this->typeInstances[$typeName] = $this->makeInstanceOfType(
+                $this->typeResolutionMap[$typeName]
+            );
+        }
 
-    /**
-     * Define a custom type loader.
-     *
-     * @return Closure|null
-     */
-    protected function typeLoader(): ?Closure {
-        return null;
+        return $this->typeInstances[$typeName];
     }
-
+    
     /**
      * Returns a specific type by either it's identifier or the type class
      * The default TypeRepository always expects a class name.
@@ -80,35 +125,19 @@ class TypeRepository {
      * @return Type|callable
      */
     final public function type(string $classOrTypeName): Type|callable {
-        $className = $this->key($classOrTypeName);
-
-        if (!isset($this->types[$className])) {
-            $this->types[$className] = $this->makeType($className);
-        }
-
-        return $this->types[$className];
+        $typeName = Classes::isClassName($classOrTypeName)
+            ? $classOrTypeName::typeName()
+            : $classOrTypeName;
+        
+        return fn() => $this->resolveTypeByName($typeName);
     }
-
-    /**
-     * ShortCut for NonNull Type: `Type!`
-     *
-     * @param string $classOrTypeName
-     * @return NonNull
-     */
+    
     final public function nonNullType(string $classOrTypeName): NonNull {
         return new NonNull($this->type($classOrTypeName));
     }
 
     final public function listOfType(string $className): ListOfType {
         return new ListOfType($this->type($className));
-    }
-
-    final public function nonNullListOfType(string $className): NonNull {
-        return new NonNull(new ListOfType($this->type($className)));
-    }
-
-    final public function listOfNonNullType(string $className): ListOfType {
-        return new ListOfType(new NonNull($this->type($className)));
     }
 
     final public function toSchema(
@@ -128,7 +157,7 @@ class TypeRepository {
                         fn(string $typeName) => Types::enforceTypeLoading($this->type($typeName)),
                         $eagerlyLoadTypes
                     ),
-                    'typeLoader' => $this->typeLoader(),
+                    'typeLoader' => fn($typeName) => $this->resolveTypeByName($typeName),
                     'directives' => $directives
                 ]
             )

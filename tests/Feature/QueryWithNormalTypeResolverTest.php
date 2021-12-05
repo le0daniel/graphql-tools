@@ -11,7 +11,9 @@ use GraphQlTools\TypeRepository;
 class QueryWithNormalTypeResolverTest extends ExecutionTestCase {
 
     protected function typeRepository(): TypeRepository {
-        return new TypeRepository();
+        return new TypeRepository(
+            TypeRepository::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema')
+        );
     }
 
     protected function queryType(): string {
@@ -74,4 +76,27 @@ class QueryWithNormalTypeResolverTest extends ExecutionTestCase {
         self::assertCount(3, $result->data['mamels']);
         $this->assertColumnCount(3, $result->data['mamels'], 'sound');
     }
+
+    /*
+    public function testFieldMetadata(): void {
+        $result = $this->queryExecutor->execute('
+            query {
+                meta: __typeMetadata(typeName: "Lion") {
+                    name
+                }
+            }
+        ', new Context());
+
+        $error = $result->errors[0];
+        while ($error->getPrevious()) {
+            $error = $error->getPrevious();
+            var_dump($error->getMessage());
+        }
+
+        echo json_encode($result->errors, JSON_PRETTY_PRINT) . PHP_EOL;
+
+        $this->assertNoErrors($result);
+        self::assertEquals('Lion', $result->data['meta']);
+        //self::assertEquals('metadata', $result->data['meta']['metadata']);
+    }*/
 }

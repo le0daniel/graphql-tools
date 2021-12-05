@@ -7,6 +7,8 @@ namespace GraphQlTools\Test\Dummies\Schema;
 use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\GraphQlType;
+use GraphQlTools\Definition\TypeMetadata;
+use GraphQlTools\LazyRepository;
 
 final class QueryType extends GraphQlType {
 
@@ -44,6 +46,10 @@ final class QueryType extends GraphQlType {
                 'type' => Type::nonNull(Type::listOf(Type::nonNull($this->typeRepository->type(MamelInterface::class)))),
                 'resolve' => fn() => self::ANIMALS
             ],
+
+            $this->typeRepository instanceof LazyRepository
+                ? TypeMetadata::toRootQueryField($this->typeRepository)
+                : null,
         ];
     }
 

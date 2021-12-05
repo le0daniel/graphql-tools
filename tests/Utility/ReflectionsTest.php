@@ -2,8 +2,8 @@
 
 namespace GraphQlTools\Test\Utility;
 
-use GraphQlTools\LazyRepository;
-use GraphQlTools\TypeRepository;
+use GraphQlTools\Immutable\Holder;
+use GraphQlTools\Test\Dummies\HolderDummy;
 use GraphQlTools\Utility\Reflections;
 use PHPUnit\Framework\TestCase;
 
@@ -13,7 +13,7 @@ class ReflectionsTest extends TestCase
     public function testGetAllParentClasses()
     {
         self::assertEquals([
-            TypeRepository::class
-        ], Reflections::getAllParentClasses(new \ReflectionClass(LazyRepository::class)));
+            Holder::class
+        ], Reflections::getAllParentClasses(new \ReflectionClass(HolderDummy::class)));
     }
 }
