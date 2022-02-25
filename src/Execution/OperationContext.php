@@ -18,8 +18,12 @@ use GraphQlTools\Execution\Extensions;
  * @property-read Extensions $extensions
  *
  */
-final class OperationContext {
+final class OperationContext
+{
 
-    public function __construct(public Context $context, public Extensions $extensions){}
+    public function __construct(
+        public readonly Context $context,
+        public readonly Extensions $extensions
+    ){}
 
 }

@@ -7,7 +7,7 @@ use GraphQlTools\Utility\Time;
 abstract class Event
 {
 
-    public function __construct(public int $eventTimeInNanoSeconds)
+    public function __construct(public readonly int $eventTimeInNanoSeconds)
     {
     }
 

@@ -5,16 +5,14 @@ namespace GraphQlTools\Definition;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
+use GraphQlTools\Definition\Field\Fieldable;
 use GraphQlTools\Resolver\ProxyResolver;
 use GraphQlTools\TypeRepository;
+use GraphQlTools\Utility\Fields;
 use ReflectionClass;
 
-abstract class GraphQlField
+abstract class GraphQlField implements Fieldable
 {
-    public const BETA_FIELD_CONFIG_KEY = 'isBeta';
-    public const NOTICE_CONFIG_KEY = 'notice';
-    public const METADATA_CONFIG_KEY = '__custom_metadata';
-
     /**
      * Define the type of the field. You can either return a classname / typename
      * or use the TypeRepository to get the correct type.
@@ -101,26 +99,6 @@ abstract class GraphQlField
         return null;
     }
 
-    final public static function guessFieldName(mixed $name): ?string
-    {
-        return is_string($name) ? $name : null;
-    }
-
-    final public static function isFieldClass(string $className): bool
-    {
-        $reflection = new ReflectionClass($className);
-        return $reflection->isSubclassOf(self::class);
-    }
-
-    final public static function isBetaField(FieldDefinition $definition): bool
-    {
-        return ($definition->config[self::BETA_FIELD_CONFIG_KEY] ?? false) === true;
-    }
-
-    final public static function getFieldNotice(FieldDefinition $definition): ?string {
-        return $definition->config[self::NOTICE_CONFIG_KEY] ?? null;
-    }
-
     final public function toField(?string $name, TypeRepository $repository): FieldDefinition
     {
         if (!$name && !$this->name()) {
@@ -136,9 +114,9 @@ abstract class GraphQlField
             'description' => $this->description(),
 
             // Separate config keys for additional value
-            self::BETA_FIELD_CONFIG_KEY => $this->isBeta(),
-            self::NOTICE_CONFIG_KEY => $this->notice(),
-            self::METADATA_CONFIG_KEY => $this->metadata(),
+            Fields::BETA_FIELD_CONFIG_KEY => $this->isBeta(),
+            Fields::NOTICE_CONFIG_KEY => $this->notice(),
+            Fields::METADATA_CONFIG_KEY => $this->metadata(),
         ]);
     }
 

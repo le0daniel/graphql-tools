@@ -38,7 +38,7 @@ class ExtensionsTest extends TestCase
         ]);
 
         $next = $extensions->middlewareFieldResolution(FieldResolutionEvent::create(
-            null, [], ResolveInfoDummy::withDefaults()
+            null, [], ResolveInfoDummy::withDefaults(), []
         ));
 
         self::assertEquals('value', $next('other value'));

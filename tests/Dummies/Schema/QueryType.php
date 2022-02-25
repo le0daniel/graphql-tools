@@ -6,16 +6,19 @@ namespace GraphQlTools\Test\Dummies\Schema;
 
 use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\Type;
+use GraphQlTools\Context;
+use GraphQlTools\Definition\Field\DeferredField;
 use GraphQlTools\Definition\GraphQlType;
+use GraphQlTools\TypeRepository;
 
 final class QueryType extends GraphQlType {
 
     public const WHOAMI_DATA = 'Test';
     public const USER_ID = 'MQ==';
     public const ANIMALS = [
-        ['type' => 'lion', 'sound' => 'Rooooahh'],
-        ['type' => 'tiger', 'sound' => 'Raoooo'],
-        ['type' => 'tiger', 'sound' => 'Raaggghhh'],
+        ['id' => 1, 'type' => 'lion', 'sound' => 'Rooooahh'],
+        ['id' => 2, 'type' => 'tiger', 'sound' => 'Raoooo'],
+        ['id' => 3, 'type' => 'tiger', 'sound' => 'Raaggghhh'],
     ];
 
     protected function fields(): array {
@@ -40,10 +43,15 @@ final class QueryType extends GraphQlType {
                 'type' => Type::nonNull(Type::listOf(Type::nonNull($this->typeRepository->type(AnimalUnion::class)))),
                 'resolve' => fn() => self::ANIMALS
             ],
-            'mamels' => [
-                'type' => Type::nonNull(Type::listOf(Type::nonNull($this->typeRepository->type(MamelInterface::class)))),
-                'resolve' => fn() => self::ANIMALS
-            ],
+            DeferredField::withName('mamels')
+                ->withReturnType(static fn(TypeRepository $typeRepository) => Type::nonNull(Type::listOf(Type::nonNull($typeRepository->type(MamelInterface::class)))))
+                ->resolveAggregated(function(array $aggregatedItems, array $arguments, Context $context){
+                    return self::ANIMALS;
+                })
+                ->resolveItem(function ($item, array $data, Context $context) {
+                    return $data;
+                }),
+
         ];
     }
 

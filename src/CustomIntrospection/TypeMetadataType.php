@@ -8,6 +8,7 @@ use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\GraphQlField;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\TypeRepository;
+use GraphQlTools\Utility\Fields;
 use GraphQlTools\Utility\Types;
 use JetBrains\PhpStorm\Pure;
 
@@ -55,7 +56,7 @@ final class TypeMetadataType extends GraphQlType
             ],
             'metadata' => [
                 'type' => MetadataScalar::class,
-                'resolve' => static fn(ObjectType $type): mixed => $type->config[GraphQlField::METADATA_CONFIG_KEY] ?? null,
+                'resolve' => static fn(ObjectType $type): mixed => $type->config[Fields::METADATA_CONFIG_KEY] ?? null,
             ],
             'fields' => [
                 'type' => $this->typeRepository->listOfType(FieldMetadataType::class),

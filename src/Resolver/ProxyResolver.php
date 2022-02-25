@@ -13,7 +13,7 @@ use GraphQlTools\Events\FieldResolutionEvent;
 use GraphQlTools\Execution\OperationContext;
 use GraphQlTools\Utility\SideEffects;
 
-class ProxyResolver
+final class ProxyResolver
 {
     /** @var callable|null */
     private $resolveFunction;

@@ -10,6 +10,7 @@ use GraphQlTools\Definition\GraphQlField;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Events\FieldResolutionEvent;
 use GraphQlTools\Immutable\Message;
+use GraphQlTools\Utility\Fields;
 
 final class FieldMessages extends Extension {
 
@@ -36,11 +37,11 @@ final class FieldMessages extends Extension {
         }
 
         // Adds a message if the field contains the isBeta flag in the config
-        if (GraphQlField::isBetaField($event->info->fieldDefinition)) {
+        if (Fields::isBetaField($event->info->fieldDefinition)) {
             $this->messages[] = Message::beta($event->info);
         }
 
-        if ($notice = GraphQlField::getFieldNotice($event->info->fieldDefinition)) {
+        if ($notice = Fields::getFieldNotice($event->info->fieldDefinition)) {
             $this->messages[] = Message::notice($notice);
         }
 

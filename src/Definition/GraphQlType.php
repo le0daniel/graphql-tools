@@ -9,6 +9,7 @@ use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\DefinesFields;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Classes;
+use GraphQlTools\Utility\Fields;
 
 abstract class GraphQlType extends ObjectType {
     use DefinesFields, HasDescription;
@@ -23,7 +24,7 @@ abstract class GraphQlType extends ObjectType {
                 'description' => $this->description(),
                 'fields' => fn() => $this->initFields(),
                 'interfaces' => fn() => array_map([$this, 'declarationToType'], $this->interfaces()),
-                GraphQlField::METADATA_CONFIG_KEY => $this->metadata(),
+                Fields::METADATA_CONFIG_KEY => $this->metadata(),
             ]
         );
     }

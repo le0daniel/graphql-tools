@@ -3,9 +3,13 @@
 namespace GraphQlTools\CustomIntrospection;
 
 use GraphQL\Type\Definition\FieldDefinition;
+use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\Type;
+use GraphQlTools\Contract\GraphQlAttribute;
 use GraphQlTools\Definition\GraphQlField;
 use GraphQlTools\Definition\GraphQlType;
+use GraphQlTools\Resolver\ProxyResolver;
+use GraphQlTools\Utility\Fields;
 
 final class FieldMetadataType extends GraphQlType
 {
@@ -28,7 +32,23 @@ final class FieldMetadataType extends GraphQlType
             ],
             'metadata' => [
                 'type' => MetadataScalar::class,
-                'resolve' => static fn(FieldDefinition $definition) => $definition->config[GraphQlField::METADATA_CONFIG_KEY] ?? null,
+                'resolve' => static fn(FieldDefinition $definition) => $definition->config[Fields::METADATA_CONFIG_KEY] ?? null,
+            ],
+            'attributes' => [
+                'type' => Type::nonNull(new ListOfType($this->typeRepository->type(MetadataScalar::class))),
+                'resolve' => static function (FieldDefinition $definition): array {
+                    if (!$definition->resolveFn instanceof ProxyResolver) {
+                        return [];
+                    }
+
+                    /** @var GraphQlAttribute[] $attributes */
+                    $attributes = array_filter(
+                        $definition->resolveFn->attributes,
+                        static fn($attribute) => $attribute instanceof GraphQlAttribute && $attribute->isExposedPublicly($definition)
+                    );
+
+                    return array_map(static fn(GraphQlAttribute $attribute) => $attribute->toIntrospectionMetadata(), $attributes);
+                }
             ]
         ];
     }

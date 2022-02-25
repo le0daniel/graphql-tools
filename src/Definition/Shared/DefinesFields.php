@@ -7,10 +7,12 @@ namespace GraphQlTools\Definition\Shared;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\DefinitionException;
+use GraphQlTools\Definition\Field\Fieldable;
 use GraphQlTools\Definition\GraphQlField;
 use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Resolver\ProxyResolver;
+use GraphQlTools\Utility\Fields;
 use RuntimeException;
 
 trait DefinesFields
@@ -98,9 +100,9 @@ trait DefinesFields
     }
 
     private function createFieldFromString(string $className, mixed $name): FieldDefinition {
-        if (GraphQlField::isFieldClass($className)) {
+        if (Fields::isFieldClass($className)) {
             return $this->typeRepository->makeInstanceOfField($className)->toField(
-                GraphQlField::guessFieldName($name), $this->typeRepository
+                Fields::guessFieldName($name), $this->typeRepository
             );
         }
 
@@ -120,9 +122,9 @@ trait DefinesFields
             return $fieldDeclaration;
         }
 
-        if ($fieldDeclaration instanceof GraphQlField) {
+        if ($fieldDeclaration instanceof Fieldable) {
             return $fieldDeclaration->toField(
-                GraphQlField::guessFieldName($name),
+                Fields::guessFieldName($name),
                 $this->typeRepository
             );
         }
