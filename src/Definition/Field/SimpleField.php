@@ -3,99 +3,50 @@
 namespace GraphQlTools\Definition\Field;
 
 use GraphQL\Type\Definition\FieldDefinition;
-use GraphQL\Type\Definition\Type;
+use GraphQL\Type\Definition\ResolveInfo;
+use GraphQlTools\Context;
 use GraphQlTools\Resolver\ProxyResolver;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Fields;
-use JetBrains\PhpStorm\Pure;
 
-class SimpleField implements Fieldable
+class SimpleField extends GraphQlField
 {
-    protected string|null $description = null;
-    protected mixed $metadata = null;
-    protected bool $isBeta = false;
-    protected string|bool $deprecatedReason = false;
-    protected \DateTimeInterface|null $removalDate = null;
+    use HasArguments;
 
-    /** @var callable  */
-    protected $resolveFunction;
-
-    /** @var Type|callable  */
-    protected mixed $resolveType;
-
-    protected function __construct(protected string $name){}
-
-    #[Pure]
-    final public static function withName(string $name): static {
-        return new static($name);
-    }
-
-    final public function withReturnType(Type|callable $resolveType): static {
-        $this->resolveType = $resolveType;
-        return $this;
-    }
-
-    final public function withDescription(string $description): static {
-        $this->description = $description;
-        return $this;
-    }
-
-    final public function withMetadata(mixed $metadata): static {
-        $this->metadata = $metadata;
-        return $this;
-    }
-
-    final public function isDeprecated(string $reason, \DateTimeInterface $removalDate): static {
-        $this->deprecatedReason = $reason;
-        $this->removalDate = $removalDate;
-        return $this;
-    }
-
-    final public function isBeta(): static {
-        $this->isBeta = true;
-        return $this;
-    }
+    /**
+     * @var callable
+     */
+    private $resolveFunction;
 
     public function withResolver(callable $resolveFunction): self {
+        if ($resolveFunction instanceof ProxyResolver) {
+            throw new \RuntimeException("Invalid resolve function given. Expected callable, got proxy resolver.");
+        }
+
         $this->resolveFunction = $resolveFunction;
         return $this;
     }
 
-    private function computeDescription(): ?string {
-        $descriptionParts = [];
-
-        if ($this->deprecatedReason) {
-            $descriptionParts[] = '**DEPRECATED**, Removal Date: ' . $this->removalDate->format('Y-m-d') . '.';
-        }
-
-        if ($this->isBeta) {
-            $descriptionParts[] = '**BETA**:';
-        }
-
-        if ($this->description) {
-            $descriptionParts[] =  $this->description;
-        }
-
-        return empty($descriptionParts) ? null : implode(' ', $descriptionParts);
-    }
-
     protected function getResolver(): ProxyResolver {
-        return $this->resolveFunction instanceof ProxyResolver
-            ? $this->resolveFunction
-            : new ProxyResolver($this->resolveFunction);
+        return new ProxyResolver(function($data, array $arguments, Context $context, ResolveInfo $info) {
+            return ($this->resolveFunction)(
+                $data,
+                $this->validateArguments($arguments),
+                $context,
+                $info
+            );
+        });
     }
 
-    public function toField(?string $name, TypeRepository $repository): FieldDefinition
+    public function toField(TypeRepository $repository): FieldDefinition
     {
         return FieldDefinition::create([
             'name' => $this->name,
             'resolve' => $this->getResolver(),
-            'type' => $this->resolveType instanceof Type
-                ? $this->resolveType
-                : call_user_func($this->resolveType, $repository),
+            'type' => $this->resolveType($repository, $this->resolveType),
             'deprecationReason' => $this->deprecatedReason,
             'description' => $this->computeDescription(),
-            //'args' => $this->a,
+            'args' => $this->buildArguments($repository),
 
             // Separate config keys for additional value
             Fields::BETA_FIELD_CONFIG_KEY => $this->isBeta,

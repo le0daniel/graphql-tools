@@ -9,20 +9,18 @@ use GraphQlTools\Definition\Field\SimpleField;
 use GraphQlTools\Definition\GraphQlField;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Resolver\ProxyResolver;
-use GraphQlTools\Test\Dummies\DummyAttribute;
 use GraphQlTools\Utility\Fields;
 
-#[DummyAttribute('this is my attribute')]
 final class LionType extends GraphQlType {
 
     protected function fields(): array {
         return [
             SimpleField::withName('sound')
-                ->withReturnType(Type::nonNull(Type::string()))
+                ->ofType(Type::nonNull(Type::string()))
                 ->withResolver(fn($data) => $data['sound']),
 
             SimpleField::withName('fieldWithMeta')
-                ->withReturnType(Type::nonNull(Type::string()))
+                ->ofType(Type::nonNull(Type::string()))
                 ->withResolver(fn() => 'This is a test field')
                 ->withMetadata([
                     'policy' => 'This is my special policy'

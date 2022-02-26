@@ -3,7 +3,8 @@
 namespace GraphQlTools\Utility;
 
 use GraphQL\Type\Definition\FieldDefinition;
-use GraphQlTools\Definition\Field\Fieldable;
+use GraphQlTools\Definition\Field\GraphQlField;
+use ReflectionClass;
 
 class Fields
 {
@@ -18,8 +19,8 @@ class Fields
 
     final public static function isFieldClass(string $className): bool
     {
-        $reflection = new \ReflectionClass($className);
-        return $reflection->implementsInterface(Fieldable::class);
+        $reflection = new ReflectionClass($className);
+        return $reflection->isSubclassOf(GraphQlField::class);
     }
 
     final public static function isBetaField(FieldDefinition $definition): bool

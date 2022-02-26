@@ -7,8 +7,7 @@ namespace GraphQlTools\Definition\Shared;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\DefinitionException;
-use GraphQlTools\Definition\Field\Fieldable;
-use GraphQlTools\Definition\GraphQlField;
+use GraphQlTools\Definition\Field\GraphQlField;
 use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Resolver\ProxyResolver;
@@ -122,9 +121,8 @@ trait DefinesFields
             return $fieldDeclaration;
         }
 
-        if ($fieldDeclaration instanceof Fieldable) {
+        if ($fieldDeclaration instanceof GraphQlField) {
             return $fieldDeclaration->toField(
-                Fields::guessFieldName($name),
                 $this->typeRepository
             );
         }
@@ -158,7 +156,7 @@ trait DefinesFields
      * @param FieldDefinition ...$fields
      * @return void
      */
-    final public function appendField(FieldDefinition $field): void {
+    final public function appendField(GraphQlField $field): void {
         if ($this->fieldAreInitialized) {
             throw new RuntimeException(implode(PHP_EOL, [
                 "You can not append fields if the fields are already initialized.",

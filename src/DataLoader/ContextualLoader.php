@@ -4,6 +4,7 @@ namespace GraphQlTools\DataLoader;
 
 use GraphQL\Deferred;
 use GraphQlTools\Context;
+use RuntimeException;
 
 final class ContextualLoader
 {
@@ -11,41 +12,50 @@ final class ContextualLoader
     private $loadingFunction;
 
     private array $queuedData = [];
-    private mixed $loadedData = null;
+    private mixed $loadedDataOrException = null;
 
-    public function __construct(callable $loadingFunction, private array $arguments, private Context $context)
-    {
-        $this->loadingFunction = $loadingFunction;
+    public function __construct(
+        callable $aggregatedLoadingFunction,
+        private array $arguments,
+        private Context $context
+    ){
+        $this->loadingFunction = $aggregatedLoadingFunction;
     }
 
-    private function ensureLoadedOnce(){
-        if (!is_null($this->loadedData)) {
+    private function ensureLoadedOnce()
+    {
+        if (!is_null($this->loadedDataOrException)) {
             return;
         }
 
         try {
-            $this->loadedData = call_user_func($this->loadingFunction, $this->queuedData, $this->arguments, $this->context);
+            $this->loadedDataOrException = ($this->loadingFunction)($this->queuedData, $this->arguments, $this->context);
 
-            if (is_null($this->loadedData)) {
-                throw new \RuntimeException('Data loader returned null, expected anything but null');
+            unset($this->arguments);
+            unset($this->queuedData);
+
+            if (is_null($this->loadedDataOrException)) {
+                throw new RuntimeException('Data loader returned null, expected anything but null');
             }
         } catch (\Throwable $exception) {
-            $this->loadedData = $exception;
+            $this->loadedDataOrException = $exception;
         }
     }
 
-    private function throwOnLoadingException(): void {
-        if ($this->loadedData instanceof \Throwable) {
-            throw $this->loadedData;
+    private function throwOnLoadingException(): void
+    {
+        if ($this->loadedDataOrException instanceof \Throwable) {
+            throw $this->loadedDataOrException;
         }
     }
 
-    public function defer(mixed $data, callable $resolveItem): Deferred {
+    public function defer(mixed $data, callable $resolveItem): Deferred
+    {
         $this->queuedData[] = $data;
         return new Deferred(function () use ($data, $resolveItem) {
             $this->ensureLoadedOnce();
             $this->throwOnLoadingException();
-            return $resolveItem($data, $this->loadedData, $this->context);
+            return $resolveItem($data, $this->loadedDataOrException, $this->context);
         });
     }
 

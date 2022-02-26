@@ -7,7 +7,9 @@ namespace GraphQlTools\Test\Dummies\Schema;
 use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Context;
+use GraphQlTools\Definition\Field\Argument;
 use GraphQlTools\Definition\Field\DeferredField;
+use GraphQlTools\Definition\Field\SimpleField;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\TypeRepository;
 
@@ -23,7 +25,31 @@ final class QueryType extends GraphQlType {
 
     protected function fields(): array {
         return [
-            'currentUser' => CurrentUserField::class,
+            SimpleField::withName('currentUser')
+                ->ofType(Type::string())
+                ->withArguments(
+                    Argument::withName('name')
+                        ->ofType(Type::string())
+                        ->withValidator(function(mixed $value) {
+                            if (!$value) {
+                                return $value;
+                            }
+
+                            if (strlen($value) < 5) {
+                                throw new \Exception("Invalid, string to short: '{$value}'");
+                            }
+                            return $value;
+                        })
+                )
+                ->withDescription('')
+                ->withResolver(function($data, $arguments){
+                    if ($arguments['name'] ?? null) {
+                        return "Hello {$arguments['name']}";
+                    }
+
+                    return 'Hello World!';
+                })
+            ,
             'whoami' => [
                 'type' => Type::string(),
                 'resolve' => fn() => self::WHOAMI_DATA
@@ -44,7 +70,7 @@ final class QueryType extends GraphQlType {
                 'resolve' => fn() => self::ANIMALS
             ],
             DeferredField::withName('mamels')
-                ->withReturnType(static fn(TypeRepository $typeRepository) => Type::nonNull(Type::listOf(Type::nonNull($typeRepository->type(MamelInterface::class)))))
+                ->ofType(static fn(TypeRepository $typeRepository) => Type::nonNull(Type::listOf(Type::nonNull($typeRepository->type(MamelInterface::class)))))
                 ->resolveAggregated(function(array $aggregatedItems, array $arguments, Context $context){
                     return self::ANIMALS;
                 })

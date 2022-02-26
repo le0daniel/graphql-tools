@@ -65,7 +65,6 @@ final class ProxyResolverTest extends TestCase {
             ResolveInfoDummy::withDefaults()
         );
         self::assertEquals('Test', $result);
-        self::assertCount(0, $this->operationContext->context->getUsedLoaders());
     }
 
     /**
@@ -80,7 +79,6 @@ final class ProxyResolverTest extends TestCase {
             ResolveInfoDummy::withDefaults('test')
         );
         self::assertEquals('Test', $result);
-        self::assertCount(0, $this->operationContext->context->getUsedLoaders());
     }
 
     /**
@@ -97,7 +95,6 @@ final class ProxyResolverTest extends TestCase {
 
         SyncPromise::runQueue();
         self::assertEquals('Test', $promise->result);
-        self::assertCount(0, $this->operationContext->context->getUsedLoaders());
     }
 
     public function testAttachProxyToField()

@@ -5,7 +5,9 @@ namespace GraphQlTools\CustomIntrospection;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
-use GraphQlTools\Definition\GraphQlField;
+use GraphQlTools\Definition\Field\Argument;
+use GraphQlTools\Definition\Field\GraphQlField;
+use GraphQlTools\Definition\Field\SimpleField;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Fields;
@@ -18,7 +20,8 @@ final class TypeMetadataType extends GraphQlType
     public const TYPE_NAME = '__TypeMetadata';
 
     #[Pure]
-    public static function typeMap(): array {
+    public static function typeMap(): array
+    {
         return [
             TypeMetadataType::typeName() => TypeMetadataType::class,
             MetadataScalar::typeName() => MetadataScalar::class,
@@ -26,51 +29,43 @@ final class TypeMetadataType extends GraphQlType
         ];
     }
 
-    public static function rootQueryField(TypeRepository $typeRepository): FieldDefinition {
-        return FieldDefinition::create([
-            'name' => self::ROOT_QUERY_FIELD_NAME,
-            'description' => 'Get extended Metadata for a specific type by its type name.',
-            'deprecationReason' => 'This should only be used to get additional data for types.',
-            'type' => $typeRepository->type(self::class),
-            'args' => [
-                'name' => [
-                    'type' => Type::nonNull(Type::string()),
-                ]
-            ],
-            'resolve' => static function ($data, array $arguments) use ($typeRepository) {
+    public static function rootQueryField(TypeRepository $typeRepository): GraphQlField
+    {
+        return SimpleField::withName(self::ROOT_QUERY_FIELD_NAME)
+            ->ofType(self::class)
+            ->withDescription('Get extended Metadata for a specific type by its type name.')
+            ->withArguments(
+                Argument::withName('name')->ofType(Type::nonNull(Type::string()))
+            )
+            ->withResolver(static function ($data, array $arguments) use ($typeRepository) {
                 try {
                     return Types::enforceTypeLoading($typeRepository->type($arguments['name']));
                 } catch (\Throwable) {
                     return null;
                 }
-            },
-        ]);
+            });
     }
 
     protected function fields(): array
     {
         return [
-            'name' => [
-                'type' => Type::nonNull(Type::string()),
-                'resolve' => static fn(ObjectType $type): string => $type->name
-            ],
-            'metadata' => [
-                'type' => MetadataScalar::class,
-                'resolve' => static fn(ObjectType $type): mixed => $type->config[Fields::METADATA_CONFIG_KEY] ?? null,
-            ],
-            'fields' => [
-                'type' => $this->typeRepository->listOfType(FieldMetadataType::class),
-                'resolve' => static fn(ObjectType $type): array => $type->getFields()
-            ],
-            'fieldByName' => [
-                'type' => FieldMetadataType::class,
-                'args' => [
-                    'name' => [
-                        'type' => Type::nonNull(Type::string()),
-                    ]
-                ],
-                'resolve' => static fn(ObjectType $type, array $arguments): ?FieldDefinition => $type->findField($arguments['name']),
-            ]
+            SimpleField::withName('name')
+                ->ofType(Type::nonNull(Type::string()))
+                ->withResolver(static fn(ObjectType $type): string => $type->name),
+            SimpleField::withName('metadata')
+                ->ofType(MetadataScalar::class)
+                ->withResolver(static fn(ObjectType $type): mixed => $type->config[Fields::METADATA_CONFIG_KEY] ?? null),
+            SimpleField::withName('fields')
+                ->ofType(fn(TypeRepository $typeRepository) => $typeRepository->listOfType(FieldMetadataType::class))
+                ->withResolver(static fn(ObjectType $type): array => $type->getFields())
+            ,
+            SimpleField::withName('fieldByName')
+                ->ofType(FieldMetadataType::class)
+                ->withArguments(
+                    Argument::withName('name')->ofType(Type::nonNull(Type::string()))
+                )
+                ->withResolver(static fn(ObjectType $type, array $arguments): ?FieldDefinition => $type->findField($arguments['name']))
+            ,
         ];
     }
 

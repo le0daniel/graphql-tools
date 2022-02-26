@@ -6,16 +6,20 @@ namespace GraphQlTools\Test\Dummies\Schema;
 
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\Field\DeferredField;
+use GraphQlTools\Definition\Field\SimpleField;
 use GraphQlTools\Definition\GraphQlType;
 
 final class TigerType extends GraphQlType {
 
     protected function fields(): array {
         return [
-            'sound' => Type::nonNull(Type::string()),
+            SimpleField::withName('sound')
+                ->ofType(Type::nonNull(Type::string()))
+                ->withResolver(fn(array $data) => $data['sound'])
+            ,
 
             DeferredField::withName('deferred')
-                ->withReturnType(Type::string())
+                ->ofType(Type::string())
                 ->resolveAggregated(function (array $items, array $arguments){
                     return [
                         2 => 'My Deferred',

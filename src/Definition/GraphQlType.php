@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\ObjectType;
+use GraphQlTools\Definition\Field\GraphQlField;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\DefinesFields;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Classes;
 use GraphQlTools\Utility\Fields;
+use RuntimeException;
 
 abstract class GraphQlType extends ObjectType {
     use DefinesFields, HasDescription;

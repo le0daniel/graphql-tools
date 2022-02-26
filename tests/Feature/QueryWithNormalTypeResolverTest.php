@@ -32,9 +32,15 @@ class QueryWithNormalTypeResolverTest extends ExecutionTestCase
 
     public function testFieldExecutionWithArguments(): void
     {
-        $result = $this->execute('query { currentUser(name: "Me") }');
+        $result = $this->execute('query { currentUser(name: "Doris") }');
         $this->assertNoErrors($result);
-        self::assertEquals('Hello Me', $result->data['currentUser']);
+        self::assertEquals('Hello Doris', $result->data['currentUser']);
+    }
+
+    public function testFieldExecutionWithInvalidArguments(): void
+    {
+        $result = $this->execute('query { currentUser(name: "a") }');
+        $this->assertError($result, "Validation failed for 'name': Invalid, string to short: 'a'");
     }
 
     public function testSimpleExecution(): void
