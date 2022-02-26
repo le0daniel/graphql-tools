@@ -93,16 +93,6 @@ class TypeRepository {
     }
 
     /**
-     * Make a custom field class
-     *
-     * @param string $className
-     * @return GraphQlField
-     */
-    public function makeInstanceOfField(string $className): GraphQlField {
-        return new $className;
-    }
-
-    /**
      * Resolve a given type name to a type
      * 
      * @param string $typeName

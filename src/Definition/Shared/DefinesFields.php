@@ -11,7 +11,6 @@ use GraphQlTools\Definition\Field\GraphQlField;
 use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Resolver\ProxyResolver;
-use GraphQlTools\Utility\Fields;
 use RuntimeException;
 
 trait DefinesFields
@@ -99,12 +98,6 @@ trait DefinesFields
     }
 
     private function createFieldFromString(string $className, mixed $name): FieldDefinition {
-        if (Fields::isFieldClass($className)) {
-            return $this->typeRepository->makeInstanceOfField($className)->toField(
-                Fields::guessFieldName($name), $this->typeRepository
-            );
-        }
-
         return FieldDefinition::create([
             'name' => $name,
             'type' => $this->declarationToType($className),

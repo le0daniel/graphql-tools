@@ -42,7 +42,7 @@ final class QueryType extends GraphQlType {
                         })
                 )
                 ->withDescription('')
-                ->withResolver(function($data, $arguments){
+                ->resolvedBy(function($data, $arguments){
                     if ($arguments['name'] ?? null) {
                         return "Hello {$arguments['name']}";
                     }

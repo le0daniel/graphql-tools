@@ -15,7 +15,7 @@ final class TigerType extends GraphQlType {
         return [
             SimpleField::withName('sound')
                 ->ofType(Type::nonNull(Type::string()))
-                ->withResolver(fn(array $data) => $data['sound'])
+                ->resolvedBy(fn(array $data) => $data['sound'])
             ,
 
             DeferredField::withName('deferred')

@@ -16,18 +16,18 @@ final class UserType extends GraphQlType {
         return [
             SimpleField::withName('id')
                 ->ofType(Type::id())
-                ->withResolver(fn($data) => $data['id']),
+                ->resolvedBy(fn($data) => $data['id']),
 
             SimpleField::withName('name')
                 ->ofType(Type::nonNull(Type::string()))
                 ->withArguments(
                     Argument::withName('name')->ofType( Type::string())
                 )
-                ->withResolver(fn($data, array $arguments) => $arguments['name'] ?? 'no name given'),
+                ->resolvedBy(fn($data, array $arguments) => $arguments['name'] ?? 'no name given'),
 
             SimpleField::withName('data')
                 ->ofType(fn(TypeRepository $typeRepository) => $typeRepository->type(JsonScalar::class))
-                ->withResolver(fn() => ['test' => ['json' => [1, 2, 3, 4]]])
+                ->resolvedBy(fn() => ['test' => ['json' => [1, 2, 3, 4]]])
             ,
         ];
     }

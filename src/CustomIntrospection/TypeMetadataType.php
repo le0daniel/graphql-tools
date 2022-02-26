@@ -37,7 +37,7 @@ final class TypeMetadataType extends GraphQlType
             ->withArguments(
                 Argument::withName('name')->ofType(Type::nonNull(Type::string()))
             )
-            ->withResolver(static function ($data, array $arguments) use ($typeRepository) {
+            ->resolvedBy(static function ($data, array $arguments) use ($typeRepository) {
                 try {
                     return Types::enforceTypeLoading($typeRepository->type($arguments['name']));
                 } catch (\Throwable) {
@@ -51,20 +51,20 @@ final class TypeMetadataType extends GraphQlType
         return [
             SimpleField::withName('name')
                 ->ofType(Type::nonNull(Type::string()))
-                ->withResolver(static fn(ObjectType $type): string => $type->name),
+                ->resolvedBy(static fn(ObjectType $type): string => $type->name),
             SimpleField::withName('metadata')
                 ->ofType(MetadataScalar::class)
-                ->withResolver(static fn(ObjectType $type): mixed => $type->config[Fields::METADATA_CONFIG_KEY] ?? null),
+                ->resolvedBy(static fn(ObjectType $type): mixed => $type->config[Fields::METADATA_CONFIG_KEY] ?? null),
             SimpleField::withName('fields')
                 ->ofType(fn(TypeRepository $typeRepository) => $typeRepository->listOfType(FieldMetadataType::class))
-                ->withResolver(static fn(ObjectType $type): array => $type->getFields())
+                ->resolvedBy(static fn(ObjectType $type): array => $type->getFields())
             ,
             SimpleField::withName('fieldByName')
                 ->ofType(FieldMetadataType::class)
                 ->withArguments(
                     Argument::withName('name')->ofType(Type::nonNull(Type::string()))
                 )
-                ->withResolver(static fn(ObjectType $type, array $arguments): ?FieldDefinition => $type->findField($arguments['name']))
+                ->resolvedBy(static fn(ObjectType $type, array $arguments): ?FieldDefinition => $type->findField($arguments['name']))
             ,
         ];
     }

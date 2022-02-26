@@ -18,7 +18,13 @@ class SimpleField extends GraphQlField
      */
     private $resolveFunction;
 
-    public function withResolver(callable $resolveFunction): self {
+    /**
+     * Callable fn(mixed $data, array $validatedArguments, Context $context, ResolveInfo $resolveInfo) => mixed
+     *
+     * @param callable $resolveFunction
+     * @return $this
+     */
+    public function resolvedBy(callable $resolveFunction): self {
         if ($resolveFunction instanceof ProxyResolver) {
             throw new \RuntimeException("Invalid resolve function given. Expected callable, got proxy resolver.");
         }
@@ -28,6 +34,10 @@ class SimpleField extends GraphQlField
     }
 
     protected function getResolver(): ProxyResolver {
+        if (!$this->resolveFunction) {
+            return new ProxyResolver();
+        }
+
         return new ProxyResolver(function($data, array $arguments, Context $context, ResolveInfo $info) {
             return ($this->resolveFunction)(
                 $data,
@@ -43,7 +53,7 @@ class SimpleField extends GraphQlField
         return FieldDefinition::create([
             'name' => $this->name,
             'resolve' => $this->getResolver(),
-            'type' => $this->resolveType($repository, $this->resolveType),
+            'type' => $this->resolveType($repository),
             'deprecationReason' => $this->deprecatedReason,
             'description' => $this->computeDescription(),
             'args' => $this->buildArguments($repository),

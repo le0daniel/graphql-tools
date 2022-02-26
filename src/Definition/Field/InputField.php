@@ -2,23 +2,36 @@
 
 namespace GraphQlTools\Definition\Field;
 
-use GraphQL\Type\Definition\FieldDefinition;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Fields;
 
-class InputField extends GraphQlField
+class InputField
 {
-    public function toField(TypeRepository $repository): FieldDefinition
-    {
-        return FieldDefinition::create([
-            'name' => $this->name,
-            'type' => $this->resolveType($repository, $this->resolveType),
-            'description' => $this->computeDescription(),
+    use HasDescription, HasType;
 
-            // Separate config keys for additional value
+    protected mixed $defaultValue;
+
+    public function __construct(public readonly string $name)
+    {
+    }
+
+    final public static function withName(string $name): self {
+        return new self($name);
+    }
+
+    final public function withDefaultValue(mixed $defaultValue): self {
+        $this->defaultValue = $defaultValue;
+        return $this;
+    }
+
+    public function toInputFieldDefinition(TypeRepository $repository): array
+    {
+        return [
+            'name' => $this->name,
+            'description' => $this->computeDescription(),
+            'type' => $this->resolveType($repository),
+            'defaultValue' => $this->defaultValue,
             Fields::BETA_FIELD_CONFIG_KEY => $this->isBeta,
-            // Fields::NOTICE_CONFIG_KEY => $this->notice(),
-            Fields::METADATA_CONFIG_KEY => $this->metadata,
-        ]);
+        ];
     }
 }

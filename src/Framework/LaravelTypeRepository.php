@@ -22,11 +22,4 @@ final class LaravelTypeRepository extends TypeRepository
         ]);
     }
 
-    public function makeInstanceOfField(string $className): GraphQlField
-    {
-        return $this->application->make($className);
-    }
-
-
-
 }
