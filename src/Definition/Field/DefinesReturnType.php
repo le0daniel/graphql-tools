@@ -5,7 +5,7 @@ namespace GraphQlTools\Definition\Field;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\TypeRepository;
 
-trait HasType
+trait DefinesReturnType
 {
 
     /** @var Type|callable|string */

@@ -13,7 +13,7 @@ use GraphQlTools\Utility\Paths;
 
 class DeferredField extends GraphQlField
 {
-    use HasArguments;
+    use DefinesArguments;
 
     /** @var ContextualLoader[] */
     private array $deferredLoaders = [];

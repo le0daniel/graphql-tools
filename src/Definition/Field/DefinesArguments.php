@@ -4,7 +4,7 @@ namespace GraphQlTools\Definition\Field;
 
 use GraphQlTools\TypeRepository;
 
-trait HasArguments
+trait DefinesArguments
 {
     /** @var Argument[] */
     protected array $arguments = [];

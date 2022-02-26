@@ -2,7 +2,7 @@
 
 namespace GraphQlTools\Definition\Field;
 
-trait HasDescription
+trait DefinesField
 {
 
     protected string|null $description = null;

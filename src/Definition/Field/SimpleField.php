@@ -11,7 +11,7 @@ use GraphQlTools\Utility\Fields;
 
 class SimpleField extends GraphQlField
 {
-    use HasArguments;
+    use DefinesArguments;
 
     /**
      * @var callable

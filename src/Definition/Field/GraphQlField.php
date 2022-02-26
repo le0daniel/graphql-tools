@@ -10,9 +10,7 @@ use JetBrains\PhpStorm\Pure;
 
 abstract class GraphQlField
 {
-    use HasDescription, HasType;
-
-    protected mixed $metadata = null;
+    use DefinesField, DefinesReturnType, DefinesMetadata;
 
     protected function __construct(public readonly string $name)
     {
@@ -22,12 +20,6 @@ abstract class GraphQlField
     final public static function withName(string $name): static
     {
         return new static($name);
-    }
-
-    final public function withMetadata(mixed $metadata): static
-    {
-        $this->metadata = $metadata;
-        return $this;
     }
 
     abstract public function toField(TypeRepository $repository): FieldDefinition;

@@ -7,7 +7,7 @@ use GraphQlTools\Utility\Fields;
 
 class InputField
 {
-    use HasDescription, HasType;
+    use DefinesField, DefinesReturnType;
 
     protected mixed $defaultValue;
 
