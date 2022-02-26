@@ -49,7 +49,7 @@ final class Argument
     final public function toInputFieldDefinition(TypeRepository $repository): array {
         return [
             'name' => $this->name,
-            'type' => $this->resolveType($repository),
+            'type' => $this->resolveReturnType($repository),
             'defaultValue' => $this->defaultValue,
             'description' => $this->computeDescription(),
             Fields::BETA_FIELD_CONFIG_KEY => $this->isBeta,

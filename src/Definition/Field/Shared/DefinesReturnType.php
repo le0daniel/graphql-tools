@@ -7,7 +7,6 @@ use GraphQlTools\TypeRepository;
 
 trait DefinesReturnType
 {
-
     /** @var Type|callable|string */
     protected mixed $ofType;
 
@@ -17,7 +16,7 @@ trait DefinesReturnType
         return $this;
     }
 
-    final protected function resolveType(TypeRepository $repository): mixed
+    final protected function resolveReturnType(TypeRepository $repository): mixed
     {
         if ($this->ofType instanceof Type) {
             return $this->ofType;

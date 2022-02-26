@@ -65,7 +65,7 @@ class DeferredField extends GraphQlField
     {
         return FieldDefinition::create([
             'name' => $this->name,
-            'type' => $this->resolveType($repository),
+            'type' => $this->resolveReturnType($repository),
             'deprecationReason' => $this->deprecatedReason,
             'description' => $this->computeDescription(),
             'args' => $this->buildArguments($repository),

@@ -25,7 +25,7 @@ class InputField
         return [
             'name' => $this->name,
             'description' => $this->computeDescription(),
-            'type' => $this->resolveType($repository),
+            'type' => $this->resolveReturnType($repository),
             'defaultValue' => $this->defaultValue,
             Fields::BETA_FIELD_CONFIG_KEY => $this->isBeta,
         ];

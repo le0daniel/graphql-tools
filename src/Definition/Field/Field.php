@@ -54,7 +54,7 @@ class Field extends GraphQlField
         return FieldDefinition::create([
             'name' => $this->name,
             'resolve' => $this->getResolver(),
-            'type' => $this->resolveType($repository),
+            'type' => $this->resolveReturnType($repository),
             'deprecationReason' => $this->deprecatedReason,
             'description' => $this->computeDescription(),
             'args' => $this->buildArguments($repository),
