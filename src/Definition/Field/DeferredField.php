@@ -73,7 +73,6 @@ class DeferredField extends GraphQlField
                     ->defer($data, $this->resolveItem);
             }),
             Fields::BETA_FIELD_CONFIG_KEY => $this->isBeta,
-            // Fields::NOTICE_CONFIG_KEY => $this->notice(),
             Fields::METADATA_CONFIG_KEY => $this->metadata,
         ]);
 

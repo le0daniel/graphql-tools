@@ -7,13 +7,14 @@ namespace GraphQlTools\Test\Dummies\Schema;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Context;
+use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlInterface;
 
 final class MamelInterface extends GraphQlInterface {
 
     protected function fields(): array {
         return [
-            'sound' => Type::nonNull(Type::string())
+            Field::withName('sound')->ofType(Type::nonNull(Type::string())),
         ];
     }
 

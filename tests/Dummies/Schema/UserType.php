@@ -6,7 +6,7 @@ namespace GraphQlTools\Test\Dummies\Schema;
 
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\Field\Argument;
-use GraphQlTools\Definition\Field\SimpleField;
+use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\TypeRepository;
 
@@ -14,18 +14,18 @@ final class UserType extends GraphQlType {
 
     protected function fields(): array {
         return [
-            SimpleField::withName('id')
+            Field::withName('id')
                 ->ofType(Type::id())
                 ->resolvedBy(fn($data) => $data['id']),
 
-            SimpleField::withName('name')
+            Field::withName('name')
                 ->ofType(Type::nonNull(Type::string()))
                 ->withArguments(
                     Argument::withName('name')->ofType( Type::string())
                 )
                 ->resolvedBy(fn($data, array $arguments) => $arguments['name'] ?? 'no name given'),
 
-            SimpleField::withName('data')
+            Field::withName('data')
                 ->ofType(fn(TypeRepository $typeRepository) => $typeRepository->type(JsonScalar::class))
                 ->resolvedBy(fn() => ['test' => ['json' => [1, 2, 3, 4]]])
             ,

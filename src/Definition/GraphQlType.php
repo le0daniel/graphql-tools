@@ -17,6 +17,14 @@ abstract class GraphQlType extends ObjectType {
     use DefinesFields, HasDescription;
     private const CLASS_POSTFIX = 'Type';
 
+    /**
+     * Return an array of fields of that specific type. The fields
+     * are then initialized correctly and a proxy attached to them.
+     *
+     * @return GraphQlField[]
+     */
+    abstract protected function fields(): array;
+
     public function __construct(
         protected TypeRepository $typeRepository
     ){
@@ -24,7 +32,7 @@ abstract class GraphQlType extends ObjectType {
             [
                 'name' => static::typeName(),
                 'description' => $this->description(),
-                'fields' => fn() => $this->initFields(),
+                'fields' => fn() => $this->initFields($this->fields()),
                 'interfaces' => fn() => array_map([$this, 'declarationToType'], $this->interfaces()),
                 Fields::METADATA_CONFIG_KEY => $this->metadata(),
             ]

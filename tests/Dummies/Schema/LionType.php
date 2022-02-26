@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GraphQlTools\Test\Dummies\Schema;
 
 use GraphQL\Type\Definition\Type;
-use GraphQlTools\Definition\Field\SimpleField;
+use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlField;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Resolver\ProxyResolver;
@@ -15,11 +15,11 @@ final class LionType extends GraphQlType {
 
     protected function fields(): array {
         return [
-            SimpleField::withName('sound')
+            Field::withName('sound')
                 ->ofType(Type::nonNull(Type::string()))
                 ->resolvedBy(fn($data) => $data['sound']),
 
-            SimpleField::withName('fieldWithMeta')
+            Field::withName('fieldWithMeta')
                 ->ofType(Type::nonNull(Type::string()))
                 ->resolvedBy(fn() => 'This is a test field')
                 ->withMetadata([

@@ -25,7 +25,7 @@ trait DefinesArguments
             return null;
         }
 
-        return array_map(fn(Argument $argument) => $argument->toGraphQlArgument($repository), $this->arguments);
+        return array_map(fn(Argument $argument) => $argument->toInputFieldDefinition($repository), $this->arguments);
     }
 
     final protected function validateArguments(array $arguments): array

@@ -17,6 +17,7 @@ class DirectoriesTest extends TestCase
 
         self::assertEquals([
             realpath(__DIR__ . '/../Dummies/Schema/AnimalUnion.php'),
+            realpath(__DIR__ . '/../Dummies/Schema/CreateAnimalInputType.php'),
             realpath(__DIR__ . '/../Dummies/Schema/JsonScalar.php'),
             realpath(__DIR__ . '/../Dummies/Schema/LionType.php'),
             realpath(__DIR__ . '/../Dummies/Schema/MamelInterface.php'),

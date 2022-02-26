@@ -5,14 +5,11 @@ namespace GraphQlTools\Definition\Field;
 use Closure;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\TypeRepository;
+use GraphQlTools\Utility\Fields;
 
 final class Argument
 {
-    /** @var Type|callable */
-    private $type;
-
-    private ?string $description = null;
-    private mixed $defaultValue = null;
+    use DefinesReturnType, DefinesField, DefinesDefaultValue;
 
     /** @var callable|null */
     private $validator = null;
@@ -25,26 +22,18 @@ final class Argument
         return new self($name);
     }
 
-    public function ofType(Type|callable $type): self {
-        $this->type = $type;
-        return $this;
-    }
-
-    public function withDefaultValue(mixed $defaultValue): self {
-        $this->defaultValue = $defaultValue;
-        return $this;
-    }
-
-    public function withDescription(string $description): self {
-        $this->description = $description;
-        return $this;
-    }
-
     public function withValidator(callable $validator): self {
         $this->validator = $validator;
         return $this;
     }
 
+    /**
+     * Validates an input value with a defined validator if set, otherwise everything is considered valid.
+     *
+     * @param mixed $value
+     * @param array $allArguments
+     * @return mixed
+     */
     public function validateValue(mixed $value, array $allArguments): mixed
     {
         if (!$this->validator) {
@@ -54,14 +43,13 @@ final class Argument
         return ($this->validator)($value, $allArguments);
     }
 
-    final public function toGraphQlArgument(TypeRepository $repository): array {
+    final public function toInputFieldDefinition(TypeRepository $repository): array {
         return [
             'name' => $this->name,
-            'type' => $this->type instanceof Type
-                ? $this->type
-                : ($this->type)($repository),
+            'type' => $this->resolveType($repository),
             'defaultValue' => $this->defaultValue,
-            'description' => $this->description,
+            'description' => $this->computeDescription(),
+            Fields::BETA_FIELD_CONFIG_KEY => $this->isBeta,
         ];
     }
 

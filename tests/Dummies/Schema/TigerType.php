@@ -6,14 +6,14 @@ namespace GraphQlTools\Test\Dummies\Schema;
 
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\Field\DeferredField;
-use GraphQlTools\Definition\Field\SimpleField;
+use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlType;
 
 final class TigerType extends GraphQlType {
 
     protected function fields(): array {
         return [
-            SimpleField::withName('sound')
+            Field::withName('sound')
                 ->ofType(Type::nonNull(Type::string()))
                 ->resolvedBy(fn(array $data) => $data['sound'])
             ,

@@ -9,7 +9,7 @@ use GraphQlTools\Resolver\ProxyResolver;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Fields;
 
-class SimpleField extends GraphQlField
+class Field extends GraphQlField
 {
     use DefinesArguments;
 

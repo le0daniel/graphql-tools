@@ -7,9 +7,7 @@ use GraphQlTools\Utility\Fields;
 
 class InputField
 {
-    use DefinesField, DefinesReturnType;
-
-    protected mixed $defaultValue;
+    use DefinesField, DefinesReturnType, DefinesDefaultValue;
 
     public function __construct(public readonly string $name)
     {
@@ -17,11 +15,6 @@ class InputField
 
     final public static function withName(string $name): self {
         return new self($name);
-    }
-
-    final public function withDefaultValue(mixed $defaultValue): self {
-        $this->defaultValue = $defaultValue;
-        return $this;
     }
 
     public function toInputFieldDefinition(TypeRepository $repository): array

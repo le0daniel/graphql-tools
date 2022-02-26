@@ -8,6 +8,7 @@ use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Field\GraphQlField;
+use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Resolver\ProxyResolver;
@@ -17,14 +18,6 @@ trait DefinesFields
 {
     private bool $fieldAreInitialized = false;
     private array $fieldsToAppend = [];
-
-    /**
-     * Return an array of fields of that specific type. The fields
-     * are then initialized correctly and a proxy attached to them.
-     *
-     * @return array
-     */
-    abstract protected function fields(): array;
 
     /**
      * Ensures the Input fields are correctly defined
@@ -41,7 +34,7 @@ trait DefinesFields
                 continue;
             }
 
-            if (!is_array($inputField)) {
+            if (is_array($inputField)) {
                 $fields[] = [
                     'name' => $name,
                     'type' => $this->declarationToType($inputField)
@@ -49,9 +42,12 @@ trait DefinesFields
                 continue;
             }
 
-            $inputField['name'] = $name;
-            $inputField['type'] = $this->declarationToType($inputField['type']);
-            $fields[] = $inputField;
+            if (!$inputField instanceof InputField) {
+                $className = is_object($inputField) ? get_class($inputField) : gettype($inputField);
+                throw new RuntimeException("Expected InputField, got instance of '{$className}'");
+            }
+
+            $fields[] = $inputField->toInputFieldDefinition($this->typeRepository);
         }
 
         return $fields;
@@ -63,13 +59,13 @@ trait DefinesFields
      * @return array
      * @throws DefinitionException
      */
-    private function initFields(): array
+    private function initFields(array $fields): array
     {
         $this->fieldAreInitialized = true;
-        $allDeclaredFields = array_merge($this->fields(), $this->fieldsToAppend);
+        $allDeclaredFields = array_merge($fields, $this->fieldsToAppend);
 
         /** @var GraphQlType|GraphQlInterface $this */
-        $fields = [];
+        $initializedFields = [];
         foreach ($allDeclaredFields as $fieldName => $fieldDeclaration) {
             if (!$fieldDeclaration) {
                 continue;
@@ -78,10 +74,10 @@ trait DefinesFields
             // Attaches the field type from a given type name
             $field = $this->createField($fieldName, $fieldDeclaration);
             ProxyResolver::attachToField($field);
-            $fields[] = $field;
+            $initializedFields[] = $field;
         }
 
-        return $fields;
+        return $initializedFields;
     }
 
     protected function declarationToType(mixed $declaration): mixed

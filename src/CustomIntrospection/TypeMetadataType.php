@@ -7,7 +7,7 @@ use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\Field\Argument;
 use GraphQlTools\Definition\Field\GraphQlField;
-use GraphQlTools\Definition\Field\SimpleField;
+use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Fields;
@@ -31,7 +31,7 @@ final class TypeMetadataType extends GraphQlType
 
     public static function rootQueryField(TypeRepository $typeRepository): GraphQlField
     {
-        return SimpleField::withName(self::ROOT_QUERY_FIELD_NAME)
+        return Field::withName(self::ROOT_QUERY_FIELD_NAME)
             ->ofType(self::class)
             ->withDescription('Get extended Metadata for a specific type by its type name.')
             ->withArguments(
@@ -49,17 +49,17 @@ final class TypeMetadataType extends GraphQlType
     protected function fields(): array
     {
         return [
-            SimpleField::withName('name')
+            Field::withName('name')
                 ->ofType(Type::nonNull(Type::string()))
                 ->resolvedBy(static fn(ObjectType $type): string => $type->name),
-            SimpleField::withName('metadata')
+            Field::withName('metadata')
                 ->ofType(MetadataScalar::class)
                 ->resolvedBy(static fn(ObjectType $type): mixed => $type->config[Fields::METADATA_CONFIG_KEY] ?? null),
-            SimpleField::withName('fields')
+            Field::withName('fields')
                 ->ofType(fn(TypeRepository $typeRepository) => $typeRepository->listOfType(FieldMetadataType::class))
                 ->resolvedBy(static fn(ObjectType $type): array => $type->getFields())
             ,
-            SimpleField::withName('fieldByName')
+            Field::withName('fieldByName')
                 ->ofType(FieldMetadataType::class)
                 ->withArguments(
                     Argument::withName('name')->ofType(Type::nonNull(Type::string()))
