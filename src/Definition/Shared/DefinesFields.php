@@ -7,6 +7,8 @@ namespace GraphQlTools\Definition\Shared;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\DefinitionException;
+use GraphQlTools\Definition\Field\Argument;
+use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Field\GraphQlField;
 use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlInterface;
@@ -28,29 +30,21 @@ trait DefinesFields
      */
     private function initInputFields(array $inputFields): array
     {
-        $fields = [];
+        $initializedInputFields = [];
         foreach ($inputFields as $name => $inputField) {
             if (!$inputField) {
                 continue;
             }
 
-            if (is_array($inputField)) {
-                $fields[] = [
-                    'name' => $name,
-                    'type' => $this->declarationToType($inputField)
-                ];
-                continue;
-            }
-
-            if (!$inputField instanceof InputField) {
+            if (!$inputField instanceof InputField || !$inputField instanceof Argument) {
                 $className = is_object($inputField) ? get_class($inputField) : gettype($inputField);
-                throw new RuntimeException("Expected InputField, got instance of '{$className}'");
+                throw new RuntimeException("Expected InputField or Argument, got {$className}");
             }
 
-            $fields[] = $inputField->toInputFieldDefinitionArray($this->typeRepository);
+            $initializedInputFields[] = $inputField->toInputFieldDefinitionArray($this->typeRepository);
         }
 
-        return $fields;
+        return $initializedInputFields;
     }
 
     /**
@@ -69,6 +63,11 @@ trait DefinesFields
         foreach ($allDeclaredFields as $fieldName => $fieldDeclaration) {
             if (!$fieldDeclaration) {
                 continue;
+            }
+
+            if (!$fieldDeclaration instanceof GraphQlField) {
+                $className = is_object($fieldDeclaration) ? get_class($fieldDeclaration) : gettype($fieldDeclaration);
+                throw new RuntimeException("Expected GraphQlField, got {$className}");
             }
 
             // Attaches the field type from a given type name

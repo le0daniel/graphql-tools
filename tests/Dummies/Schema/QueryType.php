@@ -76,11 +76,10 @@ final class QueryType extends GraphQlType {
                     return $data;
                 }),
 
-            'animals' => [
-                'type' => Type::nonNull(Type::listOf(Type::nonNull($this->typeRepository->type(AnimalUnion::class)))),
-                'resolve' => fn() => self::ANIMALS
-            ],
-
+            Field::withName('animals')
+                ->ofType(fn(TypeRepository $typeRepository) => Type::nonNull(Type::listOf(Type::nonNull($typeRepository->type(AnimalUnion::class)))))
+                ->resolvedBy(fn() => self::ANIMALS)
+            ,
         ];
     }
 
