@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition\Shared;
 
-use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Field\Argument;
@@ -90,12 +89,6 @@ trait DefinesFields
         throw new DefinitionException('Could not cast type declaration to type');
     }
 
-    /**
-     * This is used internally for appending fields automatically to the root query type.
-     *
-     * @param FieldDefinition ...$fields
-     * @return void
-     */
     final public function appendField(GraphQlField $field): void {
         if ($this->fieldAreInitialized) {
             throw new RuntimeException(implode(PHP_EOL, [
