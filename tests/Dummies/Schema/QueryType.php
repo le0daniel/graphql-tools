@@ -55,6 +55,14 @@ final class QueryType extends GraphQlType {
                 ->ofType(Type::string())
                 ->resolvedBy(fn() => self::WHOAMI_DATA),
 
+            Field::withName('createAnimal')
+                ->ofType(Type::string())
+                ->withArguments(
+                    Argument::withName('input')->ofType(CreateAnimalInputType::class)
+                )->resolvedBy(
+                    fn($data, array $arguments) => "Done: {$arguments['input']['id']}"
+                ),
+
             Field::withName('user')
                 ->ofType(fn(TypeRepository $typeRepository) => new NonNull($typeRepository->type(UserType::class)))
                 ->resolvedBy(fn() => ['id' => self::USER_ID]),

@@ -69,6 +69,13 @@ class QueryWithNormalTypeResolverTest extends ExecutionTestCase
         self::assertIsArray($result->data['user']['data']);
     }
 
+    public function testWithInputArgument(): void
+    {
+        $result = $this->execute('query { createAnimal(input: {id: "test"})}');
+        $this->assertNoErrors($result);
+        self::assertEquals('Done: test', $result->data['createAnimal']);
+    }
+
     public function testQueryWithUnion(): void
     {
         $result = $this->execute('query { animals { ... on Lion {sound} } }');
