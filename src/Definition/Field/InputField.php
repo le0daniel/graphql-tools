@@ -20,7 +20,7 @@ class InputField
         return new self($name);
     }
 
-    public function toInputFieldDefinition(TypeRepository $repository): array
+    public function toInputFieldDefinitionArray(TypeRepository $repository): array
     {
         return [
             'name' => $this->name,

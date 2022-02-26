@@ -25,5 +25,5 @@ abstract class GraphQlField
         return new static($name);
     }
 
-    abstract public function toField(TypeRepository $repository): FieldDefinition;
+    abstract public function toFieldDefinition(TypeRepository $repository): FieldDefinition;
 }

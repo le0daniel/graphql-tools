@@ -61,7 +61,7 @@ class DeferredField extends GraphQlField
         return $this;
     }
 
-    public function toField(TypeRepository $repository): FieldDefinition
+    public function toFieldDefinition(TypeRepository $repository): FieldDefinition
     {
         return FieldDefinition::create([
             'name' => $this->name,

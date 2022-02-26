@@ -46,7 +46,7 @@ final class Argument
         return ($this->validator)($value, $allArguments);
     }
 
-    final public function toInputFieldDefinition(TypeRepository $repository): array {
+    final public function toInputFieldDefinitionArray(TypeRepository $repository): array {
         return [
             'name' => $this->name,
             'type' => $this->resolveReturnType($repository),

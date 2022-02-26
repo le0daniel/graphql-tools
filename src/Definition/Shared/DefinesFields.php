@@ -47,7 +47,7 @@ trait DefinesFields
                 throw new RuntimeException("Expected InputField, got instance of '{$className}'");
             }
 
-            $fields[] = $inputField->toInputFieldDefinition($this->typeRepository);
+            $fields[] = $inputField->toInputFieldDefinitionArray($this->typeRepository);
         }
 
         return $fields;
@@ -111,7 +111,7 @@ trait DefinesFields
         }
 
         if ($fieldDeclaration instanceof GraphQlField) {
-            return $fieldDeclaration->toField(
+            return $fieldDeclaration->toFieldDefinition(
                 $this->typeRepository
             );
         }

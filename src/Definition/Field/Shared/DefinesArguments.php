@@ -27,7 +27,7 @@ trait DefinesArguments
             return null;
         }
 
-        return array_map(fn(Argument $argument) => $argument->toInputFieldDefinition($repository), $this->arguments);
+        return array_map(fn(Argument $argument) => $argument->toInputFieldDefinitionArray($repository), $this->arguments);
     }
 
     final protected function validateArguments(array $arguments): array

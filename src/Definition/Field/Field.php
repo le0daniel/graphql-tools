@@ -49,7 +49,7 @@ class Field extends GraphQlField
         });
     }
 
-    public function toField(TypeRepository $repository): FieldDefinition
+    public function toFieldDefinition(TypeRepository $repository): FieldDefinition
     {
         return FieldDefinition::create([
             'name' => $this->name,
