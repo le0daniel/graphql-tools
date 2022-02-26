@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Definition\Field;
+namespace GraphQlTools\Definition\Field\Shared;
 
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\TypeRepository;

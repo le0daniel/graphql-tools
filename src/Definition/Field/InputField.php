@@ -2,6 +2,9 @@
 
 namespace GraphQlTools\Definition\Field;
 
+use GraphQlTools\Definition\Field\Shared\DefinesDefaultValue;
+use GraphQlTools\Definition\Field\Shared\DefinesField;
+use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Fields;
 

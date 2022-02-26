@@ -1,7 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Definition\Field;
+namespace GraphQlTools\Definition\Field\Shared;
 
+use GraphQlTools\Definition\Field\Argument;
+use GraphQlTools\Definition\Field\InvalidArgumentException;
 use GraphQlTools\TypeRepository;
 
 trait DefinesArguments
