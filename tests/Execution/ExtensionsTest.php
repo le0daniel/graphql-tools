@@ -7,7 +7,7 @@ use GraphQlTools\Contract\Event;
 use GraphQlTools\Contract\Extension;
 use GraphQlTools\Events\FieldResolutionEvent;
 use GraphQlTools\Events\StartEvent;
-use GraphQlTools\Execution\Extensions;
+use GraphQlTools\Helper\Extensions;
 use GraphQlTools\Extension\Tracing;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use PHPUnit\Framework\TestCase;

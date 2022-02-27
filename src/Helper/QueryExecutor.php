@@ -13,7 +13,7 @@ use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Context;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
-use GraphQlTools\Execution\Extensions;
+use GraphQlTools\Helper\Extensions;
 use GraphQlTools\Extension\FieldMessages;
 use GraphQlTools\Extension\Tracing;
 use GraphQlTools\Helper\OperationContext;
@@ -53,7 +53,7 @@ final class QueryExecutor
     public static function defaultExtensions(): array
     {
         return [
-            Tracing::class,
+            // Tracing::class,
             FieldMessages::class,
         ];
     }

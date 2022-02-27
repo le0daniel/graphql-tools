@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GraphQlTools\Execution;
+namespace GraphQlTools\Helper;
 
 use Closure;
 use GraphQL\Type\Definition\ResolveInfo;
@@ -10,8 +10,6 @@ use GraphQlTools\Contract\Extension;
 use GraphQlTools\Events\FieldResolutionEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
-use GraphQlTools\Utility\Middlewares;
-use RuntimeException;
 
 final class Extensions implements \JsonSerializable {
 

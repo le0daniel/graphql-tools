@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GraphQlTools\Helper;
 
 use GraphQlTools\Context;
-use GraphQlTools\Execution\Extensions;
+use GraphQlTools\Helper\Extensions;
 
 /**
  * Class ExecutionContext

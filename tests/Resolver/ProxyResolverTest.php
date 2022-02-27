@@ -9,7 +9,7 @@ use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQlTools\Contract\Extension;
 use GraphQlTools\Helper\OperationContext;
-use GraphQlTools\Execution\Extensions;
+use GraphQlTools\Helper\Extensions;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use GraphQlTools\Context;
 use GraphQlTools\Helper\ProxyResolver;
