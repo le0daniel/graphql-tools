@@ -19,13 +19,6 @@ trait DefinesFields
     private bool $fieldAreInitialized = false;
     private array $fieldsToAppend = [];
 
-    /**
-     * Ensures the Input fields are correctly defined
-     *
-     * @param array $inputFields
-     * @return array
-     * @throws DefinitionException
-     */
     private function initInputFields(array $inputFields): array
     {
         $initializedInputFields = [];
@@ -35,8 +28,7 @@ trait DefinesFields
             }
 
             if (!$inputField instanceof InputField) {
-                $className = is_object($inputField) ? get_class($inputField) : gettype($inputField);
-                throw new RuntimeException("Expected InputField or Argument, got {$className}");
+                throw DefinitionException::from($inputField, InputField::class, Argument::class);
             }
 
             $initializedInputFields[] = $inputField->toInputFieldDefinitionArray($this->typeRepository);
@@ -45,12 +37,6 @@ trait DefinesFields
         return $initializedInputFields;
     }
 
-    /**
-     * Ensures the fields have the proxy attached to the resolve function
-     *
-     * @return array
-     * @throws DefinitionException
-     */
     private function initFields(array $fields): array
     {
         $this->fieldAreInitialized = true;
@@ -64,8 +50,7 @@ trait DefinesFields
             }
 
             if (!$fieldDeclaration instanceof GraphQlField) {
-                $className = is_object($fieldDeclaration) ? get_class($fieldDeclaration) : gettype($fieldDeclaration);
-                throw new RuntimeException("Expected GraphQlField, got {$className}");
+                throw DefinitionException::from($fieldDeclaration, GraphQlField::class);
             }
 
             $field = $fieldDeclaration->toFieldDefinition($this->typeRepository);
