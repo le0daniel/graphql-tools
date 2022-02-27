@@ -8,7 +8,7 @@ use GraphQL\Deferred;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQlTools\Contract\Extension;
-use GraphQlTools\Execution\OperationContext;
+use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Execution\Extensions;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use GraphQlTools\Context;

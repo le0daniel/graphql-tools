@@ -25,7 +25,7 @@ final class FieldMessages extends Extension {
         return 'messages';
     }
 
-    public function jsonSerialize(): mixed{
+    public function jsonSerialize(): mixed {
         return $this->messages;
     }
 

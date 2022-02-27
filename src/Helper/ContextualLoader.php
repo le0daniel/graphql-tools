@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\DataLoader;
+namespace GraphQlTools\Helper;
 
 use GraphQL\Deferred;
 use GraphQlTools\Context;

@@ -61,7 +61,7 @@ class Field extends GraphQlField
 
             // Separate config keys for additional value
             Fields::BETA_FIELD_CONFIG_KEY => $this->isBeta,
-            // Fields::NOTICE_CONFIG_KEY => $this->notice(),
+            Fields::NOTICE_CONFIG_KEY => $this->notice,
             Fields::METADATA_CONFIG_KEY => $this->metadata,
         ]);
     }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GraphQlTools\Execution;
+namespace GraphQlTools\Helper;
 
 use GraphQlTools\Context;
 use GraphQlTools\Execution\Extensions;

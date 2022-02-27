@@ -25,7 +25,7 @@ Everything begins by defining a new Type Repository. The Type Repository makes s
 
 ```php
 <?php
-    use GraphQlTools\Context;use GraphQlTools\Execution\QueryExecutor;use GraphQlTools\TypeRepository;
+    use GraphQlTools\Context;use GraphQlTools\Helper\QueryExecutor;use GraphQlTools\TypeRepository;
     require_once __DIR__ . '/vendor/autoload.php';   
 
     // Extend this class to implement specific methods

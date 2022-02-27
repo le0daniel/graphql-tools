@@ -5,7 +5,7 @@ namespace GraphQlTools\Definition\Field;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
-use GraphQlTools\DataLoader\ContextualLoader;
+use GraphQlTools\Helper\ContextualLoader;
 use GraphQlTools\Definition\Field\Shared\DefinesArguments;
 use GraphQlTools\Resolver\ProxyResolver;
 use GraphQlTools\TypeRepository;
@@ -73,6 +73,9 @@ class DeferredField extends GraphQlField
                 return $this->getContextualDeferredLoader($arguments, $context, $resolveInfo)
                     ->defer($data, $this->resolveItem);
             }),
+
+            // Specific Field configurations.
+            Fields::NOTICE_CONFIG_KEY => $this->notice,
             Fields::BETA_FIELD_CONFIG_KEY => $this->isBeta,
             Fields::METADATA_CONFIG_KEY => $this->metadata,
         ]);

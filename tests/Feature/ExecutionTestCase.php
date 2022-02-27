@@ -6,7 +6,7 @@ namespace GraphQlTools\Test\Feature;
 
 use GraphQL\Executor\ExecutionResult;
 use GraphQlTools\Context;
-use GraphQlTools\Execution\QueryExecutor;
+use GraphQlTools\Helper\QueryExecutor;
 use GraphQlTools\TypeRepository;
 use PHPUnit\Framework\TestCase;
 

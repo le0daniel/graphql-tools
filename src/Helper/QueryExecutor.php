@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GraphQlTools\Execution;
+namespace GraphQlTools\Helper;
 
 use GraphQL\Error\SyntaxError;
 use GraphQL\Executor\ExecutionResult;
@@ -13,8 +13,10 @@ use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Context;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
+use GraphQlTools\Execution\Extensions;
 use GraphQlTools\Extension\FieldMessages;
 use GraphQlTools\Extension\Tracing;
+use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Resolver\ProxyResolver;
 use GraphQlTools\Utility\SideEffects;
 

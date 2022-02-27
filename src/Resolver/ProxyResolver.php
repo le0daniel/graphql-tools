@@ -10,7 +10,7 @@ use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
 use GraphQlTools\Events\FieldResolutionEvent;
-use GraphQlTools\Execution\OperationContext;
+use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Utility\SideEffects;
 
 final class ProxyResolver
