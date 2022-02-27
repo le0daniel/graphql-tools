@@ -55,25 +55,32 @@ final class Extensions implements \JsonSerializable {
      * @return Closure
      */
     public function middlewareFieldResolution(FieldResolutionEvent $event): Closure {
-        return Middlewares::executeAndReturnNext(
-            $this->extensions,
-            /** @suppress PhanTypeMismatchArgument */
-            static fn(Extension $extension) => $extension->fieldResolution($event)
-        );
-    }
+        $afterStack = [];
 
-    public function dispatch(EndEvent|StartEvent $event): void {
-        switch ($event::class) {
-            case StartEvent::class:
-                array_walk($this->extensions, static fn(Extension $extension) => $extension->start($event));
-                return;
-            case EndEvent::class:
-                array_walk($this->extensions, static fn(Extension $extension) => $extension->end($event));
-                return;
+        foreach ($this->extensions as $extension) {
+            if ($afterEvent = $extension->fieldResolution($event)) {
+                array_unshift($afterStack, $afterEvent);
+            }
         }
 
-        $eventName = $event::class;
-        throw new RuntimeException("Unexpected event with name: `{$eventName}`");
+        return function (mixed $resolvedValue) use ($afterStack) {
+            foreach ($afterStack as $next) {
+                $resolvedValue = $next($resolvedValue);
+            }
+            return $resolvedValue;
+        };
+    }
+
+    public function dispatchStartEvent(StartEvent $event){
+        foreach ($this->extensions as $extension) {
+            $extension->start($event);
+        }
+    }
+
+    public function dispatchEndEvent(EndEvent $event){
+        foreach ($this->extensions as $extension) {
+            $extension->end($event);
+        }
     }
 
     public function jsonSerialize(): array {

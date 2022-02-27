@@ -43,11 +43,4 @@ class ExtensionsTest extends TestCase
 
         self::assertEquals('value', $next('other value'));
     }
-
-    public function testDispatch()
-    {
-        $extensions = new Extensions();
-        $extensions->dispatch(StartEvent::create(''));
-        self::assertTrue(true);
-    }
 }

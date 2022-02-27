@@ -67,7 +67,7 @@ final class QueryExecutor
     ): ExecutionResult
     {
         $extensions = Extensions::create($this->extensions);
-        $extensions->dispatch(StartEvent::create($query));
+        $extensions->dispatchStartEvent(StartEvent::create($query));
 
         try {
             $source = Parser::parse($query);
@@ -86,7 +86,7 @@ final class QueryExecutor
             $this->validationRules
         );
 
-        $extensions->dispatch(EndEvent::create());
+        $extensions->dispatchEndEvent(EndEvent::create());
 
         if ($this->errorFormatter) {
             $result->setErrorFormatter($this->errorFormatter);

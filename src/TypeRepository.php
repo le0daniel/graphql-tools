@@ -12,7 +12,6 @@ use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
 use GraphQL\Utils\SchemaPrinter;
 use GraphQlTools\Definition\GraphQlEnum;
-use GraphQlTools\Definition\GraphQlField;
 use GraphQlTools\Definition\GraphQlInputType;
 use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlScalar;
