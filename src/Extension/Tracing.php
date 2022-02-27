@@ -11,8 +11,8 @@ use GraphQlTools\Contract\Extension;
 use GraphQlTools\Events\FieldResolutionEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
-use GraphQlTools\Immutable\ExecutionTrace;
-use GraphQlTools\Immutable\ResolverTrace;
+use GraphQlTools\Data\Models\ExecutionTrace;
+use GraphQlTools\Data\Models\ResolverTrace;
 use Closure;
 
 final class Tracing extends Extension

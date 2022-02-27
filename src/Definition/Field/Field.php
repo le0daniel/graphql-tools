@@ -6,7 +6,7 @@ use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
 use GraphQlTools\Definition\Field\Shared\DefinesArguments;
-use GraphQlTools\Resolver\ProxyResolver;
+use GraphQlTools\Helper\ProxyResolver;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Fields;
 

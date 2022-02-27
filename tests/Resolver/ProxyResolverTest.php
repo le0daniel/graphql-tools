@@ -12,7 +12,7 @@ use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Execution\Extensions;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use GraphQlTools\Context;
-use GraphQlTools\Resolver\ProxyResolver;
+use GraphQlTools\Helper\ProxyResolver;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;

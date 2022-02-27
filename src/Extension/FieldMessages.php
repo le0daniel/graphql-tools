@@ -9,7 +9,7 @@ use GraphQlTools\Contract\Extension;
 use GraphQlTools\Definition\GraphQlField;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Events\FieldResolutionEvent;
-use GraphQlTools\Immutable\Message;
+use GraphQlTools\Data\Models\Message;
 use GraphQlTools\Utility\Fields;
 
 final class FieldMessages extends Extension {

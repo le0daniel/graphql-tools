@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GraphQlTools\Resolver;
+namespace GraphQlTools\Helper;
 
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Executor\Promise\Promise;

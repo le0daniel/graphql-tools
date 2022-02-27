@@ -2,7 +2,7 @@
 
 namespace GraphQlTools\Apollo;
 
-use GraphQlTools\Immutable\ResolverTrace;
+use GraphQlTools\Data\Models\ResolverTrace;
 use GraphQlTools\Utility\Arrays;
 use Protobuf\Trace\Node;
 

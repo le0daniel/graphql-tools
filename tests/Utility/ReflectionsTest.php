@@ -2,7 +2,7 @@
 
 namespace GraphQlTools\Test\Utility;
 
-use GraphQlTools\Immutable\Holder;
+use GraphQlTools\Data\Models\Holder;
 use GraphQlTools\Test\Dummies\HolderDummy;
 use GraphQlTools\Utility\Reflections;
 use PHPUnit\Framework\TestCase;

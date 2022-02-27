@@ -11,7 +11,7 @@ use GraphQlTools\Definition\Field\GraphQlField;
 use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
-use GraphQlTools\Resolver\ProxyResolver;
+use GraphQlTools\Helper\ProxyResolver;
 use RuntimeException;
 
 trait DefinesFields

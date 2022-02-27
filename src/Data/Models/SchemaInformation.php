@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Immutable;
+namespace GraphQlTools\Data\Models;
 
 /**
  * @property-read string $graphId

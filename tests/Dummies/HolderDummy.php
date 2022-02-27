@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Test\Dummies;
 
-use GraphQlTools\Immutable\Holder;
+use GraphQlTools\Data\Models\Holder;
 
 final class HolderDummy extends Holder {
 

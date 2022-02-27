@@ -17,7 +17,7 @@ use GraphQlTools\Execution\Extensions;
 use GraphQlTools\Extension\FieldMessages;
 use GraphQlTools\Extension\Tracing;
 use GraphQlTools\Helper\OperationContext;
-use GraphQlTools\Resolver\ProxyResolver;
+use GraphQlTools\Helper\ProxyResolver;
 use GraphQlTools\Utility\SideEffects;
 
 final class QueryExecutor

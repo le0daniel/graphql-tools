@@ -7,7 +7,7 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
 use GraphQlTools\Helper\ContextualLoader;
 use GraphQlTools\Definition\Field\Shared\DefinesArguments;
-use GraphQlTools\Resolver\ProxyResolver;
+use GraphQlTools\Helper\ProxyResolver;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Fields;
 use GraphQlTools\Utility\Paths;

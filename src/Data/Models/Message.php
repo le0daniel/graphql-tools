@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 
-namespace GraphQlTools\Immutable;
+namespace GraphQlTools\Data\Models;
 
 
 use GraphQL\Type\Definition\ResolveInfo;
