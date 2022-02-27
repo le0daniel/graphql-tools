@@ -12,15 +12,15 @@ class InputField
 {
     use DefinesField, DefinesReturnType, DefinesDefaultValue;
 
-    public function __construct(public readonly string $name)
+    final public function __construct(public readonly string $name)
     {
     }
 
-    final public static function withName(string $name): self {
-        return new self($name);
+    final public static function withName(string $name): static {
+        return new static($name);
     }
 
-    public function toInputFieldDefinitionArray(TypeRepository $repository): array
+    final public function toInputFieldDefinitionArray(TypeRepository $repository): array
     {
         return [
             'name' => $this->name,

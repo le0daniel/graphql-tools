@@ -34,7 +34,7 @@ trait DefinesFields
                 continue;
             }
 
-            if (!$inputField instanceof InputField && !$inputField instanceof Argument) {
+            if (!$inputField instanceof InputField) {
                 $className = is_object($inputField) ? get_class($inputField) : gettype($inputField);
                 throw new RuntimeException("Expected InputField or Argument, got {$className}");
             }
