@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GraphQlTools\Extension;
+namespace GraphQlTools\Helper\Extension;
 
 use DateTimeImmutable;
 use DateTimeInterface;

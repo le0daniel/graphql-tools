@@ -2,9 +2,7 @@
 
 namespace GraphQlTools\Definition\Field;
 
-use DateTimeInterface;
 use GraphQL\Type\Definition\FieldDefinition;
-use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\Field\Shared\DefinesField;
 use GraphQlTools\Definition\Field\Shared\DefinesMetadata;
 use GraphQlTools\Definition\Field\Shared\DefinesNotice;

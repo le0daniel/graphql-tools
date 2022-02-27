@@ -6,6 +6,7 @@ namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\UnionType;
+use GraphQlTools\Definition\Shared\DefinesTypes;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\ResolvesType;
 use GraphQlTools\TypeRepository;
@@ -13,29 +14,21 @@ use GraphQlTools\Utility\Classes;
 
 abstract class GraphQlUnion extends UnionType
 {
-    use HasDescription, ResolvesType;
+    use HasDescription, ResolvesType, DefinesTypes;
 
     private const CLASS_POSTFIX = 'Union';
 
     public function __construct(
-        protected TypeRepository $typeRepository
+        private TypeRepository $typeRepository
     )
     {
         parent::__construct(
             [
                 'name' => static::typeName(),
                 'description' => $this->description(),
-                'types' => fn() => $this->initTypes(),
+                'types' => fn() => $this->initTypes($this->possibleTypes()),
             ]
         );
-    }
-
-    private function initTypes(): array {
-        $types = [];
-        foreach ($this->possibleTypes() as $type) {
-            $types[] = $type instanceof Type ? $type : $this->typeRepository->type($type);
-        }
-        return $types;
     }
 
     /**
@@ -43,9 +36,8 @@ abstract class GraphQlUnion extends UnionType
      *
      * Ex:
      * return [
-     *     $this->typeRepository->type(MyType::class),
      *     MyType::class,
-     *     MyType::typeName() # For Lazy loaded types
+     *     fn(TypeRepository $typeRepository) => $typeRepository->type(MyType::class)
      * ];
      *
      * @return array<callable|Type|string>

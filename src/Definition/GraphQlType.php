@@ -6,6 +6,7 @@ namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\ObjectType;
 use GraphQlTools\Definition\Field\GraphQlField;
+use GraphQlTools\Definition\Shared\DefinesTypes;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\DefinesFields;
 use GraphQlTools\TypeRepository;
@@ -14,7 +15,7 @@ use GraphQlTools\Utility\Fields;
 use RuntimeException;
 
 abstract class GraphQlType extends ObjectType {
-    use DefinesFields, HasDescription;
+    use DefinesFields, HasDescription, DefinesTypes;
     private const CLASS_POSTFIX = 'Type';
 
     /**
@@ -26,14 +27,14 @@ abstract class GraphQlType extends ObjectType {
     abstract protected function fields(): array;
 
     public function __construct(
-        protected TypeRepository $typeRepository
+        private TypeRepository $typeRepository
     ){
         parent::__construct(
             [
                 'name' => static::typeName(),
                 'description' => $this->description(),
                 'fields' => fn() => $this->initFields($this->fields()),
-                'interfaces' => fn() => array_map([$this, 'declarationToType'], $this->interfaces()),
+                'interfaces' => fn() => $this->initTypes($this->interfaces()),
                 Fields::METADATA_CONFIG_KEY => $this->metadata(),
             ]
         );

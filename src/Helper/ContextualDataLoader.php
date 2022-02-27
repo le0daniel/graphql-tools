@@ -5,8 +5,9 @@ namespace GraphQlTools\Helper;
 use GraphQL\Deferred;
 use GraphQlTools\Context;
 use RuntimeException;
+use Throwable;
 
-final class ContextualLoader
+final class ContextualDataLoader
 {
     /** @var callable */
     private $loadingFunction;
@@ -14,6 +15,13 @@ final class ContextualLoader
     private array $queuedData = [];
     private mixed $loadedDataOrException = null;
 
+    /**
+     * The Aggregated Loading Function should be of Format: fn(array $queuedData, array $validatedArguments, Context $context): mixed
+     *
+     * @param callable $aggregatedLoadingFunction
+     * @param array $arguments
+     * @param Context $context
+     */
     public function __construct(
         callable $aggregatedLoadingFunction,
         private array $arguments,
@@ -35,16 +43,16 @@ final class ContextualLoader
             unset($this->queuedData);
 
             if (is_null($this->loadedDataOrException)) {
-                throw new RuntimeException('Data loader returned null, expected anything but null');
+                throw new RuntimeException('aggregatedLoadingFunction returned null, expected anything but null.');
             }
-        } catch (\Throwable $exception) {
+        } catch (Throwable $exception) {
             $this->loadedDataOrException = $exception;
         }
     }
 
     private function throwOnLoadingException(): void
     {
-        if ($this->loadedDataOrException instanceof \Throwable) {
+        if ($this->loadedDataOrException instanceof Throwable) {
             throw $this->loadedDataOrException;
         }
     }

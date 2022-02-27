@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition\Shared;
 
-use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Field\Argument;
 use GraphQlTools\Definition\Field\GraphQlField;
@@ -59,19 +58,6 @@ trait DefinesFields
         }
 
         return $initializedFields;
-    }
-
-    protected function declarationToType(mixed $declaration): mixed
-    {
-        if (is_string($declaration)) {
-            return $this->typeRepository->type($declaration);
-        }
-
-        if ($declaration instanceof Type || $declaration instanceof \Closure) {
-            return $declaration;
-        }
-
-        throw new DefinitionException('Could not cast type declaration to type');
     }
 
     final public function appendField(GraphQlField $field): void {

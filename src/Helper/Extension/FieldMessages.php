@@ -2,12 +2,9 @@
 
 declare(strict_types=1);
 
-namespace GraphQlTools\Extension;
+namespace GraphQlTools\Helper\Extension;
 
-use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\Extension;
-use GraphQlTools\Definition\GraphQlField;
-use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Events\FieldResolutionEvent;
 use GraphQlTools\Data\Models\Message;
 use GraphQlTools\Utility\Fields;
@@ -25,7 +22,8 @@ final class FieldMessages extends Extension {
         return 'messages';
     }
 
-    public function jsonSerialize(): mixed {
+    public function jsonSerialize(): array
+    {
         return $this->messages;
     }
 

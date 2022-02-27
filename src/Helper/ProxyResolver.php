@@ -28,14 +28,6 @@ final class ProxyResolver
         return $potentialPromise instanceof SyncPromise || $potentialPromise instanceof Promise;
     }
 
-    /**
-     * @throws \Throwable
-     */
-    final public static function default(): mixed
-    {
-        return (new static())->__invoke(...func_get_args());
-    }
-
     final public static function attachToField(FieldDefinition &$field): void {
         if ($field->resolveFn && !$field->resolveFn instanceof ProxyResolver) {
             $field->resolveFn = new ProxyResolver($field->resolveFn);

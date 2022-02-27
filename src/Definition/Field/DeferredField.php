@@ -5,7 +5,7 @@ namespace GraphQlTools\Definition\Field;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
-use GraphQlTools\Helper\ContextualLoader;
+use GraphQlTools\Helper\ContextualDataLoader;
 use GraphQlTools\Definition\Field\Shared\DefinesArguments;
 use GraphQlTools\Helper\ProxyResolver;
 use GraphQlTools\TypeRepository;
@@ -16,7 +16,7 @@ class DeferredField extends GraphQlField
 {
     use DefinesArguments;
 
-    /** @var ContextualLoader[] */
+    /** @var ContextualDataLoader[] */
     private array $deferredLoaders = [];
 
     /** @var callable */
@@ -25,11 +25,11 @@ class DeferredField extends GraphQlField
     /** @var callable */
     private $resolveAggregated;
 
-    private function getContextualDeferredLoader(array $arguments, Context $context, ResolveInfo $resolveInfo): ContextualLoader {
+    private function getContextualDeferredLoader(array $arguments, Context $context, ResolveInfo $resolveInfo): ContextualDataLoader {
         $key = Paths::toString($resolveInfo->path) . ':' . json_encode($arguments);
 
         if (!isset($this->deferredLoaders[$key])) {
-            $this->deferredLoaders[$key] = new ContextualLoader($this->resolveAggregated, $arguments, $context);
+            $this->deferredLoaders[$key] = new ContextualDataLoader($this->resolveAggregated, $arguments, $context);
         }
 
         return $this->deferredLoaders[$key];

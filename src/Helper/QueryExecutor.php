@@ -14,8 +14,8 @@ use GraphQlTools\Context;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Helper\Extensions;
-use GraphQlTools\Extension\FieldMessages;
-use GraphQlTools\Extension\Tracing;
+use GraphQlTools\Helper\Extension\FieldMessages;
+use GraphQlTools\Helper\Extension\Tracing;
 use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Helper\ProxyResolver;
 use GraphQlTools\Utility\SideEffects;
@@ -79,11 +79,10 @@ final class QueryExecutor
             $this->schema,
             $source,
             $rootValue,
-            new OperationContext($context, $extensions),
-            $variables ?? [],
-            $operationName,
-            [ProxyResolver::class, 'default'],
-            $this->validationRules
+            contextValue: new OperationContext($context, $extensions),
+            variableValues: $variables ?? [],
+            operationName: $operationName,
+            validationRules: $this->validationRules
         );
 
         $extensions->dispatchEndEvent(EndEvent::create());
