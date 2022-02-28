@@ -13,6 +13,7 @@ use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Fields;
 use GraphQlTools\Utility\Types;
 use JetBrains\PhpStorm\Pure;
+use RuntimeException;
 
 final class TypeMetadataType extends GraphQlType
 {
@@ -35,14 +36,17 @@ final class TypeMetadataType extends GraphQlType
             ->ofType(self::class)
             ->withDescription('Get extended Metadata for a specific type by its type name.')
             ->withArguments(
-                Argument::withName('name')->ofType(Type::nonNull(Type::string()))
+                Argument::withName('name')
+                    ->ofType(Type::nonNull(Type::string()))
+                    ->withValidator(function (string $typeName) use ($typeRepository) {
+                        if (!$typeRepository->typeExistsByName($typeName)) {
+                            throw new RuntimeException("Type with name '{$typeName}' does not exist.");
+                        }
+                        return $typeName;
+                    })
             )
             ->resolvedBy(static function ($data, array $arguments) use ($typeRepository) {
-                try {
-                    return Types::enforceTypeLoading($typeRepository->type($arguments['name']));
-                } catch (\Throwable) {
-                    return null;
-                }
+                return Types::enforceTypeLoading($typeRepository->type($arguments['name']));
             });
     }
 

@@ -78,6 +78,10 @@ class TypeRepository {
 
     public function __construct(private array $typeResolutionMap) {}
 
+    public function typeExistsByName(string $typeName): bool {
+        return array_key_exists($typeName, $this->typeResolutionMap);
+    }
+
     /**
      * Create an instance of a given type by either the classname or the type name
      * The default implementation of the Type Repository always expects the types to be
