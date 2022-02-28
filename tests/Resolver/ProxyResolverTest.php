@@ -16,6 +16,7 @@ use GraphQlTools\Helper\ProxyResolver;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
+use Prophecy\Prophecy\ObjectProphecy;
 
 final class ProxyResolverTest extends TestCase {
     use ProphecyTrait;
@@ -31,8 +32,10 @@ final class ProxyResolverTest extends TestCase {
 
     public function testWithExtensions(){
         $resolver = new ProxyResolver(fn() => 'Value');
+
+        /** @var Extension $dummyExtension */
         $dummyExtension = $this->prophesize(Extension::class);
-        $dummyExtension->fieldResolution(Argument::any(), Argument::any(), Argument::any(), Argument::any())
+        $dummyExtension->visitField(Argument::any(), Argument::any(), Argument::any(), Argument::any())
             ->willReturn(fn($value) => "Extension: {$value}");
 
         $operationContext = new OperationContext(new Context(), new Extensions($dummyExtension->reveal()));
@@ -42,8 +45,10 @@ final class ProxyResolverTest extends TestCase {
 
     public function testAsyncWithExtensions(){
         $resolver = new ProxyResolver(fn() => Deferred::create(fn() => 'Value'));
+
+        /** @var Extension $dummyExtension */
         $dummyExtension = $this->prophesize(Extension::class);
-        $dummyExtension->fieldResolution(Argument::any(), Argument::any(), Argument::any(), Argument::any())
+        $dummyExtension->visitField(Argument::any(), Argument::any(), Argument::any(), Argument::any())
             ->willReturn(fn($value) => "Extension: {$value}");
 
         $operationContext = new OperationContext(new Context(), new Extensions($dummyExtension->reveal()));

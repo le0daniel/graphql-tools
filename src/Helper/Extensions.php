@@ -56,7 +56,7 @@ final class Extensions implements \JsonSerializable {
         $afterStack = [];
 
         foreach ($this->extensions as $extension) {
-            if ($afterEvent = $extension->fieldResolution($event)) {
+            if ($afterEvent = $extension->visitField($event)) {
                 array_unshift($afterStack, $afterEvent);
             }
         }

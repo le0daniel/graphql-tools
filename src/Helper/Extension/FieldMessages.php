@@ -27,7 +27,7 @@ final class FieldMessages extends Extension {
         return $this->messages;
     }
 
-    public function fieldResolution(FieldResolutionEvent $event): ?\Closure {
+    public function visitField(FieldResolutionEvent $event): ?\Closure {
 
         // Adds a message if the field is marked as deprecated
         if ($event->info->fieldDefinition->isDeprecated()) {

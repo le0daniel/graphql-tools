@@ -30,7 +30,7 @@ class ExtensionsTest extends TestCase
     public function testMiddlewareFieldResolution()
     {
         $extension = $this->prophesize(Extension::class);
-        $extension->fieldResolution(Argument::type(FieldResolutionEvent::class))->willReturn(fn() => 'value');
+        $extension->visitField(Argument::type(FieldResolutionEvent::class))->willReturn(fn() => 'value');
         $extension->priority()->willReturn(1);
 
         $extensions = Extensions::create([

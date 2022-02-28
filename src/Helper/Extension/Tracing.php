@@ -132,7 +132,7 @@ final class Tracing extends Extension
         $this->endTimeInNanoseconds = $event->eventTimeInNanoSeconds;
     }
 
-    public function fieldResolution(FieldResolutionEvent $event): Closure
+    public function visitField(FieldResolutionEvent $event): Closure
     {
         return function ($resolvedValue) use ($event): mixed {
             $this->fieldTraces[] = ResolverTrace::fromEvent(
