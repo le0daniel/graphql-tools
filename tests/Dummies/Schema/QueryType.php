@@ -27,6 +27,8 @@ final class QueryType extends GraphQlType {
         return [
             Field::withName('currentUser')
                 ->ofType(Type::string())
+                // Alternative if type repo is needed
+                // ->ofType(fn(TypeRepository $typeRepository) => new NonNull(Type::string()))
                 ->withArguments(
                     Argument::withName('name')
                         ->ofType(Type::string())
@@ -50,6 +52,18 @@ final class QueryType extends GraphQlType {
                     return 'Hello World!';
                 })
             ,
+
+            DeferredField::withName('mamels')
+                ->ofType(
+                    static fn(TypeRepository $typeRepository) => Type::nonNull(Type::listOf(Type::nonNull($typeRepository->type(MamelInterface::class))))
+                )
+                ->resolveAggregated(function(array $aggregatedItems, array $arguments, Context $context){
+                    return self::ANIMALS;
+                })
+                ->resolveItem(function ($item, array $data, Context $context) {
+                    return $data;
+                }),
+
 
             Field::withName('whoami')
                 ->ofType(Type::string())
@@ -75,14 +89,6 @@ final class QueryType extends GraphQlType {
                 )
                 ->resolvedBy(fn($d, array $arguments) => ['json' => $arguments['json']])
             ,
-            DeferredField::withName('mamels')
-                ->ofType(static fn(TypeRepository $typeRepository) => Type::nonNull(Type::listOf(Type::nonNull($typeRepository->type(MamelInterface::class)))))
-                ->resolveAggregated(function(array $aggregatedItems, array $arguments, Context $context){
-                    return self::ANIMALS;
-                })
-                ->resolveItem(function ($item, array $data, Context $context) {
-                    return $data;
-                }),
 
             Field::withName('animals')
                 ->ofType(fn(TypeRepository $typeRepository) => Type::nonNull(Type::listOf(Type::nonNull($typeRepository->type(AnimalUnion::class)))))
