@@ -32,7 +32,12 @@ trait DefinesReturnType
             return $repository->type($this->ofType);
         }
 
-        throw DefinitionException::from($this->ofType, 'string (TypeName or TypeClassName)', Type::class, 'fn(TypeRepository $typeRepository)');
+        throw DefinitionException::from(
+            $this->ofType,
+            'string (TypeName or TypeClassName)',
+            Type::class,
+            'fn(TypeRepository $typeRepository)'
+        );
     }
 
 }
