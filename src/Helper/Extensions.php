@@ -26,15 +26,15 @@ final class Extensions implements \JsonSerializable {
      * can be instantiated or a factory (callable). Extensions are
      * considered contextual for each execution.
      *
-     * @param array $extensions
+     * @param array $extensionFactories
      * @return Extensions
      */
-    public static function create(array $extensions): Extensions {
+    public static function createFromExtensionFactories(array $extensionFactories): Extensions {
         $instances = [];
         $columnToSort = [];
 
         /** @var Extension|callable(): Extension $instance */
-        foreach ($extensions as $instance) {
+        foreach ($extensionFactories as $instance) {
             $instance = is_callable($instance) ? $instance() : new $instance;
             $columnToSort[] = $instance->priority();
             $instances[] = $instance;

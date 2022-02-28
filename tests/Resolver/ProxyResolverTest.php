@@ -26,7 +26,7 @@ final class ProxyResolverTest extends TestCase {
     protected function setUp(): void{
         $this->operationContext = new OperationContext(
             new Context(),
-            Extensions::create([])
+            Extensions::createFromExtensionFactories([])
         );
     }
 

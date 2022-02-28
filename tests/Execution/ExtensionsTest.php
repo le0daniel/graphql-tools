@@ -20,7 +20,7 @@ class ExtensionsTest extends TestCase
 
     public function testCreate()
     {
-        Extensions::create([
+        Extensions::createFromExtensionFactories([
             Tracing::class,
             fn() => new Tracing()
         ]);
@@ -33,7 +33,7 @@ class ExtensionsTest extends TestCase
         $extension->visitField(Argument::type(FieldResolutionEvent::class))->willReturn(fn() => 'value');
         $extension->priority()->willReturn(1);
 
-        $extensions = Extensions::create([
+        $extensions = Extensions::createFromExtensionFactories([
             fn() => $extension->reveal()
         ]);
 

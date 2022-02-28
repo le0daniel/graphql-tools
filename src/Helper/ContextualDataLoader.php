@@ -11,6 +11,8 @@ final class ContextualDataLoader
 {
     /** @var callable */
     private $loadingFunction;
+    /** @var callable */
+    private $resolveItemFunction;
 
     private array $queuedData = [];
     private mixed $loadedDataOrException = null;
@@ -24,10 +26,12 @@ final class ContextualDataLoader
      */
     public function __construct(
         callable $aggregatedLoadingFunction,
+        callable $resolveItemFunction,
         private array $arguments,
         private Context $context
     ){
         $this->loadingFunction = $aggregatedLoadingFunction;
+        $this->resolveItemFunction = $resolveItemFunction;
     }
 
     private function ensureLoadedOnce()
@@ -57,13 +61,13 @@ final class ContextualDataLoader
         }
     }
 
-    public function defer(mixed $data, callable $resolveItem): Deferred
+    public function defer(mixed $data): Deferred
     {
         $this->queuedData[] = $data;
-        return new Deferred(function () use ($data, $resolveItem) {
+        return new Deferred(function () use ($data) {
             $this->ensureLoadedOnce();
             $this->throwOnLoadingException();
-            return $resolveItem($data, $this->loadedDataOrException, $this->context);
+            return ($this->resolveItemFunction)($data, $this->loadedDataOrException, $this->context);
         });
     }
 

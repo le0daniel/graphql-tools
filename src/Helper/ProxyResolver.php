@@ -10,8 +10,6 @@ use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
 use GraphQlTools\Events\FieldResolutionEvent;
-use GraphQlTools\Helper\OperationContext;
-use GraphQlTools\Utility\SideEffects;
 
 final class ProxyResolver
 {
@@ -46,7 +44,7 @@ final class ProxyResolver
     protected function resolveFieldToValue($typeData, array $arguments, Context $context, ResolveInfo $info): mixed
     {
         if ($this->resolveFunction) {
-            return call_user_func($this->resolveFunction, $typeData, $arguments, $context, $info);
+            return ($this->resolveFunction)($typeData, $arguments, $context, $info);
         }
 
         $fieldName = $info->fieldName;

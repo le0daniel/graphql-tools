@@ -66,7 +66,7 @@ final class QueryExecutor
         ?string $operationName = null,
     ): ExecutionResult
     {
-        $extensions = Extensions::create($this->extensions);
+        $extensions = Extensions::createFromExtensionFactories($this->extensions);
         $extensions->dispatchStartEvent(StartEvent::create($query));
 
         try {

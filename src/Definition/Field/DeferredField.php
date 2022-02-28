@@ -29,7 +29,7 @@ class DeferredField extends GraphQlField
         $key = Paths::toString($resolveInfo->path) . ':' . json_encode($arguments);
 
         if (!isset($this->deferredLoaders[$key])) {
-            $this->deferredLoaders[$key] = new ContextualDataLoader($this->resolveAggregated, $arguments, $context);
+            $this->deferredLoaders[$key] = new ContextualDataLoader($this->resolveAggregated, $this->resolveItem, $arguments, $context);
         }
 
         return $this->deferredLoaders[$key];
@@ -71,7 +71,7 @@ class DeferredField extends GraphQlField
             'args' => $this->buildArguments($repository),
             'resolve' => new ProxyResolver(function (mixed $data, array $arguments, Context $context, ResolveInfo $resolveInfo) {
                 return $this->getContextualDeferredLoader($arguments, $context, $resolveInfo)
-                    ->defer($data, $this->resolveItem);
+                    ->defer($data);
             }),
 
             // Specific Field configurations.
