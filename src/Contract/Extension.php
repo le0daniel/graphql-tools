@@ -44,10 +44,12 @@ abstract class Extension implements \JsonSerializable {
      * This is called before a field is resolved by the Proxy Resolver
      *
      * An optional returning Closure is called as soon as the field has finally been resolved.
-     * Ex: return fn(mixed $resolvedFieldValue) => $value
+     * Ex: return fn(mixed $resolvedFieldValue) => $resolvedFieldValue
+     *
+     * The callback can be used to change the field value if needed. It MUST return the value.
      *
      * @param FieldResolutionEvent $event
-     * @return null|Closure(mixed $resolvedFieldValue) => $value
+     * @return null|Closure(mixed $resolvedFieldValue) => $resolvedFieldValue
      */
     public function visitField(FieldResolutionEvent $event): ?Closure {
         return null;

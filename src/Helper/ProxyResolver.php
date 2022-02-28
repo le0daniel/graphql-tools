@@ -76,7 +76,7 @@ final class ProxyResolver
     final public function __invoke(mixed $typeData, ?array $arguments, OperationContext $operationContext, ResolveInfo $info): mixed
     {
         $arguments ??= [];
-        $next = $operationContext->extensions->middlewareFieldResolution(
+        $afterFieldVisit = $operationContext->extensions->middlewareFieldResolution(
             FieldResolutionEvent::create($typeData, $arguments, $info)
         );
 
@@ -90,12 +90,12 @@ final class ProxyResolver
 
             return self::isPromise($promiseOrValue)
                 ? $promiseOrValue
-                    ->then(static fn($resolvedValue) => $next($resolvedValue))
-                    ->catch(static fn(\Throwable $error) => $next($error))
-                : $next($promiseOrValue);
+                    ->then(static fn($resolvedValue) => $afterFieldVisit($resolvedValue))
+                    ->catch(static fn(\Throwable $error) => $afterFieldVisit($error))
+                : $afterFieldVisit($promiseOrValue);
 
         } catch (\Throwable $error) {
-            return $next($error);
+            return $afterFieldVisit($error);
         }
     }
 }
