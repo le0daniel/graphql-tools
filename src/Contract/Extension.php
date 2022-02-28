@@ -14,6 +14,11 @@ abstract class Extension implements \JsonSerializable {
 
     private const DEFAULT_PRIORITY = 100;
 
+    /**
+     * Returns the key in the `extensions` property of the response
+     *
+     * @return string
+     */
     abstract public function key(): string;
 
     abstract public function jsonSerialize(): mixed;
