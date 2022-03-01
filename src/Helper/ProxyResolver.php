@@ -74,7 +74,7 @@ final class ProxyResolver
     final public function __invoke(mixed $typeData, ?array $arguments, OperationContext $operationContext, ResolveInfo $info): mixed
     {
         $arguments ??= [];
-        $afterFieldVisit = $operationContext->extensions->middlewareFieldResolution(
+        $afterFieldVisit = $operationContext->extensions->visitField(
             FieldResolutionEvent::create($typeData, $arguments, $info)
         );
 

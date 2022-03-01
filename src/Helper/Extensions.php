@@ -52,7 +52,7 @@ final class Extensions implements \JsonSerializable {
      * @param ResolveInfo $info
      * @return Closure
      */
-    public function middlewareFieldResolution(FieldResolutionEvent $event): Closure {
+    public function visitField(FieldResolutionEvent $event): Closure {
         $afterStack = [];
 
         foreach ($this->extensions as $extension) {
