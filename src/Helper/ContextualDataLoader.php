@@ -41,16 +41,18 @@ final class ContextualDataLoader
         }
 
         try {
-            $this->loadedDataOrException = ($this->loadingFunction)($this->queuedData, $this->arguments, $this->context);
-
-            unset($this->arguments);
-            unset($this->queuedData);
+            $this->loadedDataOrException = $this->context->executeResolveFunction(
+                $this->loadingFunction, [$this->queuedData, $this->arguments]
+            );
 
             if (is_null($this->loadedDataOrException)) {
                 throw new RuntimeException('aggregatedLoadingFunction returned null, expected anything but null.');
             }
         } catch (Throwable $exception) {
             $this->loadedDataOrException = $exception;
+        } finally {
+            unset($this->arguments);
+            unset($this->queuedData);
         }
     }
 

@@ -17,7 +17,7 @@ class Field extends GraphQlField
     /**
      * @var callable
      */
-    private $resolveFunction;
+    protected $resolveFunction;
 
     /**
      * Callable fn(mixed $data, array $validatedArguments, Context $context, ResolveInfo $resolveInfo) => mixed

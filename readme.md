@@ -5,9 +5,9 @@ This is a simple opinionated toolkit for writing GraphQL applications in PHP. It
 
 Main Features
 
- - Apollo Tracing support
+ - (not working yet) Apollo Tracing support
  - Custom extensions support
- - Default TypeRepository Implementation (& Lazy Loading)
+ - Default TypeRepository Implementation with lazy loading support
  - Strict Type Checks
  - Abstract classes to extend for defining types / enums / interfaces / unions / scalars
  - Field definition is still as flexible as webonyx/graphql
