@@ -9,6 +9,7 @@ use GraphQlTools\Definition\Field\Shared\DefinesArguments;
 use GraphQlTools\Helper\ProxyResolver;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Fields;
+use RuntimeException;
 
 class Field extends GraphQlField
 {
@@ -27,7 +28,7 @@ class Field extends GraphQlField
      */
     public function resolvedBy(callable $resolveFunction): self {
         if ($resolveFunction instanceof ProxyResolver) {
-            throw new \RuntimeException("Invalid resolve function given. Expected callable, got proxy resolver.");
+            throw new RuntimeException("Invalid resolve function given. Expected callable, got proxy resolver.");
         }
 
         $this->resolveFunction = $resolveFunction;

@@ -41,8 +41,8 @@ final class ContextualDataLoader
         }
 
         try {
-            $this->loadedDataOrException = $this->context->executeResolveFunction(
-                $this->loadingFunction, [$this->queuedData, $this->arguments]
+            $this->loadedDataOrException = $this->context->executeAggregatedLoadingFunction(
+                $this->loadingFunction, $this->queuedData, $this->arguments,
             );
 
             if (is_null($this->loadedDataOrException)) {

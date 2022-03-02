@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace GraphQlTools;
 
+use GraphQL\Type\Definition\ResolveInfo;
+
 class Context
 {
 
@@ -12,12 +14,12 @@ class Context
      * that you have the opportunity to inject additional services.
      *
      * @param callable $resolveFunction
-     * @param array $positionalArguments = [array $aggregatedData, array $arguments]
+     * @param array $aggregatedData
+     * @param array $arguments
      * @return mixed
      */
-    public function executeResolveFunction(callable $resolveFunction, array $positionalArguments): mixed
+    public function executeAggregatedLoadingFunction(callable $resolveFunction, array $aggregatedData, array $arguments): mixed
     {
-        [$aggregatedData, $arguments] = $positionalArguments;
         return $resolveFunction($aggregatedData, $arguments, $this);
     }
 
@@ -25,12 +27,13 @@ class Context
      * Mutation fields can be called by the
      *
      * @param callable $resolveFunction
-     * @param array $positionalArguments
-     * @return void
+     * @param mixed $data
+     * @param array $arguments
+     * @param ResolveInfo $info
+     * @return mixed
      */
-    public function executeMutationResolveFunction(callable $resolveFunction, array $positionalArguments): mixed
+    public function executeMutationResolveFunction(callable $resolveFunction, mixed $data, array $arguments, ResolveInfo $info): mixed
     {
-        [$data, $arguments, $info] = $positionalArguments;
         return $resolveFunction($data, $arguments, $this, $info);
     }
 

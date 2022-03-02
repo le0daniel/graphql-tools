@@ -18,7 +18,7 @@ class MutationField extends Field
         return new ProxyResolver(function (mixed $data, array $arguments, Context $context, ResolveInfo $info): mixed {
             return $context->executeMutationResolveFunction(
                 $this->resolveFunction,
-                [$data, $this->validateArguments($arguments), $info]
+                $data, $this->validateArguments($arguments), $info
             );
         });
     }
