@@ -37,10 +37,10 @@ class ExtensionsTest extends TestCase
             fn() => $extension->reveal()
         ]);
 
-        $next = $extensions->visitField(FieldResolutionEvent::create(
+        $next = $extensions->willResolveField(FieldResolutionEvent::create(
             null, [], ResolveInfoDummy::withDefaults(), []
         ));
 
-        self::assertEquals('value', $next('other value'));
+        self::assertEquals('other value', $next('other value'));
     }
 }

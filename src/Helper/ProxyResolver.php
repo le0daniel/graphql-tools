@@ -74,7 +74,7 @@ final class ProxyResolver
     final public function __invoke(mixed $typeData, ?array $arguments, OperationContext $operationContext, ResolveInfo $info): mixed
     {
         $arguments ??= [];
-        $afterFieldVisit = $operationContext->extensions->visitField(
+        $afterFieldResolution = $operationContext->extensions->willResolveField(
             FieldResolutionEvent::create($typeData, $arguments, $info)
         );
 
@@ -88,12 +88,12 @@ final class ProxyResolver
 
             return self::isPromise($promiseOrValue)
                 ? $promiseOrValue
-                    ->then(static fn($resolvedValue) => $afterFieldVisit($resolvedValue))
-                    ->catch(static fn(\Throwable $error) => $afterFieldVisit($error))
-                : $afterFieldVisit($promiseOrValue);
+                    ->then(static fn($resolvedValue) => $afterFieldResolution($resolvedValue))
+                    ->catch(static fn(\Throwable $error) => $afterFieldResolution($error))
+                : $afterFieldResolution($promiseOrValue);
 
         } catch (\Throwable $error) {
-            return $afterFieldVisit($error);
+            return $afterFieldResolution($error);
         }
     }
 }

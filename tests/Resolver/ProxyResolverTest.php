@@ -40,7 +40,7 @@ final class ProxyResolverTest extends TestCase {
 
         $operationContext = new OperationContext(new Context(), new Extensions($dummyExtension->reveal()));
         $result = $resolver(null, null, $operationContext, ResolveInfoDummy::withDefaults());
-        self::assertEquals('Extension: Value', $result);
+        self::assertEquals('Value', $result);
     }
 
     public function testAsyncWithExtensions(){
@@ -55,7 +55,7 @@ final class ProxyResolverTest extends TestCase {
         $result = $resolver(null, null, $operationContext, ResolveInfoDummy::withDefaults());
         SyncPromise::runQueue();
 
-        self::assertEquals('Extension: Value', $result->result);
+        self::assertEquals('Value', $result->result);
     }
 
     /**

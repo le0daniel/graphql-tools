@@ -46,13 +46,7 @@ final class Extensions implements \JsonSerializable {
         return new self(...$instances);
     }
 
-    /**
-     * @param mixed $typeData
-     * @param array $arguments
-     * @param ResolveInfo $info
-     * @return Closure
-     */
-    public function visitField(FieldResolutionEvent $event): Closure {
+    public function willResolveField(FieldResolutionEvent $event): Closure {
         $afterStack = [];
 
         foreach ($this->extensions as $extension) {
@@ -63,7 +57,7 @@ final class Extensions implements \JsonSerializable {
 
         return function (mixed $resolvedValue) use ($afterStack) {
             foreach ($afterStack as $next) {
-                $resolvedValue = $next($resolvedValue);
+                $next($resolvedValue);
             }
             return $resolvedValue;
         };
