@@ -21,7 +21,7 @@ final class ProxyResolver
         $this->resolveFunction = $resolveFunction;
     }
 
-    private static function isPromise(mixed $potentialPromise): bool
+    public static function isPromise(mixed $potentialPromise): bool
     {
         return $potentialPromise instanceof SyncPromise || $potentialPromise instanceof Promise;
     }

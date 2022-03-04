@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace GraphQlTools;
 
-use Closure;
 use GraphQL\Type\Definition\ListOfType;
-use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
@@ -133,10 +131,6 @@ class TypeRepository {
             : $classOrTypeName;
         
         return fn() => $this->resolveTypeByName($typeName);
-    }
-    
-    final public function nonNullType(string $classOrTypeName): NonNull {
-        return new NonNull($this->type($classOrTypeName));
     }
 
     final public function listOfType(string $className): ListOfType {

@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\Definition\Field\Shared;
 
+use Exception;
 use GraphQlTools\Definition\Field\Argument;
 use GraphQlTools\Definition\Field\InvalidArgumentException;
 use GraphQlTools\TypeRepository;
@@ -37,7 +38,7 @@ trait DefinesArguments
         foreach ($this->arguments as $argument) {
             try {
                 $validatedArguments[$argument->name] = $argument->validateValue($arguments[$argument->name] ?? null, $arguments);
-            } catch (\Exception $exception) {
+            } catch (Exception $exception) {
                 throw new InvalidArgumentException(
                     $argument->name,
                     $exception->getMessage(),
