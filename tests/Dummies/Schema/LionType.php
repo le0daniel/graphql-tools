@@ -6,10 +6,7 @@ namespace GraphQlTools\Test\Dummies\Schema;
 
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\Field\Field;
-use GraphQlTools\Definition\GraphQlField;
 use GraphQlTools\Definition\GraphQlType;
-use GraphQlTools\Helper\ProxyResolver;
-use GraphQlTools\Utility\Fields;
 
 final class LionType extends GraphQlType {
 

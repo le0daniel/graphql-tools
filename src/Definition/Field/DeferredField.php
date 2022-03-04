@@ -2,19 +2,14 @@
 
 namespace GraphQlTools\Definition\Field;
 
-use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
 use GraphQlTools\Helper\ContextualDataLoader;
-use GraphQlTools\Definition\Field\Shared\DefinesArguments;
 use GraphQlTools\Helper\ProxyResolver;
-use GraphQlTools\TypeRepository;
-use GraphQlTools\Utility\Fields;
 use GraphQlTools\Utility\Paths;
 
 class DeferredField extends GraphQlField
 {
-    use DefinesArguments;
 
     /** @var ContextualDataLoader[] */
     private array $deferredLoaders = [];
@@ -61,25 +56,11 @@ class DeferredField extends GraphQlField
         return $this;
     }
 
-    public function toFieldDefinition(TypeRepository $repository): FieldDefinition
+    protected function getResolver(): ProxyResolver
     {
-        return FieldDefinition::create([
-            'name' => $this->name,
-            'type' => $this->resolveReturnType($repository),
-            'deprecationReason' => $this->deprecatedReason,
-            'description' => $this->computeDescription(),
-            'args' => $this->buildArguments($repository),
-            'resolve' => new ProxyResolver(function (mixed $data, array $arguments, Context $context, ResolveInfo $resolveInfo) {
-                return $this->getContextualDeferredLoader($arguments, $context, $resolveInfo)
-                    ->defer($data);
-            }),
-
-            // Specific Field configurations.
-            Fields::NOTICE_CONFIG_KEY => $this->notice,
-            Fields::BETA_FIELD_CONFIG_KEY => $this->isBeta,
-            Fields::METADATA_CONFIG_KEY => $this->metadata,
-        ]);
-
-        // TODO: Implement toField() method.
+        return new ProxyResolver(function (mixed $data, array $arguments, Context $context, ResolveInfo $resolveInfo) {
+            return $this->getContextualDeferredLoader($arguments, $context, $resolveInfo)
+                ->defer($data);
+        });
     }
 }

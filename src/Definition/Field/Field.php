@@ -2,19 +2,13 @@
 
 namespace GraphQlTools\Definition\Field;
 
-use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
-use GraphQlTools\Definition\Field\Shared\DefinesArguments;
 use GraphQlTools\Helper\ProxyResolver;
-use GraphQlTools\TypeRepository;
-use GraphQlTools\Utility\Fields;
 use RuntimeException;
 
 class Field extends GraphQlField
 {
-    use DefinesArguments;
-
     /**
      * @var callable
      */
@@ -48,22 +42,5 @@ class Field extends GraphQlField
                 $info
             );
         });
-    }
-
-    public function toFieldDefinition(TypeRepository $repository): FieldDefinition
-    {
-        return FieldDefinition::create([
-            'name' => $this->name,
-            'resolve' => $this->getResolver(),
-            'type' => $this->resolveReturnType($repository),
-            'deprecationReason' => $this->deprecatedReason,
-            'description' => $this->computeDescription(),
-            'args' => $this->buildArguments($repository),
-
-            // Separate config keys for additional value
-            Fields::BETA_FIELD_CONFIG_KEY => $this->isBeta,
-            Fields::NOTICE_CONFIG_KEY => $this->notice,
-            Fields::METADATA_CONFIG_KEY => $this->metadata,
-        ]);
     }
 }
