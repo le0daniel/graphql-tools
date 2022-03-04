@@ -9,8 +9,9 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Events\FieldResolutionEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
+use JsonSerializable;
 
-abstract class Extension implements \JsonSerializable {
+abstract class Extension implements JsonSerializable {
 
     private const DEFAULT_PRIORITY = 100;
 

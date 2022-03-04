@@ -98,6 +98,10 @@ All of your types must extend our implementation of the webonix/graphql types. T
 
     use GraphQL\Type\Definition\Type;
     use GraphQlTools\Definition\GraphQlType;
+    use GraphQlTools\Definition\Field\Field;
+    use GraphQlTools\TypeRepository;
+    use GraphQlTools\Definition\Field\DeferredField;
+    use GraphQlTools\Definition\Field\Argument;
     
     final class AnimalType extends GraphQlType {
         
@@ -112,21 +116,47 @@ All of your types must extend our implementation of the webonix/graphql types. T
             // --
             // You can, and should access the protected `typeRepository` to reference your own types:
             return [
-                'id' => Type::id(),
-                'name' => [
-                    'type' => Type::string(),
-                    'resolve' => fn() => 'Awesome name', // see chapter Resolve for more details
-                ],
-                'parent' => [
-                    'type' => $this->typeRepository->type(AnimalType::class)
-                ]               
+                Field::withName('id')
+                    ->ofType(Type::id()),
+                
+                // Define custom types using the repository
+                Field::withName('customType')
+                    ->ofType(fn(TypeRepository $typeRepository) => $typeRepository->type(MyCustomTypeClass::class)),
+                
+                // With custom resolver
+                Field::withName('sameCustomType')
+                    ->ofType(MyCustomType::class)
+                    ->resolvedBy(fn($data, array $arguments, Context $context, ResolveInfo $resolveInfo) => $data['items']),
+                
+                // Defer a field, the logic of deferring is abstracted away    
+                DeferredField::withName('myField')
+                    ->ofType(MyType::class)
+                    ->withArguments(
+                        
+                        // Define named arguments, works for all fields
+                        Argument::withName('id')
+                            ->ofType(Type::id())
+                            ->withDefaultValue('My Value')
+                            ->withDescription('My Description')
+                            ->withValidator(fn(string $value, array $allArguments) => $value or throw new Error()),
+                       
+                        Argument::withName('second')
+                            ->ofType(MyType::class),
+                    )
+                    ->resolveAggregated(static function(array $aggregatedData, array $arguments, Context $context){
+                        return loadData(array_column($aggregatedData, 'id'));
+                    })
+                    ->resolveItem(static function(array $data, $loadedData){
+                        return $loadedData[$data['id']];
+                    })             
             ];
         }
         
         // Optional, define interfaces of this type.
         protected function interfaces() : array{
             return [
-                $this->typeRepository->type(MamelType::class),
+                MamelType::class,
+                fn(TypeRepository $typeRepository) => $typeRepository->type(MyType::class),
             ];
         }
         

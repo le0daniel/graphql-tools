@@ -72,6 +72,7 @@ final class QueryExecutor
         try {
             $source = Parser::parse($query);
         } catch (SyntaxError $exception) {
+            $extensions->dispatchEndEvent(EndEvent::create());
             return new ExecutionResult(null, [$exception]);
         }
 

@@ -6,6 +6,7 @@ use GraphQlTools\Contract\Event;
 
 /**
  * @property-read string $query
+ * @method static create(string $query)
  */
 final class StartEvent extends Event
 {
