@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace GraphQlTools\Helper;
 
 use Closure;
-use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\Extension;
 use GraphQlTools\Events\FieldResolutionEvent;
 use GraphQlTools\Events\StartEvent;
@@ -46,7 +45,7 @@ final class Extensions implements \JsonSerializable {
         return new self(...$instances);
     }
 
-    public function willResolveField(FieldResolutionEvent $event): Closure {
+    public function willVisitField(FieldResolutionEvent $event): Closure {
         $afterStack = [];
 
         foreach ($this->extensions as $extension) {

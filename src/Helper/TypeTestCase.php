@@ -3,21 +3,17 @@
 namespace GraphQlTools\Helper;
 
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
+use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
 use GraphQlTools\Definition\Field\GraphQlField;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
-use GraphQlTools\TypeRepository;
 use PHPUnit\Framework\TestCase;
-use Prophecy\Argument;
-use Prophecy\PhpUnit\ProphecyTrait;
-use Prophecy\Prophecy\ObjectProphecy;
 use ReflectionClass;
 use RuntimeException;
 use Throwable;
 
 abstract class TypeTestCase extends TestCase
 {
-    use ProphecyTrait;
 
     abstract protected function typeClassName(): string;
 
@@ -56,7 +52,7 @@ abstract class TypeTestCase extends TestCase
         return $result;
     }
 
-    protected function visitField(string $fieldName, mixed $rootData, ?array $arguments = null, ?Context $context = null): mixed
+    protected function visitField(string $fieldName, mixed $rootData, ?array $arguments = null, ?Context $context = null, ?ResolveInfo $resolveInfo = null): mixed
     {
         $field = $this->getFieldByName($fieldName);
         $fieldReflection = new \ReflectionObject($field);
@@ -65,7 +61,7 @@ abstract class TypeTestCase extends TestCase
         $resolverMethod->setAccessible(true);
         $resolver = $resolverMethod->invoke($field);
 
-        $resolveInfo = ResolveInfoDummy::withDefaults(path: [
+        $resolveInfo ??= ResolveInfoDummy::withDefaults(path: [
             bin2hex(random_bytes(12)),
             bin2hex(random_bytes(12))
         ]);

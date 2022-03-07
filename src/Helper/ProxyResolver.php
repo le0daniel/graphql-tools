@@ -26,12 +26,6 @@ final class ProxyResolver
         return $potentialPromise instanceof SyncPromise || $potentialPromise instanceof Promise;
     }
 
-    final public static function attachToField(FieldDefinition &$field): void {
-        if ($field->resolveFn && !$field->resolveFn instanceof ProxyResolver) {
-            $field->resolveFn = new ProxyResolver($field->resolveFn);
-        }
-    }
-
     /**
      * Overwrite this method to define your own resolver.
      *
@@ -74,7 +68,7 @@ final class ProxyResolver
     final public function __invoke(mixed $typeData, ?array $arguments, OperationContext $operationContext, ResolveInfo $info): mixed
     {
         $arguments ??= [];
-        $afterFieldResolution = $operationContext->extensions->willResolveField(
+        $afterFieldResolution = $operationContext->extensions->willVisitField(
             FieldResolutionEvent::create($typeData, $arguments, $info)
         );
 

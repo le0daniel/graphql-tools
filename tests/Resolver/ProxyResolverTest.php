@@ -101,19 +101,4 @@ final class ProxyResolverTest extends TestCase {
         SyncPromise::runQueue();
         self::assertEquals('Test', $promise->result);
     }
-
-    public function testAttachProxyToField()
-    {
-        /** @var FieldDefinition $field */
-        $field = $this->prophesize(FieldDefinition::class)->reveal();
-        $field->resolveFn = fn() => null;
-        $proxyResolver = new ProxyResolver();
-
-        ProxyResolver::attachToField($field);
-        self::assertInstanceOf(ProxyResolver::class, $field->resolveFn);
-
-        $field->resolveFn = $proxyResolver;
-        ProxyResolver::attachToField($field);
-        self::assertSame($proxyResolver, $field->resolveFn);
-    }
 }
