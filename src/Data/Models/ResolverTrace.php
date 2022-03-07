@@ -7,7 +7,7 @@ namespace GraphQlTools\Data\Models;
 
 
 use GraphQL\Type\Definition\ResolveInfo;
-use GraphQlTools\Events\FieldResolutionEvent;
+use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Time;
 use RuntimeException;
@@ -59,7 +59,7 @@ final class ResolverTrace extends Holder
         };
     }
 
-    public static function fromEvent(FieldResolutionEvent $event, int $preciseExecutionStart): ResolverTrace
+    public static function fromEvent(VisitFieldEvent $event, int $preciseExecutionStart): ResolverTrace
     {
         $endTimeInNanoseconds = Time::nanoSeconds();
         $durationInNanoseconds = $endTimeInNanoseconds - $event->eventTimeInNanoSeconds;

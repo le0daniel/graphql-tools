@@ -6,7 +6,7 @@ namespace GraphQlTools\Contract;
 
 use Closure;
 use GraphQL\Type\Definition\ResolveInfo;
-use GraphQlTools\Events\FieldResolutionEvent;
+use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
 use JsonSerializable;
@@ -49,10 +49,10 @@ abstract class Extension implements JsonSerializable {
      *
      * The callback gets the resolved value. The resolved value CAN NOT be modified.
      *
-     * @param FieldResolutionEvent $event
+     * @param VisitFieldEvent $event
      * @return null|Closure(mixed $resolvedFieldValue) => $resolvedFieldValue
      */
-    public function visitField(FieldResolutionEvent $event): ?Closure {
+    public function visitField(VisitFieldEvent $event): ?Closure {
         return null;
     }
 }

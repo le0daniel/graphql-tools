@@ -8,7 +8,7 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\Extension;
-use GraphQlTools\Events\FieldResolutionEvent;
+use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Data\Models\ExecutionTrace;
@@ -132,7 +132,7 @@ final class Tracing extends Extension
         $this->endTimeInNanoseconds = $event->eventTimeInNanoSeconds;
     }
 
-    public function visitField(FieldResolutionEvent $event): Closure
+    public function visitField(VisitFieldEvent $event): Closure
     {
         return function ($resolvedValue) use ($event): mixed {
             $this->fieldTraces[] = ResolverTrace::fromEvent(

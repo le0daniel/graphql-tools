@@ -5,7 +5,7 @@ namespace GraphQlTools\Events;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\Event;
 
-final class FieldResolutionEvent extends Event
+final class VisitFieldEvent extends Event
 {
 
     public function __construct(

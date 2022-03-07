@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace GraphQlTools\Helper\Extension;
 
 use GraphQlTools\Contract\Extension;
-use GraphQlTools\Events\FieldResolutionEvent;
+use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Data\Models\Message;
 use GraphQlTools\Utility\Fields;
 use GraphQlTools\Utility\Paths;
@@ -37,7 +37,7 @@ final class FieldMessages extends Extension {
         $this->keyMap[$path] = true;
     }
 
-    public function visitField(FieldResolutionEvent $event): ?\Closure {
+    public function visitField(VisitFieldEvent $event): ?\Closure {
         $path = Paths::toString($event->info->path);
 
         if ($this->hasAlreadyMessagesForField($path)) {

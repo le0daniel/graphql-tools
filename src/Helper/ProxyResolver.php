@@ -9,7 +9,7 @@ use GraphQL\Executor\Promise\Promise;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
-use GraphQlTools\Events\FieldResolutionEvent;
+use GraphQlTools\Events\VisitFieldEvent;
 
 final class ProxyResolver
 {
@@ -69,7 +69,7 @@ final class ProxyResolver
     {
         $arguments ??= [];
         $afterFieldResolution = $operationContext->extensions->willVisitField(
-            FieldResolutionEvent::create($typeData, $arguments, $info)
+            VisitFieldEvent::create($typeData, $arguments, $info)
         );
 
         try {
