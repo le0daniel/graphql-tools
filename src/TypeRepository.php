@@ -21,6 +21,8 @@ use GraphQlTools\Utility\Classes;
 use GraphQlTools\Utility\Directories;
 use GraphQlTools\Utility\Reflections;
 use GraphQlTools\Utility\Types;
+use ReflectionClass;
+use RuntimeException;
 
 class TypeRepository {
 
@@ -33,13 +35,6 @@ class TypeRepository {
         GraphQlUnion::class,
     ];
 
-    /**
-     * Load All types
-     * 
-     * @param string $directory
-     * @return array
-     * @throws \ReflectionException
-     */
     public static function createTypeMapFromDirectory(string $directory, bool $includeMetadataTypeExtension = false): array {
         $typeMap = [];
 
@@ -49,7 +44,7 @@ class TypeRepository {
                 continue;
             }
 
-            $parentClassNames = Reflections::getAllParentClasses(new \ReflectionClass($className));
+            $parentClassNames = Reflections::getAllParentClasses(new ReflectionClass($className));
             foreach ($parentClassNames as $parentClassName) {
                 if (in_array($parentClassName, self::CLASS_MAP_INSTANCES, true)) {
                     /** @var $className GraphQlUnion|GraphQlType|GraphQlScalar|GraphQlInterface|GraphQlEnum|GraphQlInputType */
@@ -104,7 +99,7 @@ class TypeRepository {
             $className = $this->typeResolutionMap[$typeName] ?? null;
 
             if (!$className) {
-                throw new \RuntimeException("Could not resolve type `{$typeName}`. Is it in the type-map?");
+                throw new RuntimeException("Could not resolve type `{$typeName}`. Is it in the type-map?");
             }
 
             $this->typeInstances[$typeName] = $this->makeInstanceOfType(
