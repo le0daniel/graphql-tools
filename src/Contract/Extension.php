@@ -47,7 +47,7 @@ abstract class Extension implements JsonSerializable {
      * An optional returning Closure is called as soon as the field has finally been resolved.
      * Ex: return fn(mixed $resolvedFieldValue) => $resolvedFieldValue
      *
-     * The callback can be used to change the field value if needed. It MUST return the value.
+     * The callback gets the resolved value. The resolved value CAN NOT be modified.
      *
      * @param FieldResolutionEvent $event
      * @return null|Closure(mixed $resolvedFieldValue) => $resolvedFieldValue
