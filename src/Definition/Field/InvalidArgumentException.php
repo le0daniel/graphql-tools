@@ -3,11 +3,12 @@
 namespace GraphQlTools\Definition\Field;
 
 use GraphQL\Error\ClientAware;
+use Throwable;
 
 final class InvalidArgumentException extends \Exception implements ClientAware
 {
 
-    public function __construct(string $fieldName, string $message, \Throwable $previous)
+    public function __construct(string $fieldName, string $message, Throwable $previous)
     {
         parent::__construct("Validation failed for '{$fieldName}': {$message}", 0, $previous);
     }

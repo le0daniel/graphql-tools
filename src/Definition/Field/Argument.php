@@ -21,11 +21,9 @@ final class Argument extends InputField
      */
     final public function validateValue(mixed $value, array $allArguments): mixed
     {
-        if (!$this->validator) {
-            return $value;
-        }
-
-        return ($this->validator)($value, $allArguments);
+        return $this->validator
+            ? ($this->validator)($value, $allArguments)
+            : $value;
     }
 
 }
