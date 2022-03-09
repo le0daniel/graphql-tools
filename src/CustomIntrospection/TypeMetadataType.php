@@ -3,6 +3,7 @@
 namespace GraphQlTools\CustomIntrospection;
 
 use GraphQL\Type\Definition\FieldDefinition;
+use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\Field\Argument;
@@ -60,7 +61,7 @@ final class TypeMetadataType extends GraphQlType
                 ->ofType(MetadataScalar::class)
                 ->resolvedBy(static fn(ObjectType $type): mixed => $type->config[Fields::METADATA_CONFIG_KEY] ?? null),
             Field::withName('fields')
-                ->ofType(fn(TypeRepository $typeRepository) => $typeRepository->listOfType(FieldMetadataType::class))
+                ->ofType(fn(TypeRepository $typeRepository) => new ListOfType($typeRepository->type(FieldMetadataType::class)))
                 ->resolvedBy(static fn(ObjectType $type): array => $type->getFields())
             ,
             Field::withName('fieldByName')

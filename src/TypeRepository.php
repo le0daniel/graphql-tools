@@ -20,11 +20,12 @@ use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Classes;
 use GraphQlTools\Utility\Directories;
 use GraphQlTools\Utility\Reflections;
-use GraphQlTools\Utility\Types;
 use ReflectionClass;
 use RuntimeException;
 
 class TypeRepository {
+
+    private array $classNameToTypeNameMap;
 
     private const CLASS_MAP_INSTANCES = [
         GraphQlType::class,
@@ -69,9 +70,11 @@ class TypeRepository {
      */
     private array $typeInstances = [];
 
-    public function __construct(private array $typeResolutionMap) {}
+    public function __construct(private array $typeResolutionMap) {
+        $this->classNameToTypeNameMap = array_flip($typeResolutionMap);
+    }
 
-    public function typeExistsByName(string $typeName): bool {
+    final public function typeExistsByName(string $typeName): bool {
         return array_key_exists($typeName, $this->typeResolutionMap);
     }
 
@@ -88,13 +91,9 @@ class TypeRepository {
         return new $className($this);
     }
 
-    /**
-     * Resolve a given type name to a type
-     * 
-     * @param string $typeName
-     * @return mixed
-     */
-    private function resolveTypeByName(string $typeName): mixed {
+    private function resolveType(string $classOrTypeName): Type {
+        $typeName = $this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName;
+
         if (!isset($this->typeInstances[$typeName])) {
             $className = $this->typeResolutionMap[$typeName] ?? null;
 
@@ -109,37 +108,20 @@ class TypeRepository {
 
         return $this->typeInstances[$typeName];
     }
-    
-    /**
-     * Returns a specific type by either it's identifier or the type class
-     * The default TypeRepository always expects a class name.
-     *
-     * The functionality can be changed by the Implementor to return a callable
-     * and make the schema lazy.
-     *
-     * @param string $classOrTypeName
-     * @return Type|callable
-     */
-    final public function type(string $classOrTypeName): Type|callable {
-        $typeName = Classes::isClassName($classOrTypeName)
-            ? $classOrTypeName::typeName()
-            : $classOrTypeName;
-        
-        return fn() => $this->resolveTypeByName($typeName);
-    }
 
-    final public function listOfType(string $className): ListOfType {
-        return new ListOfType($this->type($className));
+    final public function type(string $classOrTypeName): Type|callable {
+        return fn() => $this->resolveType($classOrTypeName);
     }
 
     final public function toSchema(
         string $queryClassOrTypeName,
         ?string $mutationClassOrTypeName = null,
         array $eagerlyLoadTypes = [],
-        ?array $directives = null
+        ?array $directives = null,
+        bool $assumeValid = true,
     ): Schema {
         /** @var GraphQlType $rootQueryType */
-        $rootQueryType = Types::enforceTypeLoading($this->type($queryClassOrTypeName));
+        $rootQueryType = $this->resolveType($queryClassOrTypeName);
 
         // Append Metadata Query to the root query.
         if (array_key_exists(TypeMetadataType::TYPE_NAME, $this->typeResolutionMap)) {
@@ -151,14 +133,15 @@ class TypeRepository {
                 [
                     'query' => $rootQueryType,
                     'mutation' => $mutationClassOrTypeName
-                        ? Types::enforceTypeLoading($this->type($mutationClassOrTypeName))
+                        ? $this->resolveType($mutationClassOrTypeName)
                         : null,
                     'types' => array_map(
-                        fn(string $typeName) => Types::enforceTypeLoading($this->type($typeName)),
+                        fn(string $typeName) => $this->resolveType($typeName),
                         $eagerlyLoadTypes
                     ),
-                    'typeLoader' => fn($typeName) => $this->resolveTypeByName($typeName),
-                    'directives' => $directives
+                    'typeLoader' => fn($typeName) => $this->resolveType($typeName),
+                    'directives' => $directives,
+                    'assumeValid' => $assumeValid,
                 ]
             )
         );

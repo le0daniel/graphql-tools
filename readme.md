@@ -82,8 +82,7 @@ Default helpers are provided for getting list of types
     use GraphQlTools\TypeRepository;
     
     $typeRepository = new TypeRepository();
-    
-    $typeRepository->listOfType(AnimalType::class); // graphql => [Animal]
+    $typeRepository->type(MyType::class)
 ```
 
 Every Type / Union / Interface / InputType / Enum will be injected automatically with the instance of the TypeRepository.

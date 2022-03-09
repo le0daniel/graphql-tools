@@ -20,14 +20,6 @@ final class TypeRepositoryTest extends TestCase {
         ]);
     }
 
-    public function testListOfType(): void {
-        $type = $this->repository->listOfType(QueryType::class);
-        self::assertEquals(
-            $type->getWrappedType(),
-            $this->repository->listOfType(QueryType::class)->getWrappedType()
-        );
-    }
-
     public function testType(): void {
         $type = $this->repository->type(QueryType::class);
         self::assertInstanceOf(Type::class, Types::enforceTypeLoading($type));
