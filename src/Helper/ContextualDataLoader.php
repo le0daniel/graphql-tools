@@ -21,6 +21,7 @@ final class ContextualDataLoader
      * The Aggregated Loading Function should be of Format: fn(array $queuedData, array $validatedArguments, Context $context): mixed
      *
      * @param callable $aggregatedLoadingFunction
+     * @param callable $resolveItemFunction
      * @param array $arguments
      * @param Context $context
      */
@@ -41,9 +42,7 @@ final class ContextualDataLoader
         }
 
         try {
-            $this->loadedDataOrException = $this->context->executeAggregatedLoadingFunction(
-                $this->loadingFunction, $this->queuedData, $this->arguments,
-            );
+            $this->loadedDataOrException = ($this->loadingFunction)($this->queuedData, $this->arguments, $this->context);
 
             if (is_null($this->loadedDataOrException)) {
                 throw new RuntimeException('aggregatedLoadingFunction returned null, expected anything but null.');

@@ -18,17 +18,13 @@ trait DefinesArguments
         return $this;
     }
 
-    /**
-     * @param TypeRepository $repository
-     * @return Argument[]|null
-     */
-    final protected function buildArguments(TypeRepository $repository): ?array
+    final protected function buildArguments(TypeRepository $typeRepository): ?array
     {
         if (empty($this->arguments)) {
             return null;
         }
 
-        return array_map(fn(Argument $argument) => $argument->toInputFieldDefinitionArray($repository), $this->arguments);
+        return array_map(fn(Argument $argument) => $argument->toInputFieldDefinitionArray($typeRepository), $this->arguments);
     }
 
     final protected function validateArguments(array $arguments): array
