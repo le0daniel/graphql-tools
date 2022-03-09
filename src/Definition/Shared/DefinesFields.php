@@ -52,7 +52,9 @@ trait DefinesFields
                 throw DefinitionException::from($fieldDeclaration, GraphQlField::class);
             }
 
-            $initializedFields[] = $fieldDeclaration->toFieldDefinition($this->typeRepository);
+            if ($fieldDefinition = $fieldDeclaration->toFieldDefinition($this->typeRepository)) {
+                $initializedFields[] = $fieldDefinition;
+            }
         }
 
         return $initializedFields;

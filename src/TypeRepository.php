@@ -79,6 +79,19 @@ class TypeRepository {
     }
 
     /**
+     * This method can be used to completely hide fields depending on a configuration
+     *
+     * You might want to only expose types which are public and not in beta for example.
+     *
+     * @param bool $isBeta
+     * @param mixed $fieldMetadata
+     * @return bool
+     */
+    public function hideField(bool $isBeta, mixed $fieldMetadata): bool {
+        return false;
+    }
+
+    /**
      * Create an instance of a given type by either the classname or the type name
      * The default implementation of the Type Repository always expects the types to be
      * a classname and does not work with type names.
