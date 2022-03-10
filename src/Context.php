@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GraphQlTools;
 
 use GraphQL\Type\Definition\ResolveInfo;
+use GraphQlTools\Utility\Injections;
 
 class Context
 {
@@ -20,7 +21,7 @@ class Context
      */
     public function executeAggregatedLoadingFunction(callable $resolveFunction, array $aggregatedData, array $arguments): mixed
     {
-        return $resolveFunction($aggregatedData, $arguments, $this);
+        return Injections::withPositionalArguments($resolveFunction, [$aggregatedData, $arguments, $this], fn() => null);
     }
 
     /**
@@ -34,7 +35,7 @@ class Context
      */
     public function executeMutationResolveFunction(callable $resolveFunction, mixed $data, array $arguments, ResolveInfo $info): mixed
     {
-        return $resolveFunction($data, $arguments, $this, $info);
+        return Injections::withPositionalArguments($resolveFunction, [$data, $arguments, $this, $info], fn() => null);
     }
 
 }
