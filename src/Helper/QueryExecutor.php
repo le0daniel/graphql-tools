@@ -9,16 +9,10 @@ use GraphQL\Executor\ExecutionResult;
 use GraphQL\GraphQL;
 use GraphQL\Language\Parser;
 use GraphQL\Type\Schema;
-use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Context;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
-use GraphQlTools\Helper\Extensions;
 use GraphQlTools\Helper\Extension\FieldMessages;
-use GraphQlTools\Helper\Extension\Tracing;
-use GraphQlTools\Helper\OperationContext;
-use GraphQlTools\Helper\ProxyResolver;
-use GraphQlTools\Utility\SideEffects;
 
 final class QueryExecutor
 {
@@ -73,7 +67,7 @@ final class QueryExecutor
             $source = Parser::parse($query);
         } catch (SyntaxError $exception) {
             $extensions->dispatchEndEvent(EndEvent::create());
-            return new ExecutionResult(null, [$exception]);
+            return new ExecutionResult(null, [$exception], $extensions->jsonSerialize());
         }
 
         $result = GraphQL::executeQuery(
@@ -92,7 +86,6 @@ final class QueryExecutor
             $result->setErrorFormatter($this->errorFormatter);
         }
 
-        // Append extensions to the result.
         $result->extensions = $extensions->jsonSerialize();
         return $result;
     }
