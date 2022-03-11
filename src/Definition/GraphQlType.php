@@ -14,8 +14,10 @@ use GraphQlTools\Utility\Classes;
 use GraphQlTools\Utility\Fields;
 use RuntimeException;
 
-abstract class GraphQlType extends ObjectType {
+abstract class GraphQlType extends ObjectType
+{
     use DefinesFields, HasDescription, DefinesTypes;
+
     private const CLASS_POSTFIX = 'Type';
 
     /**
@@ -26,9 +28,8 @@ abstract class GraphQlType extends ObjectType {
      */
     abstract protected function fields(): array;
 
-    public function __construct(
-        private TypeRepository $typeRepository
-    ){
+    public function __construct(private TypeRepository $typeRepository)
+    {
         parent::__construct(
             [
                 'name' => static::typeName(),
@@ -40,7 +41,8 @@ abstract class GraphQlType extends ObjectType {
         );
     }
 
-    protected function metadata(): mixed {
+    protected function metadata(): mixed
+    {
         return null;
     }
 
@@ -48,11 +50,13 @@ abstract class GraphQlType extends ObjectType {
      * Array returning the Interface types resolved by the TypeRepository.
      * @return array
      */
-    protected function interfaces(): array{
+    protected function interfaces(): array
+    {
         return [];
     }
 
-    public static function typeName(): string {
+    public static function typeName(): string
+    {
         $typeName = Classes::baseName(static::class);
         return str_ends_with($typeName, self::CLASS_POSTFIX)
             ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))

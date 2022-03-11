@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace GraphQlTools;
 
-use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
@@ -114,9 +113,7 @@ class TypeRepository {
                 throw new RuntimeException("Could not resolve type `{$typeName}`. Is it in the type-map?");
             }
 
-            $this->typeInstances[$typeName] = $this->makeInstanceOfType(
-                $className
-            );
+            $this->typeInstances[$typeName] = $this->makeInstanceOfType($className);
         }
 
         return $this->typeInstances[$typeName];

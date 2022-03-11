@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\Definition\Field;
 
+use Closure;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
 use GraphQlTools\Helper\ProxyResolver;
@@ -17,14 +18,10 @@ class Field extends GraphQlField
     /**
      * Callable fn(mixed $data, array $validatedArguments, Context $context, ResolveInfo $resolveInfo) => mixed
      *
-     * @param callable $resolveFunction
+     * @param Closure $resolveFunction
      * @return $this
      */
-    public function resolvedBy(callable $resolveFunction): self {
-        if ($resolveFunction instanceof ProxyResolver) {
-            throw new RuntimeException("Invalid resolve function given. Expected callable, got proxy resolver.");
-        }
-
+    public function resolvedBy(Closure $resolveFunction): self {
         $this->resolveFunction = $resolveFunction;
         return $this;
     }
