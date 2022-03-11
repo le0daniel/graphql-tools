@@ -2,16 +2,28 @@
 
 namespace GraphQlTools\Utility;
 
-use Closure;
 use ReflectionFunction;
+use ReflectionMethod;
 use ReflectionNamedType;
 use RuntimeException;
 
 class Injections
 {
 
+    private static function reflectCallable(callable $callable): ReflectionFunction|ReflectionMethod {
+        if (is_array($callable)) {
+            return new ReflectionMethod(...$callable);
+        }
+
+        if (is_string($callable) && str_contains($callable, '::')) {
+            return new ReflectionMethod($callable);
+        }
+
+        return new ReflectionFunction($callable);
+    }
+
     public static function withPositionalArguments(callable $callable, array $positionalArguments, callable $createInstanceOfClass){
-        $reflection = new ReflectionFunction($callable);
+        $reflection = self::reflectCallable($callable);
         $arguments = [];
 
         foreach ($reflection->getParameters() as $index => $parameter) {
