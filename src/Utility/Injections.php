@@ -18,12 +18,9 @@ class Injections
                 continue;
             }
 
-            $defaultParameter = $parameter->isDefaultValueAvailable()
-                ? $parameter->getDefaultValue()
-                : null;
-
             $type = $parameter->getType();
             $isSupported = $parameter->hasType() && $type instanceof ReflectionNamedType && !$type->isBuiltin();
+            $defaultParameter = $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : null;
 
             if ($isSupported) {
                 $arguments[] = $createInstanceOfClass($type->getName()) ?? $defaultParameter;

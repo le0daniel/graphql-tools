@@ -8,7 +8,7 @@ use GraphQlTools\Data\Models\Holder;
 
 final class HolderDummy extends Holder {
 
-    public function create(array $fields): HolderDummy {
+    public static function create(array $fields): HolderDummy {
         return new self($fields);
     }
 
