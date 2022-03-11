@@ -52,6 +52,12 @@ abstract class TypeTestCase extends TestCase
         return $result;
     }
 
+    protected function mockedContext(): Context {
+        return new class () extends Context {
+
+        };
+    }
+
     protected function visitField(string $fieldName, mixed $rootData, ?array $arguments = null, ?Context $context = null, ?ResolveInfo $resolveInfo = null): mixed
     {
         $field = $this->getFieldByName($fieldName);

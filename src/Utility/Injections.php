@@ -18,26 +18,30 @@ class Injections
                 continue;
             }
 
-            if ($parameter->isDefaultValueAvailable()) {
-                $arguments[] = $parameter->getDefaultValue();
+            $defaultParameter = $parameter->isDefaultValueAvailable()
+                ? $parameter->getDefaultValue()
+                : null;
+
+            $type = $parameter->getType();
+            $isSupported = $parameter->hasType() && $type instanceof ReflectionNamedType && !$type->isBuiltin();
+
+            if ($isSupported) {
+                $arguments[] = $createInstanceOfClass($type->getName()) ?? $defaultParameter;
                 continue;
             }
 
-            if (!$parameter->hasType()) {
-                throw new RuntimeException("Cannot inject argument with name '{$parameter->name}' as there is no type defined.");
+            if ($parameter->isDefaultValueAvailable()) {
+                $arguments[] = $defaultParameter;
+                continue;
             }
 
-            $type = $parameter->getType();
-            if (!$type instanceof ReflectionNamedType) {
-                $className = get_class($type);
-                throw new RuntimeException("Cannot inject argument with name '{$parameter->name}' as the type is '{$className}'");
+            if ($parameter->allowsNull()) {
+                $arguments[] = null;
+                continue;
             }
 
-            if ($type->isBuiltin()) {
-                throw new RuntimeException("Cannot inject argument with name '{$parameter->name}' as it is a builtin type.'");
-            }
-
-            $arguments[] = $createInstanceOfClass($type->getName());
+            $typeName = $type?->getName();
+            throw new RuntimeException("Cannot inject argument with name '{$parameter->name}' as the type '{$typeName}' is not supported.");
         }
 
         return $callable(...$arguments);

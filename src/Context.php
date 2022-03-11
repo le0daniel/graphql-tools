@@ -10,6 +10,10 @@ use GraphQlTools\Utility\Injections;
 class Context
 {
 
+    protected function injectInstance(string $className): mixed {
+        return null;
+    }
+
     /**
      * Every resolve function of a contextual loader can be called by the context, so
      * that you have the opportunity to inject additional services.
@@ -19,9 +23,9 @@ class Context
      * @param array $arguments
      * @return mixed
      */
-    public function executeAggregatedLoadingFunction(callable $resolveFunction, array $aggregatedData, array $arguments): mixed
+    final public function executeAggregatedLoadingFunction(callable $resolveFunction, array $aggregatedData, array $arguments): mixed
     {
-        return Injections::withPositionalArguments($resolveFunction, [$aggregatedData, $arguments, $this], fn() => null);
+        return Injections::withPositionalArguments($resolveFunction, [$aggregatedData, $arguments, $this], $this->injectInstance(...));
     }
 
     /**
@@ -33,9 +37,9 @@ class Context
      * @param ResolveInfo $info
      * @return mixed
      */
-    public function executeMutationResolveFunction(callable $resolveFunction, mixed $data, array $arguments, ResolveInfo $info): mixed
+    final public function executeMutationResolveFunction(callable $resolveFunction, mixed $data, array $arguments, ResolveInfo $info): mixed
     {
-        return Injections::withPositionalArguments($resolveFunction, [$data, $arguments, $this, $info], fn() => null);
+        return Injections::withPositionalArguments($resolveFunction, [$data, $arguments, $this, $info], $this->injectInstance(...));
     }
 
 }

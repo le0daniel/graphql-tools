@@ -14,22 +14,9 @@ class LaravelContext extends Context
     {
     }
 
-    public function executeAggregatedLoadingFunction(callable $resolveFunction, array $aggregatedData, array $arguments): mixed
+    protected function injectInstance(string $className): mixed
     {
-        return Injections::withPositionalArguments(
-            $resolveFunction,
-            [$aggregatedData, $arguments, $this],
-            $this->container->get(...)
-        );
-    }
-
-    public function executeMutationResolveFunction(callable $resolveFunction, mixed $data, array $arguments, ResolveInfo $info): mixed
-    {
-        return Injections::withPositionalArguments(
-            $resolveFunction,
-            [$data, $arguments, $this, $info],
-            $this->container->get(...)
-        );
+        return $this->container->get($className);
     }
 
 }

@@ -8,7 +8,7 @@ use GraphQlTools\Context;
 use GraphQlTools\Test\Dummies\Schema\QueryType;
 use GraphQlTools\TypeRepository;
 
-class QueryWithNormalTypeResolverTest extends ExecutionTestCase
+class QueryTest extends ExecutionTestCase
 {
 
     protected function typeRepository(bool $withMetadataIntrospection = true): TypeRepository

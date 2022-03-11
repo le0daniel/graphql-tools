@@ -48,5 +48,35 @@ class InjectionsTest extends TestCase
             [1],
             fn(string $className) => new $className,
         ));
+
+        self::assertEquals('', Injections::withPositionalArguments(
+            fn(int $number, ?ResolveInfoDummy $type = null) => '',
+            [1],
+            fn(string $className) => null,
+        ));
+
+        self::assertEquals('', Injections::withPositionalArguments(
+            fn(int $number, int $default = 10) => '',
+            [1],
+            fn() => null,
+        ));
+
+        self::assertEquals('', Injections::withPositionalArguments(
+            fn(int $number, $default = 10) => '',
+            [1],
+            fn() => null,
+        ));
+
+        self::assertEquals('', Injections::withPositionalArguments(
+            fn(int $number, $default) => '',
+            [1],
+            fn() => null,
+        ));
+
+        self::assertEquals('', Injections::withPositionalArguments(
+            fn(int $number, ?int $default) => '',
+            [1],
+            fn() => null,
+        ));
     }
 }
