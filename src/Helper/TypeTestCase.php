@@ -55,11 +55,11 @@ abstract class TypeTestCase extends TestCase
     /**
      * Mock injections into a Field with specific implementations for
      *
-     * @param array $mockedClasses
+     * @param array $mockedInstances
      * @return Context
      */
-    protected function contextWithMocks(array $mockedClasses = []): Context {
-        return new class ($mockedClasses) extends Context {
+    protected function contextWithMocks(array $mockedInstances = []): Context {
+        return new class ($mockedInstances) extends Context {
             public function __construct(private array $mockedClasses){}
 
             protected function injectInstance(string $className): mixed
