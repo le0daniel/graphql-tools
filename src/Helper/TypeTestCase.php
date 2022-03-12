@@ -8,13 +8,13 @@ use GraphQlTools\Context;
 use GraphQlTools\Definition\Field\GraphQlField;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 use ReflectionClass;
 use RuntimeException;
 use Throwable;
 
 abstract class TypeTestCase extends TestCase
 {
-
     abstract protected function typeClassName(): string;
 
     protected function getFieldByName(string $fieldName): GraphQlField
@@ -52,9 +52,35 @@ abstract class TypeTestCase extends TestCase
         return $result;
     }
 
-    protected function mockedContext(): Context {
-        return new class () extends Context {
+    /**
+     * Mock injections into a Field with specific implementations for
+     *
+     * @param array $mockedClasses
+     * @return Context
+     */
+    protected function contextWithMocks(array $mockedClasses = []): Context {
+        return new class ($mockedClasses) extends Context {
+            public function __construct(private array $mockedClasses){}
 
+            protected function injectInstance(string $className): mixed
+            {
+                if (array_key_exists($className, $this->mockedClasses)) {
+                    return $this->mockedClasses[$className];
+                }
+
+                foreach ($this->mockedClasses as $mockedInstance) {
+                    if ($mockedInstance instanceof $className) {
+                        return $mockedInstance;
+                    }
+                }
+
+                $reflection = new ReflectionClass($className);
+                if ($reflection->isAbstract()) {
+                    throw new RuntimeException("Expected class to mock, got interface or abstract class of type: '{$reflection->getName()}'");
+                }
+
+                return $reflection->newInstanceWithoutConstructor();
+            }
         };
     }
 
@@ -73,7 +99,7 @@ abstract class TypeTestCase extends TestCase
         ]);
 
         $result = $resolver($rootData, $arguments ?? [], new OperationContext(
-            $context ?? new Context(), new Extensions()
+            $context ?? $this->contextWithMocks(), new Extensions()
         ), $resolveInfo);
 
         if (ProxyResolver::isPromise($result)) {

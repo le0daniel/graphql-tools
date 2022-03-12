@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Test\Dummies\Schema;
 
+use Exception;
 use GraphQL\Type\Definition\Type;
+use GraphQlTools\Context;
+use GraphQlTools\Data\Models\Holder;
 use GraphQlTools\Definition\Field\Argument;
 use GraphQlTools\Definition\Field\DeferredField;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlType;
+use GraphQlTools\Test\Dummies\HolderDummy;
 
 final class TigerType extends GraphQlType {
 
@@ -25,7 +29,7 @@ final class TigerType extends GraphQlType {
                     Argument::withName('test')
                         ->ofType(Type::string())
                         ->withValidator(static function (mixed $argument) {
-                            return $argument ?? throw new \Exception('Failed');
+                            return $argument ?? throw new Exception('Failed');
                         })
                 )
                 ->resolvedBy(fn($data, array $arguments) => $arguments['test']),
@@ -40,7 +44,14 @@ final class TigerType extends GraphQlType {
                 })
                 ->resolveItem(function(array $data, array $loadedData) {
                     return $loadedData[$data['id']];
+                }),
+
+            DeferredField::withName('fieldWithInjections')
+                ->ofType(Type::string())
+                ->resolveAggregated(function(array $items, array $arguments, Context $context, HolderDummy $service){
+                    return [$service->result];
                 })
+                ->resolveItem(fn($data, array $items) => $items[0])
         ];
     }
 

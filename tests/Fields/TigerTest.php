@@ -2,7 +2,9 @@
 
 namespace GraphQlTools\Test\Fields;
 
+use GraphQlTools\Data\Models\Holder;
 use GraphQlTools\Helper\TypeTestCase;
+use GraphQlTools\Test\Dummies\HolderDummy;
 use GraphQlTools\Test\Dummies\Schema\TigerType;
 
 class TigerTest extends TypeTestCase
@@ -29,5 +31,16 @@ class TigerTest extends TypeTestCase
     {
         $this->expectVisitException("Validation failed for 'test': Failed", 'withArg', null, []);
         $this->assertEquals('success', $this->visitField('withArg', null, ['test' => 'success']));
+    }
+
+    public function testFieldWithInjections() {
+        $result = $this->visitField(
+            'fieldWithInjections',
+            [],
+            [],
+            $this->contextWithMocks([HolderDummy::class => HolderDummy::create(['result' => 'result'])])
+        );
+
+        self::assertEquals('result', $result);
     }
 }
