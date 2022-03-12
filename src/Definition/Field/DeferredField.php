@@ -38,11 +38,9 @@ class DeferredField extends GraphQlField
      * @return $this
      */
     public function resolveAggregated(callable $callable): static {
-        $argumentsValidator = $this->validateArguments(...);
-
-        $this->resolveAggregated = static function (array $queuedData, array $arguments, Context $context) use ($callable, $argumentsValidator) {
+        $this->resolveAggregated = function (array $queuedData, array $arguments, Context $context) use ($callable) {
             return $context->executeAggregatedLoadingFunction(
-                $callable, $queuedData, $argumentsValidator($arguments)
+                $callable, $queuedData, $this->validateArguments($arguments)
             );
         };
         return $this;
