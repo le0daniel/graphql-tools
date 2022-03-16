@@ -13,7 +13,7 @@ abstract class GraphQlScalar extends ScalarType {
 
     private const CLASS_POSTFIX = 'Scalar';
 
-    public function __construct() {
+    final public function __construct() {
         parent::__construct(
             [
                 'description' => $this->description(),

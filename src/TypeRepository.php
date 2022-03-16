@@ -90,19 +90,6 @@ class TypeRepository {
         return false;
     }
 
-    /**
-     * Create an instance of a given type by either the classname or the type name
-     * The default implementation of the Type Repository always expects the types to be
-     * a classname and does not work with type names.
-     *
-     * @param string $className
-     * @return mixed
-     */
-    protected function makeInstanceOfType(string $className): mixed
-    {
-        return new $className($this);
-    }
-
     private function resolveType(string $classOrTypeName): Type {
         $typeName = $this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName;
 
@@ -113,7 +100,7 @@ class TypeRepository {
                 throw new RuntimeException("Could not resolve type `{$typeName}`. Is it in the type-map?");
             }
 
-            $this->typeInstances[$typeName] = $this->makeInstanceOfType($className);
+            $this->typeInstances[$typeName] = new $className($this);
         }
 
         return $this->typeInstances[$typeName];

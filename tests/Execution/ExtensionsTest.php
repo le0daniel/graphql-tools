@@ -2,11 +2,8 @@
 
 namespace GraphQlTools\Test\Execution;
 
-use GraphQL\Type\Definition\ResolveInfo;
-use GraphQlTools\Contract\Event;
 use GraphQlTools\Contract\Extension;
 use GraphQlTools\Events\VisitFieldEvent;
-use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Helper\Extensions;
 use GraphQlTools\Helper\Extension\Tracing;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
@@ -29,6 +26,7 @@ class ExtensionsTest extends TestCase
 
     public function testMiddlewareFieldResolution()
     {
+        /** @var Extension $extension */
         $extension = $this->prophesize(Extension::class);
         $extension->visitField(Argument::type(VisitFieldEvent::class))->willReturn(fn() => 'value');
         $extension->priority()->willReturn(1);

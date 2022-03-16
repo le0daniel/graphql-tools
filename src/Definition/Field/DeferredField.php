@@ -22,7 +22,9 @@ class DeferredField extends GraphQlField
     private $resolveAggregated;
 
     private function getContextualDeferredLoader(array $arguments, Context $context, ResolveInfo $resolveInfo): ContextualDataLoader {
-        $key = Paths::toString($resolveInfo->path) . ':' . json_encode($arguments, JSON_THROW_ON_ERROR);
+        $path = Paths::toString($resolveInfo->path);
+        $serializedArguments = json_encode($arguments, JSON_THROW_ON_ERROR);
+        $key = "{$path}::{$serializedArguments}";
 
         if (!isset($this->deferredLoaders[$key])) {
             $this->deferredLoaders[$key] = new ContextualDataLoader($this->resolveAggregated, $this->resolveItem, $arguments, $context);

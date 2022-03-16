@@ -12,7 +12,7 @@ abstract class GraphQlEnum extends EnumType {
     private const CLASS_POSTFIX = 'Scalar';
     use HasDescription;
 
-    public function __construct(){
+    final public function __construct(){
         parent::__construct(
             [
                 'name' => static::typeName(),
