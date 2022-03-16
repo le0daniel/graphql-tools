@@ -30,7 +30,12 @@ trait DefinesFields
                 throw DefinitionException::from($inputField, InputField::class, Argument::class);
             }
 
-            $initializedInputFields[] = $inputField->toInputFieldDefinitionArray($this->typeRepository);
+            $definition =  $inputField->toInputFieldDefinitionArray($this->typeRepository);
+            if (!$definition) {
+                continue;
+            }
+
+            $initializedInputFields[] = $definition;
         }
 
         return $initializedInputFields;

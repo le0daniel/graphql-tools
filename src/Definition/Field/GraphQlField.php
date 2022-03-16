@@ -17,7 +17,7 @@ abstract class GraphQlField
 {
     use DefinesField, DefinesReturnType, DefinesMetadata, DefinesNotice, DefinesArguments;
 
-    protected function __construct(public readonly string $name)
+    final protected function __construct(public readonly string $name)
     {
     }
 
@@ -29,7 +29,7 @@ abstract class GraphQlField
 
     final public function toFieldDefinition(TypeRepository $repository): ?FieldDefinition
     {
-        if ($repository->hideField($this->isBeta, $this->metadata)) {
+        if ($this->hideBecauseOfDeprecation() || $repository->hideField($this->isBeta, $this->metadata)) {
             return null;
         }
 

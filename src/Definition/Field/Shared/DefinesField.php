@@ -2,13 +2,16 @@
 
 namespace GraphQlTools\Definition\Field\Shared;
 
+use DateTimeInterface;
+
 trait DefinesField
 {
 
     protected string|null $description = null;
     protected bool $isBeta = false;
+    protected bool $automaticallyRemoveIfPast = false;
     protected string|bool $deprecatedReason = false;
-    protected \DateTimeInterface|null $removalDate = null;
+    protected DateTimeInterface|null $removalDate = null;
 
     final public function withDescription(string $description): static
     {
@@ -16,11 +19,18 @@ trait DefinesField
         return $this;
     }
 
-    final public function isDeprecated(string $reason, \DateTimeInterface $removalDate): static
+    final public function isDeprecated(string $reason, DateTimeInterface $removalDate, bool $automaticallyRemoveIfPast = false): static
     {
         $this->deprecatedReason = $reason;
         $this->removalDate = $removalDate;
+        $this->automaticallyRemoveIfPast = $automaticallyRemoveIfPast;
         return $this;
+    }
+
+    final protected function hideBecauseOfDeprecation() {
+        return $this->automaticallyRemoveIfPast
+            && $this->removalDate
+            && $this->removalDate->getTimestamp() < time();
     }
 
     final public function isBeta(): static

@@ -2,7 +2,6 @@
 
 namespace GraphQlTools\Definition\Field;
 
-use GraphQlTools\Definition\Field\Shared\DefinesDefaultValue;
 use GraphQlTools\Definition\Field\Shared\DefinesField;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
 use GraphQlTools\TypeRepository;
@@ -10,7 +9,9 @@ use GraphQlTools\Utility\Fields;
 
 class InputField
 {
-    use DefinesField, DefinesReturnType, DefinesDefaultValue;
+    use DefinesField, DefinesReturnType;
+
+    protected mixed $defaultValue = null;
 
     final public function __construct(public readonly string $name)
     {
@@ -20,8 +21,17 @@ class InputField
         return new static($name);
     }
 
-    final public function toInputFieldDefinitionArray(TypeRepository $repository): array
+    final public function withDefaultValue(mixed $defaultValue): self {
+        $this->defaultValue = $defaultValue;
+        return $this;
+    }
+
+    final public function toInputFieldDefinitionArray(TypeRepository $repository): ?array
     {
+        if ($this->hideBecauseOfDeprecation()) {
+            return null;
+        }
+
         return [
             'name' => $this->name,
             'description' => $this->computeDescription(),
