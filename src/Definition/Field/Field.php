@@ -6,7 +6,6 @@ use Closure;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
 use GraphQlTools\Helper\ProxyResolver;
-use RuntimeException;
 
 class Field extends GraphQlField
 {

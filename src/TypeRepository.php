@@ -24,8 +24,6 @@ use RuntimeException;
 
 class TypeRepository {
 
-    private array $classNameToTypeNameMap;
-
     private const CLASS_MAP_INSTANCES = [
         GraphQlType::class,
         GraphQlEnum::class,
@@ -69,13 +67,8 @@ class TypeRepository {
      */
     private array $typeInstances = [];
 
-    public function __construct(private array $typeResolutionMap) {
-        $this->classNameToTypeNameMap = array_flip($typeResolutionMap);
-    }
+    public function __construct(private array $typeResolutionMap) {}
 
-    final public function typeExistsByName(string $typeName): bool {
-        return array_key_exists($typeName, $this->typeResolutionMap);
-    }
 
     /**
      * This method can be used to completely hide fields depending on a configuration

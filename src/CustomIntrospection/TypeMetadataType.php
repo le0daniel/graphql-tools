@@ -39,12 +39,6 @@ final class TypeMetadataType extends GraphQlType
             ->withArguments(
                 Argument::withName('name')
                     ->ofType(Type::nonNull(Type::string()))
-                    ->withValidator(function (string $typeName) use ($typeRepository) {
-                        if (!$typeRepository->typeExistsByName($typeName)) {
-                            throw new RuntimeException("Type with name '{$typeName}' does not exist.");
-                        }
-                        return $typeName;
-                    })
             )
             ->resolvedBy(static function ($data, array $arguments) use ($typeRepository) {
                 return Types::enforceTypeLoading($typeRepository->type($arguments['name']));
