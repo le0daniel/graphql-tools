@@ -19,7 +19,7 @@ trait DefinesField
         return $this;
     }
 
-    final public function isDeprecated(string $reason, DateTimeInterface $removalDate, bool $automaticallyRemoveIfPast = false): static
+    final public function isDeprecated(string $reason, ?DateTimeInterface $removalDate = null, bool $automaticallyRemoveIfPast = false): static
     {
         $this->deprecatedReason = $reason;
         $this->removalDate = $removalDate;

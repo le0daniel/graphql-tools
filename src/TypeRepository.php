@@ -33,6 +33,28 @@ class TypeRepository {
         GraphQlUnion::class,
     ];
 
+    /**
+     * Represents the opposite of the $typeResolutionMap.
+     * This is used to determine the type name, given a classname.
+     *
+     * @var array
+     */
+    private array $classNameToTypeNameMap;
+
+    /**
+     * Array containing already initialized types. This ensures the
+     * types are only initialized once. The instance of this repository
+     * is passed to each type, so they can load the specific instances which are
+     * required
+     *
+     * @var array
+     */
+    private array $typeInstances = [];
+
+    public function __construct(private array $typeResolutionMap) {
+        $this->classNameToTypeNameMap = array_flip($typeResolutionMap);
+    }
+
     public static function createTypeMapFromDirectory(string $directory, bool $includeMetadataTypeExtension = false): array {
         $typeMap = [];
 
@@ -56,19 +78,6 @@ class TypeRepository {
             ? Arrays::mergeKeyValues($typeMap, TypeMetadataType::typeMap())
             : $typeMap;
     }
-    
-    /**
-     * Array containing already initialized types. This ensures the
-     * types are only initialized once. The instance of this repository
-     * is passed to each type, so they can load the specific instances which are
-     * required
-     *
-     * @var array
-     */
-    private array $typeInstances = [];
-
-    public function __construct(private array $typeResolutionMap) {}
-
 
     /**
      * This method can be used to completely hide fields depending on a configuration
@@ -79,7 +88,7 @@ class TypeRepository {
      * @param mixed $fieldMetadata
      * @return bool
      */
-    public function hideField(bool $isBeta, mixed $fieldMetadata): bool {
+    public function shouldHideField(bool $isBeta, mixed $fieldMetadata): bool {
         return false;
     }
 
@@ -129,7 +138,7 @@ class TypeRepository {
                         fn(string $typeName) => $this->resolveType($typeName),
                         $eagerlyLoadTypes
                     ),
-                    'typeLoader' => fn($typeName) => $this->resolveType($typeName),
+                    'typeLoader' => $this->resolveType(...),
                     'directives' => $directives,
                     'assumeValid' => $assumeValid,
                 ]

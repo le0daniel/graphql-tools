@@ -29,7 +29,7 @@ abstract class GraphQlField
 
     final public function toFieldDefinition(TypeRepository $repository): ?FieldDefinition
     {
-        if ($this->hideBecauseOfDeprecation() || $repository->hideField($this->isBeta, $this->metadata)) {
+        if ($this->hideBecauseOfDeprecation() || $repository->shouldHideField($this->isBeta, $this->metadata)) {
             return null;
         }
 

@@ -14,11 +14,10 @@ use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Fields;
 use GraphQlTools\Utility\Types;
 use JetBrains\PhpStorm\Pure;
-use RuntimeException;
+use Throwable;
 
 final class TypeMetadataType extends GraphQlType
 {
-    private const ROOT_QUERY_FIELD_NAME = '__typeMetadata';
     public const TYPE_NAME = '__TypeMetadata';
 
     #[Pure]
@@ -33,15 +32,23 @@ final class TypeMetadataType extends GraphQlType
 
     public static function rootQueryField(TypeRepository $typeRepository): GraphQlField
     {
-        return Field::withName(self::ROOT_QUERY_FIELD_NAME)
-            ->ofType(self::class)
+        return Field::withName( '__typeMetadata')
+            ->ofType(TypeMetadataType::class)
             ->withDescription('Get extended Metadata for a specific type by its type name.')
             ->withArguments(
                 Argument::withName('name')
                     ->ofType(Type::nonNull(Type::string()))
             )
-            ->resolvedBy(static function ($data, array $arguments) use ($typeRepository) {
-                return Types::enforceTypeLoading($typeRepository->type($arguments['name']));
+            ->resolvedBy(static function ($data, array $arguments) use ($typeRepository): ?Type {
+                try {
+                    $type = Types::enforceTypeLoading($typeRepository->type($arguments['name']));
+                    if (!$type instanceof ObjectType) {
+                        return null;
+                    }
+                    return $type;
+                } catch (Throwable) {
+                    return null;
+                }
             });
     }
 
@@ -51,9 +58,11 @@ final class TypeMetadataType extends GraphQlType
             Field::withName('name')
                 ->ofType(Type::nonNull(Type::string()))
                 ->resolvedBy(static fn(ObjectType $type): string => $type->name),
+
             Field::withName('metadata')
                 ->ofType(MetadataScalar::class)
                 ->resolvedBy(static fn(ObjectType $type): mixed => $type->config[Fields::METADATA_CONFIG_KEY] ?? null),
+
             Field::withName('fields')
                 ->ofType(fn(TypeRepository $typeRepository) => new ListOfType($typeRepository->type(FieldMetadataType::class)))
                 ->resolvedBy(static fn(ObjectType $type): array => $type->getFields())
