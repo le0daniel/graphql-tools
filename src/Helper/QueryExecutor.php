@@ -18,7 +18,7 @@ final class QueryExecutor
 {
 
     /** @var string[]|callable[] */
-    private array $extensions;
+    private readonly array $extensions;
 
     /** @var callable|null */
     private $errorFormatter;
@@ -36,7 +36,7 @@ final class QueryExecutor
     public function __construct(
         private Schema $schema,
         ?array         $extensionFactories = null,
-        private ?array $validationRules = null,
+        private readonly ?array $validationRules = null,
         ?callable      $errorFormatter = null
     )
     {

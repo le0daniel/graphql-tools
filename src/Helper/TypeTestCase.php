@@ -17,7 +17,7 @@ abstract class TypeTestCase extends TestCase
 {
     abstract protected function typeClassName(): string;
 
-    protected function getFieldByName(string $fieldName): GraphQlField
+    private function getFieldByName(string $fieldName): GraphQlField
     {
         $typeReflection = new ReflectionClass($this->typeClassName());
         $type = $typeReflection->newInstanceWithoutConstructor();

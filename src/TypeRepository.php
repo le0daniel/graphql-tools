@@ -92,9 +92,7 @@ class TypeRepository {
         return false;
     }
 
-    private function resolveType(string $classOrTypeName): Type {
-        $typeName = $this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName;
-
+    private function resolveType(string $typeName): Type {
         if (!isset($this->typeInstances[$typeName])) {
             $className = $this->typeResolutionMap[$typeName] ?? null;
 
@@ -108,8 +106,12 @@ class TypeRepository {
         return $this->typeInstances[$typeName];
     }
 
-    final public function type(string $classOrTypeName): Type|callable {
-        return fn() => $this->resolveType($classOrTypeName);
+    private function eagerlyResolveType(string $classOrTypeName): Type {
+        return $this->resolveType($this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName);
+    }
+
+    final public function type(string $classOrTypeName): callable {
+        return fn() => $this->resolveType($this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName);
     }
 
     final public function toSchema(
@@ -120,7 +122,7 @@ class TypeRepository {
         bool $assumeValid = true,
     ): Schema {
         /** @var GraphQlType $rootQueryType */
-        $rootQueryType = $this->resolveType($queryClassOrTypeName);
+        $rootQueryType = $this->eagerlyResolveType($queryClassOrTypeName);
 
         // Append Metadata Query to the root query.
         if (array_key_exists(TypeMetadataType::TYPE_NAME, $this->typeResolutionMap)) {
@@ -132,10 +134,10 @@ class TypeRepository {
                 [
                     'query' => $rootQueryType,
                     'mutation' => $mutationClassOrTypeName
-                        ? $this->resolveType($mutationClassOrTypeName)
+                        ? $this->eagerlyResolveType($mutationClassOrTypeName)
                         : null,
                     'types' => array_map(
-                        fn(string $typeName) => $this->resolveType($typeName),
+                        fn(string $typeName) => $this->eagerlyResolveType($typeName),
                         $eagerlyLoadTypes
                     ),
                     'typeLoader' => $this->resolveType(...),

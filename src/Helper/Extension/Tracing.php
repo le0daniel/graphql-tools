@@ -134,12 +134,11 @@ final class Tracing extends Extension
 
     public function visitField(VisitFieldEvent $event): Closure
     {
-        return function ($resolvedValue) use ($event): mixed {
+        return function () use ($event): mixed {
             $this->fieldTraces[] = ResolverTrace::fromEvent(
                 $event,
                 $this->startTimeInNanoseconds
             );
-            return $resolvedValue;
         };
     }
 }
