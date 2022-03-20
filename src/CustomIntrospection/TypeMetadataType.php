@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\CustomIntrospection;
 
+use GraphQL\Error\ClientAware;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\ObjectType;
@@ -14,6 +15,7 @@ use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Fields;
 use GraphQlTools\Utility\Types;
 use JetBrains\PhpStorm\Pure;
+use RuntimeException;
 use Throwable;
 
 final class TypeMetadataType extends GraphQlType
@@ -38,17 +40,16 @@ final class TypeMetadataType extends GraphQlType
             ->withArguments(
                 Argument::withName('name')
                     ->ofType(Type::nonNull(Type::string()))
+                    ->withValidator(function(string $typeName) use ($typeRepository){
+                        $type = Types::enforceTypeLoading($typeRepository->type($typeName));
+                        if (!$type instanceof ObjectType) {
+                            throw new RuntimeException('Metadata is only supported on ObjectType currently.');
+                        }
+                        return $typeName;
+                    })
             )
             ->resolvedBy(static function ($data, array $arguments) use ($typeRepository): ?Type {
-                try {
-                    $type = Types::enforceTypeLoading($typeRepository->type($arguments['name']));
-                    if (!$type instanceof ObjectType) {
-                        return null;
-                    }
-                    return $type;
-                } catch (Throwable) {
-                    return null;
-                }
+                return Types::enforceTypeLoading($typeRepository->type($arguments['name']));
             });
     }
 

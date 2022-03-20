@@ -15,7 +15,7 @@ final class MetadataScalar extends GraphQlScalar
 
     protected function description(): string
     {
-        return 'Internal Scalar for custom type and field metadata.';
+        return 'Internal Scalar for custom type and field metadata. Serializes to arbitrary JSON with no predictable structure.';
     }
 
     public function serialize($value)
