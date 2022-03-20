@@ -20,10 +20,11 @@ final class Extensions implements \JsonSerializable {
     }
 
     /**
-     * This is used internally to build and order the extensions
-     * The extensions array must consist of stateless classes which
-     * can be instantiated or a factory (callable). Extensions are
-     * considered contextual for each execution.
+     * This is used internally to build and order extensions
+     * The extensions array must consist of class names or factories
+     * (callable) which create a new instance of an extension. Extensions are
+     * considered contextual for each execution and are freshly built on each
+     * query.
      *
      * @param array $extensionFactories
      * @return Extensions

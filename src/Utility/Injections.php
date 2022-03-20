@@ -19,10 +19,10 @@ class Injections
             }
 
             $type = $parameter->getType();
-            $isSupported = $parameter->hasType() && $type instanceof ReflectionNamedType && !$type->isBuiltin();
+            $isInjectable = $parameter->hasType() && $type instanceof ReflectionNamedType && !$type->isBuiltin();
             $defaultParameter = $parameter->isDefaultValueAvailable() ? $parameter->getDefaultValue() : null;
 
-            if ($isSupported) {
+            if ($isInjectable) {
                 $arguments[] = $createInstanceOfClass($type->getName()) ?? $defaultParameter;
                 continue;
             }
@@ -37,7 +37,7 @@ class Injections
                 continue;
             }
 
-            $typeName = $type?->getName();
+            $typeName = $type?->getName() ?? 'no type given';
             throw new RuntimeException("Cannot inject argument with name '{$parameter->name}' as the type '{$typeName}' is not supported.");
         }
 

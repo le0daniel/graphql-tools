@@ -18,12 +18,16 @@ class Context
      * Every resolve function of a contextual loader can be called by the context, so
      * that you have the opportunity to inject additional services.
      *
+     * You might want to inject all arguments, but this will force you to use the names
+     * correctly. Therefor the solution here only injects arguments after the provided
+     * positional arguments
+     *
      * @param callable $aggregatedLoadingFunction
      * @param array $aggregatedData
      * @param array $arguments
      * @return mixed
      */
-    final public function executeAggregatedLoadingFunction(callable $aggregatedLoadingFunction, array $aggregatedData, array $arguments): mixed
+    public function executeAggregatedLoadingFunction(callable $aggregatedLoadingFunction, array $aggregatedData, array $arguments): mixed
     {
         return Injections::withPositionalArguments($aggregatedLoadingFunction, [$aggregatedData, $arguments, $this], $this->injectInstance(...));
     }

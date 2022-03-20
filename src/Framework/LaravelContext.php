@@ -2,9 +2,7 @@
 
 namespace GraphQlTools\Framework;
 
-use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
-use GraphQlTools\Utility\Injections;
 use Psr\Container\ContainerInterface;
 
 class LaravelContext extends Context

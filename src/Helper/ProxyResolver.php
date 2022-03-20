@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Helper;
 
+use ArrayAccess;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Executor\Promise\Promise;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
 use GraphQlTools\Events\VisitFieldEvent;
+use Throwable;
 
 final class ProxyResolver
 {
@@ -35,14 +37,14 @@ final class ProxyResolver
      * @param ResolveInfo $info
      * @return mixed
      */
-    protected function resolveFieldToValue($typeData, array $arguments, Context $context, ResolveInfo $info): mixed
+    private function resolveFieldToValue($typeData, array $arguments, Context $context, ResolveInfo $info): mixed
     {
         if ($this->resolveFunction) {
             return ($this->resolveFunction)($typeData, $arguments, $context, $info);
         }
 
         $fieldName = $info->fieldName;
-        if (is_array($typeData) || $typeData instanceof \ArrayAccess) {
+        if (is_array($typeData) || $typeData instanceof ArrayAccess) {
             return $typeData[$fieldName] ?? null;
         }
 
@@ -63,11 +65,13 @@ final class ProxyResolver
      * @param OperationContext $operationContext
      * @param ResolveInfo $info
      * @return mixed
-     * @throws \Throwable
+     * @throws Throwable
      */
-    final public function __invoke(mixed $typeData, ?array $arguments, OperationContext $operationContext, ResolveInfo $info): mixed
+    public function __invoke(mixed $typeData, ?array $arguments, OperationContext $operationContext, ResolveInfo $info): mixed
     {
+        // Ensure arguments are always an array.
         $arguments ??= [];
+
         $afterFieldResolution = $operationContext->extensions->willVisitField(
             VisitFieldEvent::create($typeData, $arguments, $info)
         );
@@ -83,10 +87,10 @@ final class ProxyResolver
             return self::isPromise($promiseOrValue)
                 ? $promiseOrValue
                     ->then(static fn($resolvedValue) => $afterFieldResolution($resolvedValue))
-                    ->catch(static fn(\Throwable $error) => $afterFieldResolution($error))
+                    ->catch(static fn(Throwable $error) => $afterFieldResolution($error))
                 : $afterFieldResolution($promiseOrValue);
 
-        } catch (\Throwable $error) {
+        } catch (Throwable $error) {
             return $afterFieldResolution($error);
         }
     }

@@ -20,10 +20,8 @@ use GraphQlTools\Helper\Extensions;
  */
 final class OperationContext
 {
-
     public function __construct(
         public readonly Context $context,
         public readonly Extensions $extensions
     ){}
-
 }

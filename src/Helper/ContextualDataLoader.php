@@ -14,22 +14,14 @@ final class ContextualDataLoader
     /** @var callable */
     private $resolveItemFunction;
 
-    private array $queuedData = [];
+    private array $queuedItems = [];
     private mixed $loadedDataOrException = null;
 
-    /**
-     * The Aggregated Loading Function should be of Format: fn(array $queuedData, array $validatedArguments, Context $context): mixed
-     *
-     * @param callable $aggregatedLoadingFunction
-     * @param callable $resolveItemFunction
-     * @param array $arguments
-     * @param Context $context
-     */
     public function __construct(
         callable $aggregatedLoadingFunction,
         callable $resolveItemFunction,
         private array $arguments,
-        private Context $context
+        private readonly Context $context
     ){
         $this->loadingFunction = $aggregatedLoadingFunction;
         $this->resolveItemFunction = $resolveItemFunction;
@@ -37,12 +29,12 @@ final class ContextualDataLoader
 
     private function ensureLoadedOnce()
     {
-        if (!is_null($this->loadedDataOrException)) {
+        if ($this->loadedDataOrException !== null) {
             return;
         }
 
         try {
-            $this->loadedDataOrException = ($this->loadingFunction)($this->queuedData, $this->arguments, $this->context);
+            $this->loadedDataOrException = ($this->loadingFunction)($this->queuedItems, $this->arguments, $this->context);
 
             if (is_null($this->loadedDataOrException)) {
                 throw new RuntimeException('aggregatedLoadingFunction returned null, expected anything but null.');
@@ -51,7 +43,7 @@ final class ContextualDataLoader
             $this->loadedDataOrException = $exception;
         } finally {
             unset($this->arguments);
-            unset($this->queuedData);
+            unset($this->queuedItems);
         }
     }
 
@@ -64,7 +56,7 @@ final class ContextualDataLoader
 
     public function defer(mixed $data): Deferred
     {
-        $this->queuedData[] = $data;
+        $this->queuedItems[] = $data;
         return new Deferred(function () use ($data) {
             $this->ensureLoadedOnce();
             $this->throwOnLoadingException();
