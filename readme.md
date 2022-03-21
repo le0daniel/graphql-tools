@@ -78,11 +78,57 @@ When defining fields with custom types, you must use the TypeRepository.
 
 Every Type / Union / Interface / InputType / Enum will be injected automatically with the instance of the TypeRepository.
 
+## Context
+
+The Context Object is passed to all Resolvers and contains contextual values. This is a good place to add current User information for example.
+
+The Context is also used to automatically Inject Services (or classes) into the Deferred Field loading function or the mutation field resolver.
+You can simply extend the Context Object to add functionality to it.
+
+```php
+class MyCustomContext extends \GraphQlTools\Context {
+
+    public function __construct(public readonly User $currentUser, private \Psr\Container\ContainerInterface $container) {}
+
+    /**
+    * Inject Classes into fieldLoadingFunctions after the positional arguments
+    * Example: $deferredField->loadAggregated(function(array $queuedData, array $validatedArguments, Context $context, MyCustomService $service) {
+    *   // your Logic
+    * })
+    * 
+    * Or into the resolve function of a mutation field:
+    * $mutationField->resolvedBy(fn($data, $arguments, $context, $info, MyClass $service) => $service->resolve($arguments))
+    */
+    protected function injectInstance(string $className) : mixed{
+        return $this->container->get($className);
+    }
+}
+```
+
+In this example, every resolver now gets access to the current user through your context. Additionally, the context resolves dependencies for resolve functions.
+
+You can have even more control of the injections by overwriting the `executeAggregatedLoadingFunction` and `executeMutationResolveFunction`. 
+By default, positional Arguments are always passed first and only additional arguments are injected. There you can change the logic of it.
+
+Injections are only possible for `DeferredField -> loadAggregated` and `MutationField -> resolvedBy`. This is due to how they are executed — to mitigate N+1 issues.
+
+
 ## Defining Types
 
 The most important functionality is how to define Types. Compared to the raw implementation of webonix/graphql, SDL is not supported and slightly different classes are required.
 
-All of your types must extend our implementation of the webonix/graphql types. This is required, as those ensure that the ProxyResolver is attached successfully. The proxy resolver in term makes sure that extensions work.
+Every Type, Interface, Union, ENUM, Scalar only depends on the TypeRepository without any thirdparty dependencies. This is really important, as their only use is to build the schema.
+The resolve functions of the Fields then should use your services to get data from your Application. Only they should depend on Services, which are injected or created from the Context.
+
+This ensures fast schema loading and query execution to work correctly. The only Object knowing your Application is the Context.
+
+Type resolution is done automatically if you provide a ClassName using the TypeRepository. If you need nested Types (like nonnull or list of), pass a closure, which will get the TypeRepository as an argument
+
+```php
+Field::withName('myFieldName')->ofType(fn(TypeRepository $typeRepository) => new NonNull($typeRepository->type(MyCustomTypeClass::class)))
+```
+
+Full example of Type definition:
 
 ```php
 

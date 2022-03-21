@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Helper\Extension;
 
+use Closure;
 use GraphQlTools\Contract\Extension;
 use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Data\Models\Message;
@@ -37,7 +38,7 @@ final class FieldMessages extends Extension {
         $this->keyMap[$path] = true;
     }
 
-    public function visitField(VisitFieldEvent $event): ?\Closure {
+    public function visitField(VisitFieldEvent $event): ?Closure {
         $path = Paths::toString($event->info->path);
 
         if ($this->hasAlreadyMessagesForField($path)) {
@@ -45,12 +46,10 @@ final class FieldMessages extends Extension {
         }
         $this->ensureMessagesAreOnlyCollectedOncePerField($path);
 
-        // Adds a message if the field is marked as deprecated
         if ($event->info->fieldDefinition->isDeprecated()) {
             $this->messages[] = Message::deprecated($event->info);
         }
 
-        // Adds a message if the field contains the isBeta flag in the config
         if (Fields::isBetaField($event->info->fieldDefinition)) {
             $this->messages[] = Message::beta($event->info);
         }

@@ -10,6 +10,7 @@ use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use ReflectionClass;
+use ReflectionObject;
 use RuntimeException;
 use Throwable;
 
@@ -87,7 +88,7 @@ abstract class TypeTestCase extends TestCase
     protected function visitField(string $fieldName, mixed $rootData, ?array $arguments = null, ?Context $context = null, ?ResolveInfo $resolveInfo = null): mixed
     {
         $field = $this->getFieldByName($fieldName);
-        $fieldReflection = new \ReflectionObject($field);
+        $fieldReflection = new ReflectionObject($field);
 
         $resolverMethod = $fieldReflection->getMethod('getResolver');
         $resolverMethod->setAccessible(true);
