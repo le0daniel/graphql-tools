@@ -55,6 +55,16 @@ class TypeRepository {
         $this->classNameToTypeNameMap = array_flip($typeResolutionMap);
     }
 
+    /**
+     * This is expensive and should only be used during development. We suggest
+     * that you build the TypeMap during the build process of your application
+     * and cache it for production.
+     *
+     * @param string $directory
+     * @param bool $includeMetadataTypeExtension
+     * @return array
+     * @throws \ReflectionException
+     */
     public static function createTypeMapFromDirectory(string $directory, bool $includeMetadataTypeExtension = false): array {
         $typeMap = [];
 

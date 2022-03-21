@@ -7,11 +7,12 @@ Main Features
 
  - (not working yet) Apollo Tracing support
  - Custom extensions support
- - Default TypeRepository Implementation with lazy loading support
+ - Default TypeRepository Implementation with lazy loading
  - Strict Type Checks
- - Abstract classes to extend for defining types / enums / interfaces / unions / scalars
- - Field definition is still as flexible as webonyx/graphql
- - Extendable ProxyResolver class which allows for reusable validation / authorization
+ - Abstract classes to extend for defining types / enums / interfaces / unions / scalars / Fields
+ - Fields are built with the easy to use Field builder
+ - Abstraction of deferred fields to solve the N+1 problem
+ - Code First approach to schema building
 
 ## Basic Usage
 
@@ -75,16 +76,6 @@ When defining fields with custom types, you must use the TypeRepository.
     $query === $typeRepository->type(RootQueryType::class); // => true
 ```
 
-Default helpers are provided for getting list of types
-
-```php
-    use GraphQL\Type\Definition\NonNull;
-    use GraphQlTools\TypeRepository;
-    
-    $typeRepository = new TypeRepository();
-    $typeRepository->type(MyType::class)
-```
-
 Every Type / Union / Interface / InputType / Enum will be injected automatically with the instance of the TypeRepository.
 
 ## Defining Types
@@ -111,7 +102,6 @@ All of your types must extend our implementation of the webonix/graphql types. T
         protected function fields() : array{
             // To prevent circular types, this is already wrapped in a closure
             // Provide the fields of your type.
-            // See possibilities: https://webonyx.github.io/graphql-php/type-definitions/object-types/
             // --
             // You can, and should access the protected `typeRepository` to reference your own types:
             return [
@@ -143,7 +133,7 @@ All of your types must extend our implementation of the webonix/graphql types. T
                             ->ofType(MyType::class),
                     )
                     ->resolveAggregated(static function(array $aggregatedData, array $arguments, Context $context){
-                        return loadData(array_column($aggregatedData, 'id'));
+                        return yourDataLoadingFunction(array_column($aggregatedData, 'id'));
                     })
                     ->resolveItem(static function(array $data, $loadedData){
                         return $loadedData[$data['id']];

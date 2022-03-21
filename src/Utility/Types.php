@@ -6,12 +6,10 @@ use GraphQL\Type\Definition\Type;
 
 final class Types
 {
-
     public static function enforceTypeLoading(Type|callable $type): Type
     {
         return $type instanceof Type
             ? $type
             : $type();
     }
-
 }

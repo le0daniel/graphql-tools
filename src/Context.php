@@ -9,7 +9,13 @@ use GraphQlTools\Utility\Injections;
 
 class Context
 {
-
+    /**
+     * Return an instance of a class given it's type name. This is very useful for
+     * service injection on Aggregated Loading Functions or Mutation fields.
+     *
+     * @param string $className
+     * @return mixed
+     */
     protected function injectInstance(string $className): mixed {
         return null;
     }
