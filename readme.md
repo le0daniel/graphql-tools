@@ -161,10 +161,10 @@ Full example of Type definition:
                 // With custom resolver
                 Field::withName('sameCustomType')
                     ->ofType(MyCustomType::class)
-                    ->resolvedBy(fn($data, array $arguments, Context $context, ResolveInfo $resolveInfo) => $data['items']),
+                    ->mappedBy(fn($data, array $arguments) => $data['items']),
                 
                 // Defer a field, the logic of deferring is abstracted away    
-                DeferredField::withName('myField')
+                Field::withName('myField')
                     ->ofType(MyType::class)
                     ->withArguments(
                         
@@ -178,10 +178,10 @@ Full example of Type definition:
                         Argument::withName('second')
                             ->ofType(MyType::class),
                     )
-                    ->resolveAggregated(static function(array $aggregatedData, array $arguments, Context $context){
+                    ->resolveData(static function(array $aggregatedData, array $arguments, Context $context){
                         return yourDataLoadingFunction(array_column($aggregatedData, 'id'));
                     })
-                    ->resolveItem(static function(array $data, $loadedData){
+                    ->mappedBy(static function(array $data, array $arguments, array $loadedData){
                         return $loadedData[$data['id']];
                     })             
             ];

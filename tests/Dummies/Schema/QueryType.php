@@ -8,7 +8,6 @@ use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Context;
 use GraphQlTools\Definition\Field\Argument;
-use GraphQlTools\Definition\Field\DeferredField;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\TypeRepository;
@@ -44,7 +43,7 @@ final class QueryType extends GraphQlType {
                         })
                 )
                 ->withDescription('')
-                ->resolvedBy(function($data, $arguments){
+                ->mappedBy(function($data, $arguments){
                     if ($arguments['name'] ?? null) {
                         return "Hello {$arguments['name']}";
                     }
@@ -53,33 +52,33 @@ final class QueryType extends GraphQlType {
                 })
             ,
 
-            DeferredField::withName('mamels')
+            Field::withName('mamels')
                 ->ofType(
                     static fn(TypeRepository $typeRepository) => Type::nonNull(Type::listOf(Type::nonNull($typeRepository->type(MamelInterface::class))))
                 )
-                ->resolveAggregated(function(array $aggregatedItems, array $arguments, Context $context){
+                ->resolveData(function(array $aggregatedItems, array $arguments, Context $context){
                     return self::ANIMALS;
                 })
-                ->resolveItem(function ($item, array $data, Context $context) {
+                ->mappedBy(function ($item, array $arguments, array $data, Context $context) {
                     return $data;
                 }),
 
 
             Field::withName('whoami')
                 ->ofType(Type::string())
-                ->resolvedBy(fn() => self::WHOAMI_DATA),
+                ->mappedBy(fn() => self::WHOAMI_DATA),
 
             Field::withName('createAnimal')
                 ->ofType(Type::string())
                 ->withArguments(
                     Argument::withName('input')->ofType(CreateAnimalInputType::class)
-                )->resolvedBy(
+                )->mappedBy(
                     fn($data, array $arguments) => "Done: {$arguments['input']['id']}"
                 ),
 
             Field::withName('user')
                 ->ofType(fn(TypeRepository $typeRepository) => new NonNull($typeRepository->type(UserType::class)))
-                ->resolvedBy(fn() => ['id' => self::USER_ID]),
+                ->mappedBy(fn() => ['id' => self::USER_ID]),
 
             Field::withName('jsonInput')
                 ->ofType(JsonScalar::class)
@@ -87,12 +86,12 @@ final class QueryType extends GraphQlType {
                     Argument::withName('json')
                         ->ofType(fn(TypeRepository $typeRepository) => new NonNull($typeRepository->type(JsonScalar::class)))
                 )
-                ->resolvedBy(fn($d, array $arguments) => ['json' => $arguments['json']])
+                ->mappedBy(fn($d, array $arguments) => ['json' => $arguments['json']])
             ,
 
             Field::withName('animals')
                 ->ofType(fn(TypeRepository $typeRepository) => Type::nonNull(Type::listOf(Type::nonNull($typeRepository->type(AnimalUnion::class)))))
-                ->resolvedBy(fn() => self::ANIMALS)
+                ->mappedBy(fn() => self::ANIMALS)
             ,
         ];
     }

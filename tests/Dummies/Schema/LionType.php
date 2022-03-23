@@ -14,11 +14,11 @@ final class LionType extends GraphQlType {
         return [
             Field::withName('sound')
                 ->ofType(Type::nonNull(Type::string()))
-                ->resolvedBy(fn($data) => $data['sound']),
+                ->mappedBy(fn($data) => $data['sound']),
 
             Field::withName('fieldWithMeta')
                 ->ofType(Type::nonNull(Type::string()))
-                ->resolvedBy(fn() => 'This is a test field')
+                ->mappedBy(fn() => 'This is a test field')
                 ->withMetadata([
                     'policy' => 'This is my special policy'
                 ]),

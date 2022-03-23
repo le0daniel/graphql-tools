@@ -39,6 +39,16 @@ trait DefinesField
         return $this;
     }
 
+    final protected function computeDeprecationReason(): ?string {
+        if (!$this->deprecatedReason) {
+            return null;
+        }
+
+        return $this->removalDate
+            ? "{$this->deprecatedReason}. Removal Date: {$this->removalDate->format('Y-m-d')}"
+            : $this->deprecatedReason;
+    }
+
     final protected function computeDescription(): ?string
     {
         $descriptionParts = [];

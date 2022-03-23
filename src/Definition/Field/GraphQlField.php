@@ -37,7 +37,7 @@ abstract class GraphQlField
             'name' => $this->name,
             'resolve' => $this->getResolver(),
             'type' => $this->resolveReturnType($repository),
-            'deprecationReason' => $this->deprecatedReason,
+            'deprecationReason' => $this->computeDeprecationReason(),
             'description' => $this->computeDescription(),
             'args' => $this->buildArguments($repository),
 

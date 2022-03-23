@@ -42,7 +42,6 @@ final class ContextualDataLoader
         } catch (Throwable $exception) {
             $this->loadedDataOrException = $exception;
         } finally {
-            unset($this->arguments);
             unset($this->queuedItems);
         }
     }
@@ -60,7 +59,7 @@ final class ContextualDataLoader
         return new Deferred(function () use ($data) {
             $this->ensureLoadedOnce();
             $this->throwOnLoadingException();
-            return ($this->resolveItemFunction)($data, $this->loadedDataOrException, $this->context);
+            return ($this->resolveItemFunction)($data, $this->arguments, $this->loadedDataOrException, $this->context);
         });
     }
 

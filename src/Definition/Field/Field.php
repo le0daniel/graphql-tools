@@ -5,38 +5,62 @@ namespace GraphQlTools\Definition\Field;
 use Closure;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
+use GraphQlTools\Helper\ContextualDataLoader;
 use GraphQlTools\Helper\ProxyResolver;
+use GraphQlTools\Utility\Paths;
 
-class Field extends GraphQlField
+final class Field extends GraphQlField
 {
-    /**
-     * @var callable
-     */
-    protected $resolveFunction;
+    /** @var ContextualDataLoader[] */
+    private array $deferredLoaders = [];
 
-    /**
-     * Callable fn(mixed $data, array $validatedArguments, Context $context, ResolveInfo $resolveInfo) => mixed
-     *
-     * @param Closure $resolveFunction
-     * @return $this
-     */
-    public function resolvedBy(Closure $resolveFunction): self {
-        $this->resolveFunction = $resolveFunction;
+    /** @var callable|null */
+    protected $mappingFunction = null;
+
+    /** @var callable|null */
+    protected $resolveFunction = null;
+
+    /** fn(array $queuedData, array $arguments, Context $context, ...Injections) => notNull */
+    public function resolveData(Closure $callable): self {
+        $this->resolveFunction = function (array $queuedData, array $arguments, Context $context) use ($callable) {
+            return $context->executeResolveFunction(
+                $callable, $queuedData, $this->validateArguments($arguments)
+            );
+        };
         return $this;
     }
 
-    protected function getResolver(): ProxyResolver {
-        if (!$this->resolveFunction) {
-            return new ProxyResolver();
+    /** fn(mixed $data, array $arguments, array $loadedData) => notNull */
+    public function mappedBy(Closure $closure): self {
+        $this->mappingFunction = $closure;
+        return $this;
+    }
+
+    private function getContextualDeferredLoader(array $arguments, Context $context, ResolveInfo $resolveInfo): ContextualDataLoader {
+        $path = Paths::toString($resolveInfo->path);
+        $serializedArguments = json_encode($arguments, JSON_THROW_ON_ERROR);
+        $key = "{$path}::{$serializedArguments}";
+
+        if (!isset($this->deferredLoaders[$key])) {
+            $this->deferredLoaders[$key] = new ContextualDataLoader($this->resolveFunction, $this->mappingFunction, $arguments, $context);
         }
 
-        return new ProxyResolver(function($data, array $arguments, Context $context, ResolveInfo $info) {
-            return ($this->resolveFunction)(
-                $data,
-                $this->validateArguments($arguments),
-                $context,
-                $info
+        return $this->deferredLoaders[$key];
+    }
+
+
+    protected function getResolver(): ProxyResolver {
+        if (!$this->resolveFunction) {
+            // Theoretical access to more than just data and arguments
+            return new ProxyResolver($this->mappingFunction
+                ? fn($data, $arguments) => ($this->mappingFunction)($data, $this->validateArguments($arguments))
+                : null,
             );
+        }
+
+        return new ProxyResolver(function (mixed $data, array $arguments, Context $context, ResolveInfo $resolveInfo) {
+            return $this->getContextualDeferredLoader($arguments, $context, $resolveInfo)
+                ->defer($data);
         });
     }
 }

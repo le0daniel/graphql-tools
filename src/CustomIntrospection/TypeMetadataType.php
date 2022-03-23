@@ -2,7 +2,6 @@
 
 namespace GraphQlTools\CustomIntrospection;
 
-use GraphQL\Error\ClientAware;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\ObjectType;
@@ -48,7 +47,7 @@ final class TypeMetadataType extends GraphQlType
                         return $typeName;
                     })
             )
-            ->resolvedBy(static function ($data, array $arguments) use ($typeRepository): ?Type {
+            ->mappedBy(static function ($data, array $arguments) use ($typeRepository): ?Type {
                 return Types::enforceTypeLoading($typeRepository->type($arguments['name']));
             });
     }
@@ -58,22 +57,22 @@ final class TypeMetadataType extends GraphQlType
         return [
             Field::withName('name')
                 ->ofType(Type::nonNull(Type::string()))
-                ->resolvedBy(static fn(ObjectType $type): string => $type->name),
+                ->mappedBy(static fn(ObjectType $type): string => $type->name),
 
             Field::withName('metadata')
                 ->ofType(MetadataScalar::class)
-                ->resolvedBy(static fn(ObjectType $type): mixed => $type->config[Fields::METADATA_CONFIG_KEY] ?? null),
+                ->mappedBy(static fn(ObjectType $type): mixed => $type->config[Fields::METADATA_CONFIG_KEY] ?? null),
 
             Field::withName('fields')
                 ->ofType(fn(TypeRepository $typeRepository) => new ListOfType($typeRepository->type(FieldMetadataType::class)))
-                ->resolvedBy(static fn(ObjectType $type): array => $type->getFields())
+                ->mappedBy(static fn(ObjectType $type): array => $type->getFields())
             ,
             Field::withName('fieldByName')
                 ->ofType(FieldMetadataType::class)
                 ->withArguments(
                     Argument::withName('name')->ofType(Type::nonNull(Type::string()))
                 )
-                ->resolvedBy(static fn(ObjectType $type, array $arguments): ?FieldDefinition => $type->findField($arguments['name']))
+                ->mappedBy(static fn(ObjectType $type, array $arguments): ?FieldDefinition => $type->findField($arguments['name']))
             ,
         ];
     }
