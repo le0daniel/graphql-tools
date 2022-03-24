@@ -25,7 +25,7 @@ class InputFieldTest extends TestCase
         self::assertNull(
             InputField::withName('test')
                 ->ofType(Type::id())
-                ->isDeprecated('', new DateTime('2020-10-10'), true)
+                ->deprecated('', new DateTime('2020-10-10'), true)
                 ->toInputFieldDefinitionArray(new TypeRepository([]))
         );
     }

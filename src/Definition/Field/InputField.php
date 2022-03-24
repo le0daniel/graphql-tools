@@ -3,13 +3,14 @@
 namespace GraphQlTools\Definition\Field;
 
 use GraphQlTools\Definition\Field\Shared\DefinesField;
+use GraphQlTools\Definition\Field\Shared\DefinesMetadata;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
 use GraphQlTools\TypeRepository;
 use GraphQlTools\Utility\Fields;
 
 class InputField
 {
-    use DefinesField, DefinesReturnType;
+    use DefinesField, DefinesReturnType, DefinesMetadata;
 
     protected mixed $defaultValue = null;
 
@@ -28,7 +29,7 @@ class InputField
 
     final public function toInputFieldDefinitionArray(TypeRepository $repository): ?array
     {
-        if ($this->hideBecauseOfDeprecation()) {
+        if ($this->hideBecauseOfDeprecation() || $repository->shouldHideInputField($this->isBeta, $this->metadata)) {
             return null;
         }
 
@@ -37,7 +38,9 @@ class InputField
             'description' => $this->computeDescription(),
             'type' => $this->resolveReturnType($repository),
             'defaultValue' => $this->defaultValue,
+            'deprecatedReason' => $this->computeDeprecationReason(),
             Fields::BETA_FIELD_CONFIG_KEY => $this->isBeta,
+            Fields::METADATA_CONFIG_KEY => $this->metadata,
         ];
     }
 }

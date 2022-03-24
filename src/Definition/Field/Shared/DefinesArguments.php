@@ -25,11 +25,8 @@ trait DefinesArguments
         }
 
         $arguments = [];
-
-        /** @var Argument $argument */
         foreach ($this->arguments as $argument) {
-            $definition = $argument->toInputFieldDefinitionArray($typeRepository);
-            if (!$definition) {
+            if (!$definition = $argument->toInputFieldDefinitionArray($typeRepository)) {
                 continue;
             }
 

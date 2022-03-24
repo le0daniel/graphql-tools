@@ -7,7 +7,6 @@ namespace GraphQlTools\Helper;
 use ArrayAccess;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Executor\Promise\Promise;
-use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
 use GraphQlTools\Events\VisitFieldEvent;

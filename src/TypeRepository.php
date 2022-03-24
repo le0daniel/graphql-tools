@@ -102,6 +102,19 @@ class TypeRepository {
         return false;
     }
 
+    /**
+     * This method can be used to completely hide fields depending on a configuration
+     *
+     * You might want to only expose types which are public and not in beta for example.
+     *
+     * @param bool $isBeta
+     * @param mixed $fieldMetadata
+     * @return bool
+     */
+    public function shouldHideInputField(bool $isBeta, mixed $fieldMetadata): bool {
+        return false;
+    }
+
     private function resolveType(string $typeName): Type {
         if (!isset($this->typeInstances[$typeName])) {
             $className = $this->typeResolutionMap[$typeName] ?? null;

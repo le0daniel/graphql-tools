@@ -21,19 +21,20 @@ final class ContextualDataLoader
         callable      $loadingFunction,
         callable      $mappingFunction,
         private array $arguments,
-    ){
+    )
+    {
         $this->loadingFunction = $loadingFunction;
         $this->mappingFunction = $mappingFunction;
     }
 
-    private function ensureLoadedOnce(Context $context)
+    private function ensureLoadedOnce(mixed $context)
     {
         if ($this->loadedDataOrException !== null) {
             return;
         }
 
         try {
-            $this->loadedDataOrException = ($this->loadingFunction)($this->queuedItems, $this->arguments, $context);
+            $this->loadedDataOrException = ($this->loadingFunction)($this->queuedItems, $this->arguments, ...$context);
 
             if (is_null($this->loadedDataOrException)) {
                 throw new RuntimeException('aggregatedLoadingFunction returned null, expected anything but null.');
@@ -52,13 +53,13 @@ final class ContextualDataLoader
         }
     }
 
-    public function defer(mixed $data, Context $context): Deferred
+    public function defer(mixed $data, mixed...$context): Deferred
     {
         $this->queuedItems[] = $data;
         return new Deferred(function () use ($data, $context) {
             $this->ensureLoadedOnce($context);
             $this->throwOnLoadingException();
-            return ($this->mappingFunction)($data, $this->arguments, $this->loadedDataOrException, $context);
+            return ($this->mappingFunction)($data, $this->arguments, $this->loadedDataOrException, ...$context);
         });
     }
 
