@@ -12,29 +12,28 @@ final class ContextualDataLoader
     /** @var callable */
     private $loadingFunction;
     /** @var callable */
-    private $resolveItemFunction;
+    private $mappingFunction;
 
     private array $queuedItems = [];
     private mixed $loadedDataOrException = null;
 
     public function __construct(
-        callable $aggregatedLoadingFunction,
-        callable $resolveItemFunction,
+        callable      $loadingFunction,
+        callable      $mappingFunction,
         private array $arguments,
-        private readonly Context $context
     ){
-        $this->loadingFunction = $aggregatedLoadingFunction;
-        $this->resolveItemFunction = $resolveItemFunction;
+        $this->loadingFunction = $loadingFunction;
+        $this->mappingFunction = $mappingFunction;
     }
 
-    private function ensureLoadedOnce()
+    private function ensureLoadedOnce(Context $context)
     {
         if ($this->loadedDataOrException !== null) {
             return;
         }
 
         try {
-            $this->loadedDataOrException = ($this->loadingFunction)($this->queuedItems, $this->arguments, $this->context);
+            $this->loadedDataOrException = ($this->loadingFunction)($this->queuedItems, $this->arguments, $context);
 
             if (is_null($this->loadedDataOrException)) {
                 throw new RuntimeException('aggregatedLoadingFunction returned null, expected anything but null.');
@@ -53,13 +52,13 @@ final class ContextualDataLoader
         }
     }
 
-    public function defer(mixed $data): Deferred
+    public function defer(mixed $data, Context $context): Deferred
     {
         $this->queuedItems[] = $data;
-        return new Deferred(function () use ($data) {
-            $this->ensureLoadedOnce();
+        return new Deferred(function () use ($data, $context) {
+            $this->ensureLoadedOnce($context);
             $this->throwOnLoadingException();
-            return ($this->resolveItemFunction)($data, $this->arguments, $this->loadedDataOrException, $this->context);
+            return ($this->mappingFunction)($data, $this->arguments, $this->loadedDataOrException, $context);
         });
     }
 

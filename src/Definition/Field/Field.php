@@ -36,13 +36,13 @@ final class Field extends GraphQlField
         return $this;
     }
 
-    private function getContextualDeferredLoader(array $arguments, Context $context, ResolveInfo $resolveInfo): ContextualDataLoader {
+    private function getContextualDeferredLoader(array $arguments, ResolveInfo $resolveInfo): ContextualDataLoader {
         $path = Paths::toString($resolveInfo->path);
         $serializedArguments = json_encode($arguments, JSON_THROW_ON_ERROR);
         $key = "{$path}::{$serializedArguments}";
 
         if (!isset($this->deferredLoaders[$key])) {
-            $this->deferredLoaders[$key] = new ContextualDataLoader($this->resolveFunction, $this->mappingFunction, $arguments, $context);
+            $this->deferredLoaders[$key] = new ContextualDataLoader($this->resolveFunction, $this->mappingFunction, $arguments);
         }
 
         return $this->deferredLoaders[$key];
@@ -59,8 +59,8 @@ final class Field extends GraphQlField
         }
 
         return new ProxyResolver(function (mixed $data, array $arguments, Context $context, ResolveInfo $resolveInfo) {
-            return $this->getContextualDeferredLoader($arguments, $context, $resolveInfo)
-                ->defer($data);
+            return $this->getContextualDeferredLoader($arguments, $resolveInfo)
+                ->defer($data, $context);
         });
     }
 }

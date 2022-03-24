@@ -18,8 +18,7 @@ final class TigerType extends GraphQlType {
         return [
             Field::withName('sound')
                 ->ofType(Type::nonNull(Type::string()))
-                ->mappedBy(fn(array $data) => $data['sound'])
-            ,
+                ->mappedBy(fn(array $data) => $data['sound']),
 
             Field::withName('withArg')
                 ->ofType(Type::string())
@@ -30,7 +29,7 @@ final class TigerType extends GraphQlType {
                             return $argument ?? throw new Exception('Failed');
                         })
                 )
-                ->mappedBy(fn($data, array $arguments) => $arguments['test']),
+                ->mappedBy(fn($tiger, array $arguments) => $arguments['test']),
 
             Field::withName('deferred')
                 ->ofType(Type::string())
