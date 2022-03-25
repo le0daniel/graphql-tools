@@ -2,7 +2,7 @@
 
 namespace GraphQlTools\Apollo;
 
-use GraphQlTools\Data\Models\ResolverTrace;
+use GraphQlTools\Data\Models\FieldTrace;
 use GraphQlTools\Utility\Arrays;
 use Protobuf\Trace\Node;
 
@@ -18,18 +18,18 @@ final class RootNode
     {
         $instance = new self();
 
-        /** @var ResolverTrace|array $resolver */
+        /** @var FieldTrace|array $resolver */
         foreach ($resolvers as $resolver) {
             $instance->addFromTrace(
-                $resolver instanceof ResolverTrace
+                $resolver instanceof FieldTrace
                     ? $resolver
-                    : ResolverTrace::fromSerialized($resolver)
+                    : FieldTrace::fromSerialized($resolver)
             );
         }
         return $instance;
     }
 
-    private function addFromTrace(ResolverTrace $trace): void
+    private function addFromTrace(FieldTrace $trace): void
     {
         $tree = &$this->rootChildren;
         foreach (Arrays::splice($trace->path, 0, -1) as $currentPath) {
@@ -96,7 +96,7 @@ final class RootNode
         ];
     }
 
-    private function createNodeData(ResolverTrace $trace): array
+    private function createNodeData(FieldTrace $trace): array
     {
         return [
             self::RESPONSE_NAME => $trace->lastPathElement,
@@ -118,7 +118,7 @@ final class RootNode
             return $node;
         }
 
-        /** @var ResolverTrace $trace */
+        /** @var FieldTrace $trace */
         $trace = $data['resolverTrace'];
 
         $node->setType($trace->returnType);

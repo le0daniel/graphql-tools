@@ -12,21 +12,13 @@ use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Data\Models\ExecutionTrace;
-use GraphQlTools\Data\Models\ResolverTrace;
+use GraphQlTools\Data\Models\FieldTrace;
 use Closure;
+use GraphQlTools\Utility\QuerySignature;
+use GraphQlTools\Utility\Time;
 
 final class Tracing extends Extension
 {
-
-    private const VERSION = 1;
-
-    /**
-     * Datetime object of when the graphql execution started
-     *
-     * @var \DateTimeImmutable
-     */
-    private DateTimeImmutable $startTime;
-
     /**
      * String representation of the query to run
      *
@@ -42,11 +34,6 @@ final class Tracing extends Extension
     private int $startTimeInNanoseconds;
 
     /**
-     * @var \DateTimeImmutable
-     */
-    private DateTimeImmutable $endTime;
-
-    /**
      * @var int
      */
     private int $endTimeInNanoseconds;
@@ -54,12 +41,9 @@ final class Tracing extends Extension
     /**
      * Array containing all the traces of all fields
      *
-     * @var ResolverTrace[]
+     * @var FieldTrace[]
      */
     private array $fieldTraces = [];
-
-    /** @var null|callable  */
-    protected $storeTraceInformation = null;
 
     /**
      * Defines the priority of this extension.
@@ -84,16 +68,17 @@ final class Tracing extends Extension
         return 'tracing';
     }
 
+    /** @var callable|null */
+    private $storeTraceFunction;
+
     /**
      * @param bool $addTraceToResult
-     * @param callable|null $storeTraceInformation
      */
     public function __construct(
-        private bool $addTraceToResult = false,
-        ?callable $storeTraceInformation = null
-    )
-    {
-        $this->storeTraceInformation = $storeTraceInformation;
+        private readonly bool $addTraceToResult = true,
+        ?callable $storeTraceFunction = null
+    ){
+        $this->storeTraceFunction = $storeTraceFunction;
     }
 
     /**
@@ -101,44 +86,52 @@ final class Tracing extends Extension
      */
     public function jsonSerialize(): ?ExecutionTrace
     {
-        $executionTrace = ExecutionTrace::from(
-            self::VERSION,
-            $this->query,
-            $this->startTime,
-            $this->endTime,
-            $this->endTimeInNanoseconds,
-            $this->fieldTraces
-        );
-
-        if ($this->storeTraceInformation) {
-            call_user_func($this->storeTraceInformation, $executionTrace);
-        }
-
         return $this->addTraceToResult
-            ? $executionTrace
+            ? ExecutionTrace::from(
+                $this->query,
+                $this->startTimeInNanoseconds,
+                $this->endTimeInNanoseconds,
+                $this->fieldTraces
+            )
             : null;
     }
 
-    public function start(StartEvent $event): void
+    public function start(StartEvent $startEvent): void
     {
-        $this->query = $event->query;
-        $this->startTime = new DateTimeImmutable();
-        $this->startTimeInNanoseconds = $event->eventTimeInNanoSeconds;
+        $this->query = $startEvent->query;
+        $this->startTimeInNanoseconds = $startEvent->eventTimeInNanoSeconds;
     }
 
     public function end(EndEvent $event): void
     {
-        $this->endTime = new DateTimeImmutable();
         $this->endTimeInNanoseconds = $event->eventTimeInNanoSeconds;
     }
 
     public function visitField(VisitFieldEvent $event): Closure
     {
-        return function () use ($event): mixed {
-            $this->fieldTraces[] = ResolverTrace::fromEvent(
+        return function () use ($event) {
+            $this->fieldTraces[] = FieldTrace::fromEvent(
                 $event,
                 $this->startTimeInNanoseconds
             );
         };
+    }
+
+    public function __destruct()
+    {
+        if (!isset($this->startTimeInNanoseconds)) {
+            return;
+        }
+
+        if ($this->storeTraceFunction) {
+            ($this->storeTraceFunction)(
+                ExecutionTrace::from(
+                    $this->query,
+                    $this->startTimeInNanoseconds,
+                    $this->endTimeInNanoseconds,
+                    $this->fieldTraces
+                )
+            );
+        }
     }
 }

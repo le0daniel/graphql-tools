@@ -16,10 +16,6 @@ use GraphQlTools\Helper\Extension\FieldMessages;
 
 final class QueryExecutor
 {
-
-    /** @var string[]|callable[] */
-    private readonly array $extensions;
-
     /** @var callable|null */
     private $errorFormatter;
 
@@ -30,26 +26,18 @@ final class QueryExecutor
      * result as an array.
      *
      * @param Schema $schema
-     * @param array|null $extensionFactories
+     * @param string[]|callable[] $extensionFactories
      * @param array|null $validationRules
+     * @param callable|null $errorFormatter
      */
     public function __construct(
-        private Schema $schema,
-        ?array         $extensionFactories = null,
-        private readonly ?array $validationRules = null,
-        ?callable      $errorFormatter = null
+        private   readonly Schema $schema,
+        private   readonly array $extensionFactories = [FieldMessages::class],
+        private   readonly ?array $validationRules = null,
+        ?callable $errorFormatter = null
     )
     {
-        $this->extensions = $extensionFactories ?? self::defaultExtensions();
         $this->errorFormatter = $errorFormatter;
-    }
-
-    public static function defaultExtensions(): array
-    {
-        return [
-            // Tracing::class,
-            FieldMessages::class,
-        ];
     }
 
     public function execute(
@@ -60,13 +48,13 @@ final class QueryExecutor
         ?string $operationName = null,
     ): ExecutionResult
     {
-        $extensions = Extensions::createFromExtensionFactories($this->extensions);
+        $extensions = Extensions::createFromExtensionFactories($this->extensionFactories);
         $extensions->dispatchStartEvent(StartEvent::create($query));
 
         try {
             $source = Parser::parse($query);
         } catch (SyntaxError $exception) {
-            $extensions->dispatchEndEvent(EndEvent::create());
+            $extensions->dispatchEndEvent(EndEvent::create([$exception]));
             return new ExecutionResult(null, [$exception], $extensions->jsonSerialize());
         }
 
@@ -80,7 +68,7 @@ final class QueryExecutor
             validationRules: $this->validationRules
         );
 
-        $extensions->dispatchEndEvent(EndEvent::create());
+        $extensions->dispatchEndEvent(EndEvent::create($result->errors ?? []));
 
         if ($this->errorFormatter) {
             $result->setErrorFormatter($this->errorFormatter);

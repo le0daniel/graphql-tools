@@ -6,16 +6,11 @@ declare(strict_types=1);
 namespace GraphQlTools\Data\Models;
 
 
-use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Time;
-use RuntimeException;
 
 /**
- * Class Trace
- * @package GraphQlTools\Immutable
- *
  * @property-read string[]|int[] $path
  * @property-read string $parentType
  * @property-read string $fieldName
@@ -25,7 +20,7 @@ use RuntimeException;
  * @property-read string $lastPathElement
  * @property-read string $pathKey
  */
-final class ResolverTrace extends Holder
+final class FieldTrace extends Holder
 {
     private const REQUIRED_ARRAY_KEYS = [
         'path',
@@ -36,9 +31,9 @@ final class ResolverTrace extends Holder
         'startOffset',
     ];
 
-    public static function fromSerialized(array $data): self
+    public static function fromSerialized(array $serializedData): self
     {
-        $verifiedData = Arrays::onlyKeys($data, self::REQUIRED_ARRAY_KEYS);
+        $verifiedData = Arrays::onlyKeys($serializedData, self::REQUIRED_ARRAY_KEYS);
 
         return new self([
             'path' => $verifiedData['path'],
@@ -59,7 +54,7 @@ final class ResolverTrace extends Holder
         };
     }
 
-    public static function fromEvent(VisitFieldEvent $event, int $preciseExecutionStart): ResolverTrace
+    public static function fromEvent(VisitFieldEvent $event, int $preciseExecutionStart): FieldTrace
     {
         $endTimeInNanoseconds = Time::nanoSeconds();
         $durationInNanoseconds = $endTimeInNanoseconds - $event->eventTimeInNanoSeconds;
