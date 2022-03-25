@@ -33,7 +33,7 @@ class Context
      * @param array $arguments
      * @return mixed
      */
-    public function executeResolveFunction(callable $aggregatedLoadingFunction, array $aggregatedData, array $arguments): mixed
+    public function executeResolveDataFunction(callable $aggregatedLoadingFunction, array $aggregatedData, array $arguments): mixed
     {
         return Injections::withPositionalArguments($aggregatedLoadingFunction, [$aggregatedData, $arguments, $this], $this->injectInstance(...));
     }

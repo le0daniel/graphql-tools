@@ -23,7 +23,7 @@ final class Field extends GraphQlField
     /** fn(array $queuedData, array $arguments, Context $context, ...Injections) => notNull */
     public function resolveData(Closure $callable): self {
         $this->resolveFunction = function (array $queuedData, array $arguments, Context $context) use ($callable) {
-            return $context->executeResolveFunction(
+            return $context->executeResolveDataFunction(
                 $callable, $queuedData, $this->validateArguments($arguments)
             );
         };

@@ -39,7 +39,7 @@ class TypeRepository {
      *
      * @var array
      */
-    private array $classNameToTypeNameMap;
+    private readonly array $classNameToTypeNameMap;
 
     /**
      * Array containing already initialized types. This ensures the
@@ -51,7 +51,7 @@ class TypeRepository {
      */
     private array $typeInstances = [];
 
-    public function __construct(private array $typeResolutionMap) {
+    public function __construct(private readonly array $typeResolutionMap) {
         $this->classNameToTypeNameMap = array_flip($typeResolutionMap);
     }
 
@@ -115,7 +115,7 @@ class TypeRepository {
         return false;
     }
 
-    private function resolveType(string $typeName): Type {
+    private function resolveTypeByName(string $typeName): Type {
         if (!isset($this->typeInstances[$typeName])) {
             $className = $this->typeResolutionMap[$typeName] ?? null;
 
@@ -130,11 +130,12 @@ class TypeRepository {
     }
 
     private function eagerlyResolveType(string $classOrTypeName): Type {
-        return $this->resolveType($this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName);
+        $typeName = $this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName;
+        return $this->resolveTypeByName($typeName);
     }
 
     final public function type(string $classOrTypeName): callable {
-        return fn() => $this->resolveType($this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName);
+        return fn() => $this->resolveTypeByName($this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName);
     }
 
     final public function toSchema(
@@ -163,7 +164,7 @@ class TypeRepository {
                         fn(string $typeName) => $this->eagerlyResolveType($typeName),
                         $eagerlyLoadTypes
                     ),
-                    'typeLoader' => $this->resolveType(...),
+                    'typeLoader' => $this->resolveTypeByName(...),
                     'directives' => $directives,
                     'assumeValid' => $assumeValid,
                 ]
