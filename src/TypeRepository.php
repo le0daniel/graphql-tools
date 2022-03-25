@@ -115,25 +115,6 @@ class TypeRepository {
         return false;
     }
 
-    private function resolveTypeByName(string $typeName): Type {
-        if (!isset($this->typeInstances[$typeName])) {
-            $className = $this->typeResolutionMap[$typeName] ?? null;
-
-            if (!$className) {
-                throw new RuntimeException("Could not resolve type `{$typeName}`. Is it in the type-map?");
-            }
-
-            $this->typeInstances[$typeName] = new $className($this);
-        }
-
-        return $this->typeInstances[$typeName];
-    }
-
-    private function eagerlyResolveType(string $classOrTypeName): Type {
-        $typeName = $this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName;
-        return $this->resolveTypeByName($typeName);
-    }
-
     final public function type(string $classOrTypeName): callable {
         return fn() => $this->resolveTypeByName($this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName);
     }
@@ -174,6 +155,25 @@ class TypeRepository {
 
     final public static function print(Schema $schema): string {
         return SchemaPrinter::doPrint($schema);
+    }
+
+    private function resolveTypeByName(string $typeName): Type {
+        if (!isset($this->typeInstances[$typeName])) {
+            $className = $this->typeResolutionMap[$typeName] ?? null;
+
+            if (!$className) {
+                throw new RuntimeException("Could not resolve type `{$typeName}`. Is it in the type-map?");
+            }
+
+            $this->typeInstances[$typeName] = new $className($this);
+        }
+
+        return $this->typeInstances[$typeName];
+    }
+
+    private function eagerlyResolveType(string $classOrTypeName): Type {
+        $typeName = $this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName;
+        return $this->resolveTypeByName($typeName);
     }
 
 }

@@ -51,7 +51,6 @@ final class Field extends GraphQlField
 
     protected function getResolver(): ProxyResolver {
         if (!$this->resolveFunction) {
-            // Theoretical access to more than just data and arguments
             return new ProxyResolver($this->mappingFunction
                 ? fn($data, $arguments) => ($this->mappingFunction)($data, $this->validateArguments($arguments))
                 : null,
@@ -59,7 +58,8 @@ final class Field extends GraphQlField
         }
 
         return new ProxyResolver(function (mixed $data, array $arguments, Context $context, ResolveInfo $resolveInfo) {
-            return $this->getContextualDeferredLoader($arguments, $resolveInfo)
+            return $this
+                ->getContextualDeferredLoader($arguments, $resolveInfo)
                 ->defer($data, $context);
         });
     }
