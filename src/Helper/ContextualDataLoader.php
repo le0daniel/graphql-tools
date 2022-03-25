@@ -27,7 +27,7 @@ final class ContextualDataLoader
         $this->mappingFunction = $mappingFunction;
     }
 
-    private function ensureLoadedOnce(mixed $context)
+    private function ensureLoadedOnce(array $context)
     {
         if ($this->loadedDataOrException !== null) {
             return;
