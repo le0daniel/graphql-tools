@@ -8,7 +8,6 @@ use GraphQlTools\Context;
 use GraphQlTools\Definition\Field\GraphQlField;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use PHPUnit\Framework\TestCase;
-use Prophecy\PhpUnit\ProphecyTrait;
 use ReflectionClass;
 use ReflectionObject;
 use RuntimeException;
@@ -58,6 +57,7 @@ abstract class TypeTestCase extends TestCase
      *
      * @param array $mockedInstances
      * @return Context
+     * @api
      */
     protected function contextWithMocks(array $mockedInstances = []): Context {
         return new class ($mockedInstances) extends Context {
@@ -85,6 +85,18 @@ abstract class TypeTestCase extends TestCase
         };
     }
 
+    /**
+     * Visit a field of this type. Use contextWithMocks to dynamically inject mocks.
+     *
+     * @param string $fieldName
+     * @param mixed $rootData
+     * @param array|null $arguments
+     * @param Context|null $context
+     * @param ResolveInfo|null $resolveInfo
+     * @return mixed
+     * @throws \ReflectionException
+     * @api
+     */
     protected function visitField(string $fieldName, mixed $rootData, ?array $arguments = null, ?Context $context = null, ?ResolveInfo $resolveInfo = null): mixed
     {
         $field = $this->getFieldByName($fieldName);
