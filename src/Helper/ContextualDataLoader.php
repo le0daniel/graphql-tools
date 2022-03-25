@@ -20,7 +20,7 @@ final class ContextualDataLoader
     public function __construct(
         callable      $loadingFunction,
         callable      $mappingFunction,
-        private array $arguments,
+        private readonly array $arguments,
     )
     {
         $this->loadingFunction = $loadingFunction;
@@ -36,7 +36,7 @@ final class ContextualDataLoader
         try {
             $this->loadedDataOrException = ($this->loadingFunction)($this->queuedItems, $this->arguments, ...$context);
 
-            if (is_null($this->loadedDataOrException)) {
+            if ($this->loadedDataOrException === null) {
                 throw new RuntimeException('aggregatedLoadingFunction returned null, expected anything but null.');
             }
         } catch (Throwable $exception) {
