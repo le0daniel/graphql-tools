@@ -20,6 +20,7 @@ use GraphQlTools\Utility\Classes;
 use GraphQlTools\Utility\Directories;
 use GraphQlTools\Utility\Reflections;
 use ReflectionClass;
+use ReflectionException;
 use RuntimeException;
 
 class TypeRepository {
@@ -63,7 +64,7 @@ class TypeRepository {
      * @param string $directory
      * @param bool $includeMetadataTypeExtension
      * @return array
-     * @throws \ReflectionException
+     * @throws ReflectionException
      */
     public static function createTypeMapFromDirectory(string $directory, bool $includeMetadataTypeExtension = false): array {
         $typeMap = [];
