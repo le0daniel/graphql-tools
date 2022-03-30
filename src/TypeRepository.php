@@ -116,6 +116,11 @@ class TypeRepository {
         return false;
     }
 
+    /**
+     * returns a lazy loaded type
+     * @param string $classOrTypeName
+     * @return callable
+     */
     final public function type(string $classOrTypeName): callable {
         return fn() => $this->resolveTypeByName($this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName);
     }
