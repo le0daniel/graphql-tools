@@ -12,4 +12,12 @@ final class DefinitionException extends \Exception
         return new self("Expected type of {$expectedTypesString}, got {$className}");
     }
 
+    public static function fromMissingFieldDeclaration(string $methodName, string $fieldName, ?string $message = null)
+    {
+        return new self(
+            "Expected definition of {$methodName} (->{$methodName}(...)), but was never called for field with name '{$fieldName}'. " .
+            ($message ? $message : '')
+        );
+    }
+
 }

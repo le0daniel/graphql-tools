@@ -5,6 +5,7 @@ namespace GraphQlTools\Definition\Field;
 use Closure;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
+use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Helper\ProxyResolver;
 use RuntimeException;
 
@@ -21,7 +22,11 @@ final class MutationField extends GraphQlField
     protected function getResolver(): ProxyResolver
     {
         if (!$this->resolveFunction) {
-            throw new RuntimeException("Every mutation field MUST have a defined resolve function (use 'resolvedBy' to declare it).");
+            throw DefinitionException::fromMissingFieldDeclaration(
+                'resolveFunction',
+                $this->name,
+                "Every mutation field MUST have a defined resolve function (use 'resolvedBy' to declare it)."
+            );
         }
 
         return new ProxyResolver(function (mixed $data, array $arguments, Context $context, ResolveInfo $info): mixed {

@@ -66,9 +66,8 @@ final class Field extends GraphQlField
 
     private function verifyMappingFunctionIsSet(): void {
         if (!$this->mappingFunction) {
-            throw new DefinitionException(
-                "Expected mapping function for deferred field with name '{$this->name}', got null." . PHP_EOL .
-                "Use ->mappedBy to define a mapping function for fields using ->resolveData"
+            throw DefinitionException::fromMissingFieldDeclaration(
+                'mappedBy', $this->name, "Use ->mappedBy to define a mapping function for fields using ->resolveData"
             );
         }
     }
