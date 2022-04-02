@@ -3,8 +3,10 @@
 namespace GraphQlTools\Apollo;
 
 use GraphQlTools\Data\Models\FieldTrace;
+use GraphQlTools\Data\Models\GraphQlError;
 use GraphQlTools\Data\Models\Holder;
 use GraphQlTools\Utility\Arrays;
+use Protobuf\Trace\Error;
 use Protobuf\Trace\Node;
 
 final class RootNode
@@ -12,13 +14,24 @@ final class RootNode
     private const RESPONSE_NAME = 'response_name';
     private const INDEX = 'index';
     private const CHILD = 'child';
-
     private array $rootChildren = [];
+    private readonly array $errorMap;
 
-    public static function createFromFieldTraces(array $fieldTraces): self
+    private function __construct(array $errors)
+    {
+        $errorMap = [];
+        /** @var GraphQlError $error */
+        foreach ($errors as $error) {
+            $errorMap[$error->pathKey][] = $error;
+        }
+        $this->errorMap = $errorMap;
+    }
+
+    public static function createFromFieldTraces(array $fieldTraces, array $errors): self
     {
         Holder::verifyListOfInstances(FieldTrace::class, $fieldTraces);
-        $instance = new self();
+        Holder::verifyListOfInstances(GraphQlError::class, $errors);
+        $instance = new self($errors);
 
         /** @var FieldTrace $resolver */
         foreach ($fieldTraces as $resolver) {
@@ -108,7 +121,7 @@ final class RootNode
      * @param array $data
      * @return Node
      */
-    private static function dataToNode(array $data): Node {
+    private function dataToNode(array $data): Node {
         $node = new Node();
 
         if (isset($data[self::INDEX])) {
@@ -116,17 +129,21 @@ final class RootNode
             return $node;
         }
 
-        /** @var FieldTrace $trace */
-        $trace = $data['resolverTrace'];
+        /** @var FieldTrace $fieldTrace */
+        $fieldTrace = $data['resolverTrace'];
+        Holder::verifyIsInstanceOf(FieldTrace::class, $fieldTrace);
 
-        $node->setType($trace->returnType);
-        $node->setStartTime((string)$trace->startOffset);
-        $node->setEndTime((string)($trace->startOffset + $trace->duration));
-        $node->setParentType($trace->parentType);
-        $node->setResponseName($trace->lastPathElement);
+        $node->setType($fieldTrace->returnType);
+        $node->setStartTime((string)$fieldTrace->startOffset);
+        $node->setEndTime((string)($fieldTrace->startOffset + $fieldTrace->duration));
+        $node->setParentType($fieldTrace->parentType);
+        $node->setResponseName($fieldTrace->lastPathElement);
 
-        // ToDo: Set GraphQL errors
-        // $node->setError();
+        /** @var GraphQlError[] $errors */
+        $errors = $this->errorMap[$fieldTrace->pathKey] ?? [];
+        if (!empty($errors)) {
+            $node->setError(array_map(fn (GraphQlError $error): Error => $error->toProtobufError(), $errors));
+        }
 
         return $node;
     }
@@ -140,7 +157,7 @@ final class RootNode
         $nodes = [];
 
         foreach ($children as $child) {
-            $node = self::dataToNode($child);
+            $node = $this->dataToNode($child);
 
             // Append the children if needed
             if (self::nodeHasChildren($child)) {
