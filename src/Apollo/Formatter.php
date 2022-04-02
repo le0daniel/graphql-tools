@@ -33,7 +33,7 @@ final class Formatter
         self::setHttp($trace, $information);
 
         // Create the Protobuf tree
-        $trace->setRoot(RootNode::createFromResolverTrace($executionTrace->executionResolvers)->toProtobuf());
+        $trace->setRoot(RootNode::createFromFieldTraces($executionTrace->executionResolvers)->toProtobuf());
 
         return [
             $executionTrace->queryId, $trace

@@ -3,6 +3,7 @@
 namespace GraphQlTools\Apollo;
 
 use GraphQlTools\Data\Models\FieldTrace;
+use GraphQlTools\Data\Models\Holder;
 use GraphQlTools\Utility\Arrays;
 use Protobuf\Trace\Node;
 
@@ -14,17 +15,14 @@ final class RootNode
 
     private array $rootChildren = [];
 
-    public static function createFromResolverTrace(array $resolvers, array $errors = []): self
+    public static function createFromFieldTraces(array $fieldTraces): self
     {
+        Holder::verifyListOfInstances(FieldTrace::class, $fieldTraces);
         $instance = new self();
 
-        /** @var FieldTrace|array $resolver */
-        foreach ($resolvers as $resolver) {
-            $instance->addFromTrace(
-                $resolver instanceof FieldTrace
-                    ? $resolver
-                    : FieldTrace::fromSerialized($resolver)
-            );
+        /** @var FieldTrace $resolver */
+        foreach ($fieldTraces as $resolver) {
+            $instance->addFromTrace($resolver);
         }
         return $instance;
     }
@@ -38,7 +36,7 @@ final class RootNode
 
             // Index nodes might have to be created on the fly.
             if (!$childrenExistsAtCurrentDepth && $isListItem) {
-                array_push($tree, self::createIndexNodeData($currentPath));
+                $tree[] = self::createIndexNodeData($currentPath);
             }
 
             if (!$childrenExistsAtCurrentDepth && !$isListItem) {
@@ -51,7 +49,7 @@ final class RootNode
             );
         }
 
-        array_push($tree, self::createNodeData($trace));
+        $tree[] = self::createNodeData($trace);
     }
 
     private static function childrenExists(&$tree, string|int $valueToSearch): bool
