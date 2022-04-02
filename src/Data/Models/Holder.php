@@ -2,10 +2,7 @@
 
 declare(strict_types=1);
 
-
 namespace GraphQlTools\Data\Models;
-
-
 
 use ArrayAccess;
 use JsonSerializable;
@@ -13,9 +10,6 @@ use RuntimeException;
 
 abstract class Holder implements ArrayAccess, JsonSerializable
 {
-    private const SERIALIZATION_KEY = '__serialize';
-    private const SERIALIZATION_ITEMS_FLAG = '__is_list';
-
     final protected function __construct(private readonly array $items) {}
 
     final public function toArray(): array {
@@ -32,6 +26,17 @@ abstract class Holder implements ArrayAccess, JsonSerializable
 
     final public function __isset(string $name): bool{
         return $this->getValue($name) !== null;
+    }
+
+    final public function __serialize(): array
+    {
+        return $this->items;
+    }
+
+    final public function __unserialize(array $data)
+    {
+        // Set readonly Property, allowed here.
+        $this->items = $data;
     }
 
     public function offsetExists($offset): bool {
@@ -61,62 +66,4 @@ abstract class Holder implements ArrayAccess, JsonSerializable
         }
         return $data;
     }
-
-    private function serializeKeyValue(mixed $value): mixed {
-        $isInstanceOfHolder = $value instanceof Holder;
-        $isArrayOfHolder = !$isInstanceOfHolder && is_array($value) && array_is_list($value) && $value[0] instanceof Holder;
-
-        if ($isInstanceOfHolder) {
-            return [
-                self::SERIALIZATION_KEY => serialize($value),
-            ];
-        }
-
-        if ($isArrayOfHolder) {
-            return [
-                self::SERIALIZATION_KEY => array_map(fn(Holder $holder) => serialize($holder), $value),
-                self::SERIALIZATION_ITEMS_FLAG => true,
-            ];
-        }
-
-        return $value;
-    }
-
-    private function unserializeValue(mixed $value): mixed {
-        if (!is_array($value) || !array_key_exists(self::SERIALIZATION_KEY, $value)) {
-            return $value;
-        }
-
-        $isList = $value[self::SERIALIZATION_ITEMS_FLAG] ?? false;
-        if ($isList) {
-            return array_map(fn($data): Holder => unserialize($data), $value[self::SERIALIZATION_KEY]);
-        }
-
-        return unserialize($value[self::SERIALIZATION_KEY]);
-    }
-
-    final public function __serialize(): array
-    {
-        $serialized = [];
-        foreach ($this->items as $key => $value) {
-            $serialized[$key] = $this->serializeKeyValue($value);
-        }
-
-        return $serialized;
-    }
-
-    /**
-     * @throws \ReflectionException
-     */
-    final public function __unserialize(array $data)
-    {
-        $items = [];
-        foreach ($data as $key => $value) {
-            $items[$key] = $this->unserializeValue($value);
-        }
-
-        // Set readonly Property.
-        $this->items = $items;
-    }
-
 }
