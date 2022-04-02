@@ -26,13 +26,13 @@ final class AdditionalExecutionInformation extends Holder
         return !!$this->headerByName($key);
     }
 
-    public function headerByName(string $key): ?string {
-        $normalizedKey = strtolower($key);
+    public function headerByName(string $name): ?string {
+        $normalizedKey = Http::normalizeHeaderName($name);
         return $this->requestHeaders[$normalizedKey] ?? null;
     }
 
     public function allHeaders(array $blacklist = []): array {
-        $blacklist = array_map('strtolower', $blacklist);
+        $blacklist = array_map([Http::class, 'normalizeHeaderName'], $blacklist);
         return Arrays::blacklistKeys($this->requestHeaders, $blacklist, false);
     }
 

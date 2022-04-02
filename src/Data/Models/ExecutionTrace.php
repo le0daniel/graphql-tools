@@ -11,17 +11,17 @@ use DateTimeImmutable;
  * @property-read int $durationNs
  * @property-read FieldTrace[]
  * @property-read GraphQlError[] $errors
- * @property-read DateTimeImmutable $startTime
+ * @property-read DateTimeImmutable $startDateTime
  */
 final class ExecutionTrace extends Holder
 {
     public static function from(
-        string $query,
-        int    $startTimeInNanoSeconds,
-        int    $endTimeInNanoSeconds,
-        DateTimeImmutable $startTime,
-        array  $fieldTraces,
-        array $errors,
+        string            $query,
+        int               $startTimeInNanoSeconds,
+        int               $endTimeInNanoSeconds,
+        DateTimeImmutable $startDateTime,
+        array             $fieldTraces,
+        array             $errors,
     ): self
     {
         Holder::verifyListOfInstances(FieldTrace::class, $fieldTraces);
@@ -31,7 +31,7 @@ final class ExecutionTrace extends Holder
             'query' => $query,
             'startTimeInNanoSeconds' => $startTimeInNanoSeconds,
             'endTimeInNanoSeconds' => $endTimeInNanoSeconds,
-            'startTime' => $startTime,
+            'startDateTime' => $startDateTime,
             'fieldTraces' => $fieldTraces,
             'errors' => $errors,
         ]);

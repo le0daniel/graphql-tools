@@ -10,12 +10,14 @@ use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
 
-final class Extensions implements \JsonSerializable {
+final class Extensions implements \JsonSerializable
+{
 
     /** @var Extension[] */
     private array $extensions;
 
-    public function __construct(Extension ... $extensions){
+    public function __construct(Extension ...$extensions)
+    {
         $this->extensions = $extensions;
     }
 
@@ -29,7 +31,8 @@ final class Extensions implements \JsonSerializable {
      * @param array $extensionFactories
      * @return Extensions
      */
-    public static function createFromExtensionFactories(array $extensionFactories): Extensions {
+    public static function createFromExtensionFactories(array $extensionFactories): Extensions
+    {
         $instances = [];
         $columnToSort = [];
 
@@ -46,7 +49,8 @@ final class Extensions implements \JsonSerializable {
         return new self(...$instances);
     }
 
-    public function willVisitField(VisitFieldEvent $event): Closure {
+    public function willVisitField(VisitFieldEvent $event): Closure
+    {
         $afterStack = [];
 
         foreach ($this->extensions as $extension) {
@@ -55,7 +59,7 @@ final class Extensions implements \JsonSerializable {
             }
         }
 
-        return function (mixed $resolvedValue) use ($afterStack) {
+        return static function (mixed $resolvedValue) use ($afterStack) {
             foreach ($afterStack as $next) {
                 $next($resolvedValue);
             }
@@ -63,19 +67,22 @@ final class Extensions implements \JsonSerializable {
         };
     }
 
-    public function dispatchStartEvent(StartEvent $event){
+    public function dispatchStartEvent(StartEvent $event)
+    {
         foreach ($this->extensions as $extension) {
             $extension->start($event);
         }
     }
 
-    public function dispatchEndEvent(EndEvent $event){
+    public function dispatchEndEvent(EndEvent $event)
+    {
         foreach ($this->extensions as $extension) {
             $extension->end($event);
         }
     }
 
-    public function jsonSerialize(): array {
+    public function jsonSerialize(): array
+    {
         $extensionData = [];
 
         foreach ($this->extensions as $extension) {

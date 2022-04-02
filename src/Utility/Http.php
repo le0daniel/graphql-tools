@@ -5,16 +5,24 @@ namespace GraphQlTools\Utility;
 final class Http
 {
 
-    public static function normalizeHeaders(array $headers): array {
+    public static function normalizeHeaders(array $headers): array
+    {
         $normalized = [];
         foreach ($headers as $key => $value) {
-            $normalized[trim(strtolower($key))] = trim($value);
+            $headerName = self::normalizeHeaderName($key);
+            $normalized[$headerName] = trim($value);
         }
         return $normalized;
     }
 
-    public static function headerValues(string $headerValue): array {
-        return array_map(fn(string $value): string => trim($value), explode(',', $headerValue));
+    public static function normalizeHeaderName(string $name): string
+    {
+        return trim(strtolower($name));
+    }
+
+    public static function headerValues(string $headerValue): array
+    {
+        return array_map(static fn(string $value): string => trim($value), explode(',', $headerValue));
     }
 
 }
