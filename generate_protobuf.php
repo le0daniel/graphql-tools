@@ -2,6 +2,8 @@
 
 use GraphQlTools\Apollo\ProtobufClass;
 use GraphQlTools\Utility\Directories;
+use GraphQlTools\Utility\Process;
+
 require_once __DIR__ . '/vendor/autoload.php';
 
 const BUILD_DIRECTORY = __DIR__ . '/build';
@@ -14,10 +16,10 @@ function generateProtobuf(): void {
         unlink($file->getRealPath());
     }
 
-    exec("protoc --php_out=build ./report.proto", result_code: $resultCode);
-    if ($resultCode !== 0) {
-        throw new RuntimeException('Error generating protobuf files using protoc.');
-    }
+    Process::mustExecute('protoc', [
+        'php_out' => 'build',
+        './report.proto'
+    ]);
 
     $files = Directories::fileIteratorWithRegex(BUILD_DIRECTORY, '/\.php$/');
     foreach ($files as $file) {

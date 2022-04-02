@@ -23,15 +23,15 @@ final class AdditionalExecutionInformation extends Holder
     }
 
     public function hasHeader(string $key): bool {
-        return !!$this->getHeader($key);
+        return !!$this->headerByName($key);
     }
 
-    public function getHeader(string $key): ?string {
+    public function headerByName(string $key): ?string {
         $normalizedKey = strtolower($key);
         return $this->requestHeaders[$normalizedKey] ?? null;
     }
 
-    public function getHeaders(array $blacklist = []): array {
+    public function allHeaders(array $blacklist = []): array {
         $blacklist = array_map('strtolower', $blacklist);
         return Arrays::blacklistKeys($this->requestHeaders, $blacklist, false);
     }

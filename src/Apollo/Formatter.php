@@ -11,10 +11,6 @@ use GraphQlTools\Data\Models\ExecutionTrace;
 use GraphQlTools\Data\Models\SchemaInformation;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Http;
-use Protobuf\Report;
-use Protobuf\ReportHeader;
-use Protobuf\Trace;
-use Protobuf\TracesAndStats;
 
 final class Formatter
 {
@@ -48,7 +44,7 @@ final class Formatter
         $http->setMethod(Trace\HTTP\Method::POST);
 
         if ($information?->requestHeaders) {
-            $filteredHeaders = $information->getHeaders(self::BLACKLISTED_HEADERS);
+            $filteredHeaders = $information->allHeaders(self::BLACKLISTED_HEADERS);
             $http->setRequestHeaders(
                 array_map(fn($headerValue) => (new Trace\HTTP\Values())->setValue(Http::headerValues($headerValue)), $filteredHeaders)
             );
