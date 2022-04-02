@@ -12,9 +12,9 @@ abstract class Holder implements ArrayAccess, JsonSerializable
 {
     final protected function __construct(private readonly array $items) {}
 
-    final public static function verifyListOfInstances(string $className, array $list) {
+    final public static function verifyListOfInstances(string $className, array $list): void {
         if (!array_is_list($list)) {
-            throw new RuntimeException('Expected list got dict');
+            throw new RuntimeException('Expected list got array with keys');
         }
 
         foreach ($list as $item) {
@@ -22,6 +22,13 @@ abstract class Holder implements ArrayAccess, JsonSerializable
                 $itemClassName = is_object($item) ? get_class($item) : gettype($item);
                 throw new RuntimeException("Expected items to be instance of `$className`, got `$itemClassName`.");
             }
+        }
+    }
+
+    final public static function verifyIsInstanceOf(string $className, mixed $object): void {
+        if (!$object instanceof $className) {
+            $objectClassName = is_object($object) ? get_class($object) : gettype($object);
+            throw new RuntimeException("Expected instance of `{$className}`, got `{$objectClassName}`.");
         }
     }
 

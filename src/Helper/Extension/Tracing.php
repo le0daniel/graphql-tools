@@ -5,9 +5,6 @@ declare(strict_types=1);
 namespace GraphQlTools\Helper\Extension;
 
 use DateTimeImmutable;
-use DateTimeInterface;
-use GraphQL\Error\FormattedError;
-use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\Extension;
 use GraphQlTools\Data\Models\GraphQlError;
 use GraphQlTools\Events\VisitFieldEvent;
@@ -16,17 +13,19 @@ use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Data\Models\ExecutionTrace;
 use GraphQlTools\Data\Models\FieldTrace;
 use Closure;
-use GraphQlTools\Utility\QuerySignature;
-use GraphQlTools\Utility\Time;
 
 final class Tracing extends Extension
 {
     private string $query;
+
+    private DateTimeImmutable $startDateTime;
+
     private int $startTimeInNanoseconds;
     private int $endTimeInNanoseconds;
 
     /** @var FieldTrace[] */
     private array $fieldTraces = [];
+    /** @var GraphQlError[]  */
     private array $errors = [];
 
     public function priority(): int
@@ -52,19 +51,24 @@ final class Tracing extends Extension
         $this->storeTraceFunction = $storeTraceFunction;
     }
 
+    public function toExecutionTrace(): ExecutionTrace {
+        return ExecutionTrace::from(
+            $this->query,
+            $this->startTimeInNanoseconds,
+            $this->endTimeInNanoseconds,
+            $this->startDateTime,
+            $this->fieldTraces,
+            $this->errors
+        );
+    }
+
     /**
      * @return array|null
      */
     public function jsonSerialize(): ?ExecutionTrace
     {
         return $this->addTraceToResult
-            ? ExecutionTrace::from(
-                $this->query,
-                $this->startTimeInNanoseconds,
-                $this->endTimeInNanoseconds,
-                $this->fieldTraces,
-                $this->errors
-            )
+            ? $this->toExecutionTrace()
             : null;
     }
 
@@ -72,6 +76,7 @@ final class Tracing extends Extension
     {
         $this->query = $startEvent->query;
         $this->startTimeInNanoseconds = $startEvent->eventTimeInNanoSeconds;
+        $this->startDateTime = new DateTimeImmutable();
     }
 
     public function end(EndEvent $event): void
@@ -99,14 +104,7 @@ final class Tracing extends Extension
         }
 
         if ($this->storeTraceFunction) {
-            ($this->storeTraceFunction)(
-                ExecutionTrace::from(
-                    $this->query,
-                    $this->startTimeInNanoseconds,
-                    $this->endTimeInNanoseconds,
-                    $this->fieldTraces
-                )
-            );
+            ($this->storeTraceFunction)($this->toExecutionTrace());
         }
     }
 }

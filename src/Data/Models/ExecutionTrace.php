@@ -2,20 +2,24 @@
 
 namespace GraphQlTools\Data\Models;
 
+use DateTimeImmutable;
+
 /**
  * @property-read string $query
- * @property-read int $startTime
- * @property-read int $endTime
+ * @property-read int $startTimeInNanoSeconds
+ * @property-read int $endTimeInNanoSeconds
  * @property-read int $durationNs
  * @property-read FieldTrace[]
  * @property-read GraphQlError[] $errors
+ * @property-read DateTimeImmutable $startTime
  */
 final class ExecutionTrace extends Holder
 {
     public static function from(
         string $query,
-        int    $startTime,
-        int    $endTime,
+        int    $startTimeInNanoSeconds,
+        int    $endTimeInNanoSeconds,
+        DateTimeImmutable $startTime,
         array  $fieldTraces,
         array $errors,
     ): self
@@ -25,8 +29,9 @@ final class ExecutionTrace extends Holder
 
         return new self([
             'query' => $query,
+            'startTimeInNanoSeconds' => $startTimeInNanoSeconds,
+            'endTimeInNanoSeconds' => $endTimeInNanoSeconds,
             'startTime' => $startTime,
-            'endTime' => $endTime,
             'fieldTraces' => $fieldTraces,
             'errors' => $errors,
         ]);
