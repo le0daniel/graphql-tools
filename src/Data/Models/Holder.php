@@ -7,8 +7,14 @@ namespace GraphQlTools\Data\Models;
 
 
 
-abstract class Holder implements \ArrayAccess, \JsonSerializable
+use ArrayAccess;
+use JsonSerializable;
+
+abstract class Holder implements ArrayAccess, JsonSerializable
 {
+    private const SERIALIZATION_KEY = '__serialize';
+    private const SERIALIZATION_ITEMS_FLAG = '__is_list';
+
     /**
      * Append getters when serializing
      *
@@ -16,14 +22,14 @@ abstract class Holder implements \ArrayAccess, \JsonSerializable
      */
     protected array $appendToJsonSerialize = [];
 
+    protected function getValueForSerialization(string $name): mixed {
+        return $this->getValue($name);
+    }
+
     final protected function __construct(private array $items) {}
 
     final public function toArray(): array {
         return $this->items;
-    }
-
-    protected function getValueForSerialization(string $name): mixed {
-        return $this->getValue($name);
     }
 
     protected function getValue(string $name): mixed {
@@ -67,6 +73,57 @@ abstract class Holder implements \ArrayAccess, \JsonSerializable
             $data[$key] = $this->getValueForSerialization($key);
         }
         return $data;
+    }
+
+    private function serializeKeyValue(mixed $value): mixed {
+        $isInstanceOfHolder = $value instanceof Holder;
+        $isArrayOfHolder = !$isInstanceOfHolder && is_array($value) && array_is_list($value) && $value[0] instanceof Holder;
+
+        if ($isInstanceOfHolder) {
+            return [
+                self::SERIALIZATION_KEY => serialize($value),
+            ];
+        }
+
+        if ($isArrayOfHolder) {
+            return [
+                self::SERIALIZATION_KEY => array_map(fn(Holder $holder) => serialize($holder), $value),
+                self::SERIALIZATION_ITEMS_FLAG => true,
+            ];
+        }
+
+        return $value;
+    }
+
+    private function unserializeValue(mixed $value): mixed {
+        if (!is_array($value) || !array_key_exists(self::SERIALIZATION_KEY, $value)) {
+            return $value;
+        }
+
+        $isList = $value[self::SERIALIZATION_ITEMS_FLAG] ?? false;
+        if ($isList) {
+            return array_map(fn($data): Holder => unserialize($data), $value[self::SERIALIZATION_KEY]);
+        }
+
+        return unserialize($value[self::SERIALIZATION_KEY]);
+    }
+
+    final public function __serialize(): array
+    {
+        $serialized = [];
+        foreach ($this->items as $key => $value) {
+            $serialized[$key] = $this->serializeKeyValue($value);
+        }
+
+        return $serialized;
+    }
+
+    final public function __unserialize(array $data)
+    {
+        $this->items = [];
+        foreach ($data as $key => $value) {
+            $this->items[$key] = $this->unserializeValue($value);
+        }
     }
 
 }

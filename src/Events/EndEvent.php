@@ -7,7 +7,6 @@ use GraphQL\Executor\ExecutionResult;
 use GraphQlTools\Contract\Event;
 
 /**
- * @property-read Error[] $graphQlErrors
  * @method static create(ExecutionResult $result)
  */
 final class EndEvent extends Event
@@ -19,7 +18,7 @@ final class EndEvent extends Event
     }
 
     public function hasErrors(): bool {
-        return count($this->graphQlErrors) > 0;
+        return count($this->result->errors) > 0;
     }
 
 }

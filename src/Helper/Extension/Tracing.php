@@ -6,6 +6,7 @@ namespace GraphQlTools\Helper\Extension;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use GraphQL\Error\FormattedError;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\Extension;
 use GraphQlTools\Events\VisitFieldEvent;
@@ -19,50 +20,19 @@ use GraphQlTools\Utility\Time;
 
 final class Tracing extends Extension
 {
-    /**
-     * String representation of the query to run
-     *
-     * @var string
-     */
     private string $query;
-
-    /**
-     * Exact time of when the execution started
-     *
-     * @var int
-     */
     private int $startTimeInNanoseconds;
-
-    /**
-     * @var int
-     */
     private int $endTimeInNanoseconds;
 
-    /**
-     * Array containing all the traces of all fields
-     *
-     * @var FieldTrace[]
-     */
+    /** @var FieldTrace[] */
     private array $fieldTraces = [];
+    private array $errors = [];
 
-    /**
-     * Defines the priority of this extension.
-     *
-     * As this extension requires a high priority and should run first to capture the duration
-     * of resolvers correctly, it is set to -1
-     *
-     * @return int
-     */
     public function priority(): int
     {
         return -1;
     }
 
-    /**
-     * Defines the key of the extension in the extension result array.
-     *
-     * @return string
-     */
     public function key(): string
     {
         return 'tracing';
@@ -91,7 +61,8 @@ final class Tracing extends Extension
                 $this->query,
                 $this->startTimeInNanoseconds,
                 $this->endTimeInNanoseconds,
-                $this->fieldTraces
+                $this->fieldTraces,
+                $this->errors
             )
             : null;
     }
@@ -105,6 +76,9 @@ final class Tracing extends Extension
     public function end(EndEvent $event): void
     {
         $this->endTimeInNanoseconds = $event->eventTimeInNanoSeconds;
+        foreach ($event->result->errors as $error) {
+            $this->errors[] = FormattedError::createFromException($error) ;
+        }
     }
 
     public function visitField(VisitFieldEvent $event): Closure

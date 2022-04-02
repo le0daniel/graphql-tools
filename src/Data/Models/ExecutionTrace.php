@@ -16,6 +16,7 @@ final class ExecutionTrace extends Holder
         int    $startTime,
         int    $endTime,
         array  $fieldTraces,
+        array $errors,
     ): self
     {
         return new self([
@@ -23,6 +24,7 @@ final class ExecutionTrace extends Holder
             'startTime' => $startTime,
             'endTime' => $endTime,
             'fieldTraces' => $fieldTraces,
+            'errors' => $errors,
         ]);
     }
 
