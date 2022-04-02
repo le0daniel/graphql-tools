@@ -9,7 +9,6 @@ namespace GraphQlTools\Data\Models;
  */
 final class SchemaInformation extends Holder
 {
-
     public static function from(string $graphId, string $graphVariant)
     {
         return new self([
@@ -24,7 +23,5 @@ final class SchemaInformation extends Holder
             'graphReference' => "{$this->graphId}@{$this->graphVariant}",
             default => parent::getValue($name),
         };
-
     }
-
 }
