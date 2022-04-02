@@ -3,11 +3,11 @@
 namespace GraphQlTools\Utility;
 
 use RuntimeException;
-use TheSeer\Tokenizer\Exception;
 use Throwable;
 
 class Hmac
 {
+
     public static function signMessage(string $key, string $message): string {
         $signature = hash_hmac('sha256', $message, $key);
         return "$signature::$message";
@@ -31,6 +31,15 @@ class Hmac
         }
 
         return $message;
+    }
+
+    public static function serializeAndSign(string $key, mixed $data): string {
+        return self::signMessage($key, serialize($data));
+    }
+
+    public static function verifyAndUnserialize(string $key, string $serialized): mixed {
+        $payload = self::verifySignatureAndReturnMessage($key, $serialized);
+        return unserialize($payload);
     }
 
 }

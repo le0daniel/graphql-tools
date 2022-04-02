@@ -9,24 +9,14 @@ namespace GraphQlTools\Data\Models;
 
 use ArrayAccess;
 use JsonSerializable;
+use RuntimeException;
 
 abstract class Holder implements ArrayAccess, JsonSerializable
 {
     private const SERIALIZATION_KEY = '__serialize';
     private const SERIALIZATION_ITEMS_FLAG = '__is_list';
 
-    /**
-     * Append getters when serializing
-     *
-     * @var array
-     */
-    protected array $appendToJsonSerialize = [];
-
-    protected function getValueForSerialization(string $name): mixed {
-        return $this->getValue($name);
-    }
-
-    final protected function __construct(private array $items) {}
+    final protected function __construct(private readonly array $items) {}
 
     final public function toArray(): array {
         return $this->items;
@@ -53,24 +43,21 @@ abstract class Holder implements ArrayAccess, JsonSerializable
     }
 
     public function offsetSet($offset, $value): void {
-        throw new \RuntimeException("Can not set value `{$offset}` of immutable holder to: `{$value}`");
+        throw new RuntimeException("Can not set value `{$offset}` of immutable holder.");
     }
 
     public function offsetUnset($offset): void {
-        throw new \RuntimeException("Can not unset value `{$offset}` of immutable holder");
+        throw new RuntimeException("Can not unset value `{$offset}` of immutable holder.");
     }
 
     final public function __set(string $name, mixed $value): void{
-        throw new \RuntimeException("Can not set value `{$name}` of immutable holder to: `{$value}`");
+        throw new RuntimeException("Can not set value `{$name}` of immutable holder.");
     }
 
     public function jsonSerialize(): array {
-        $keys = array_keys($this->items);
-        array_push($keys, ...$this->appendToJsonSerialize);
-
         $data = [];
-        foreach ($keys as $key) {
-            $data[$key] = $this->getValueForSerialization($key);
+        foreach (array_keys($this->items) as $key) {
+            $data[$key] = $this->getValue($key);
         }
         return $data;
     }
@@ -118,12 +105,18 @@ abstract class Holder implements ArrayAccess, JsonSerializable
         return $serialized;
     }
 
+    /**
+     * @throws \ReflectionException
+     */
     final public function __unserialize(array $data)
     {
-        $this->items = [];
+        $items = [];
         foreach ($data as $key => $value) {
-            $this->items[$key] = $this->unserializeValue($value);
+            $items[$key] = $this->unserializeValue($value);
         }
+
+        // Set readonly Property.
+        $this->items = $items;
     }
 
 }
