@@ -11,6 +11,7 @@ use GraphQlTools\Data\Models\ExecutionTrace;
 use GraphQlTools\Data\Models\SchemaInformation;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Http;
+use Protobuf\Trace;
 
 final class Formatter
 {

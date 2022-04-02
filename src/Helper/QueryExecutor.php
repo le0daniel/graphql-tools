@@ -54,8 +54,11 @@ final class QueryExecutor
         try {
             $source = Parser::parse($query);
         } catch (SyntaxError $exception) {
-            $extensions->dispatchEndEvent(EndEvent::create([$exception]));
-            return new ExecutionResult(null, [$exception], $extensions->jsonSerialize());
+            $result = new ExecutionResult(null, [$exception]);
+            $extensions->dispatchEndEvent(EndEvent::create($result));
+
+            $result->extensions = $extensions->jsonSerialize();
+            return $result;
         }
 
         $result = GraphQL::executeQuery(
@@ -68,7 +71,7 @@ final class QueryExecutor
             validationRules: $this->validationRules
         );
 
-        $extensions->dispatchEndEvent(EndEvent::create($result->errors ?? []));
+        $extensions->dispatchEndEvent(EndEvent::create($result));
 
         if ($this->errorFormatter) {
             $result->setErrorFormatter($this->errorFormatter);

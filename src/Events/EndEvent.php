@@ -3,16 +3,17 @@
 namespace GraphQlTools\Events;
 
 use GraphQL\Error\Error;
+use GraphQL\Executor\ExecutionResult;
 use GraphQlTools\Contract\Event;
 
 /**
  * @property-read Error[] $graphQlErrors
- * @method static create(Error[] $graphQlErrors)
+ * @method static create(ExecutionResult $result)
  */
 final class EndEvent extends Event
 {
 
-    public function __construct(int $eventTimeInNanoSeconds, public readonly array $graphQlErrors)
+    public function __construct(int $eventTimeInNanoSeconds, public readonly ExecutionResult $result)
     {
         parent::__construct($eventTimeInNanoSeconds);
     }
