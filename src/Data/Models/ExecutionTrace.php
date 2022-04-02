@@ -8,6 +8,7 @@ namespace GraphQlTools\Data\Models;
  * @property-read int $endTime
  * @property-read int $durationNs
  * @property-read FieldTrace[]
+ * @property-read GraphQlError[] $errors
  */
 final class ExecutionTrace extends Holder
 {
@@ -19,6 +20,9 @@ final class ExecutionTrace extends Holder
         array $errors,
     ): self
     {
+        Holder::verifyListOfInstances(FieldTrace::class, $fieldTraces);
+        Holder::verifyListOfInstances(GraphQlError::class, $errors);
+
         return new self([
             'query' => $query,
             'startTime' => $startTime,

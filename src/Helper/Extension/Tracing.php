@@ -9,6 +9,7 @@ use DateTimeInterface;
 use GraphQL\Error\FormattedError;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\Extension;
+use GraphQlTools\Data\Models\GraphQlError;
 use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
@@ -77,7 +78,7 @@ final class Tracing extends Extension
     {
         $this->endTimeInNanoseconds = $event->eventTimeInNanoSeconds;
         foreach ($event->result->errors as $error) {
-            $this->errors[] = FormattedError::createFromException($error) ;
+            $this->errors[] = GraphQlError::fromGraphQlError($error);
         }
     }
 

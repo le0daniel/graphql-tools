@@ -12,6 +12,19 @@ abstract class Holder implements ArrayAccess, JsonSerializable
 {
     final protected function __construct(private readonly array $items) {}
 
+    final public static function verifyListOfInstances(string $className, array $list) {
+        if (!array_is_list($list)) {
+            throw new RuntimeException('Expected list got dict');
+        }
+
+        foreach ($list as $item) {
+            if (!$item instanceof $className) {
+                $itemClassName = is_object($item) ? get_class($item) : gettype($item);
+                throw new RuntimeException("Expected items to be instance of `$className`, got `$itemClassName`.");
+            }
+        }
+    }
+
     final public function toArray(): array {
         return $this->items;
     }

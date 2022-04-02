@@ -22,29 +22,6 @@ use GraphQlTools\Utility\Time;
  */
 final class FieldTrace extends Holder
 {
-    private const REQUIRED_ARRAY_KEYS = [
-        'path',
-        'parentType',
-        'fieldName',
-        'returnType',
-        'duration',
-        'startOffset',
-    ];
-
-    public static function fromSerialized(array $serializedData): self
-    {
-        $verifiedData = Arrays::onlyKeys($serializedData, self::REQUIRED_ARRAY_KEYS);
-
-        return new self([
-            'path' => $verifiedData['path'],
-            'parentType' => $verifiedData['parentType'],
-            'fieldName' => $verifiedData['fieldName'],
-            'returnType' => $verifiedData['returnType'],
-            'duration' => $verifiedData['duration'],
-            'startOffset' => $verifiedData['startOffset'],
-        ]);
-    }
-
     protected function getValue(string $name): mixed
     {
         return match ($name) {
