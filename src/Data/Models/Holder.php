@@ -72,7 +72,7 @@ abstract class Holder implements ArrayAccess, JsonSerializable
         throw new RuntimeException("Can not set value `{$name}` of immutable holder.");
     }
 
-    public function jsonSerialize(): array {
+    final public function jsonSerialize(): array {
         $data = [];
         foreach (array_keys($this->items) as $key) {
             $data[$key] = $this->getValue($key);
