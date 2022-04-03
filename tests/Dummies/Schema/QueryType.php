@@ -10,6 +10,7 @@ use GraphQlTools\Context;
 use GraphQlTools\Definition\Field\Argument;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlType;
+use GraphQlTools\Test\Dummies\Schema\Input\MamelsQueryInputType;
 use GraphQlTools\TypeRepository;
 
 final class QueryType extends GraphQlType {
@@ -42,6 +43,7 @@ final class QueryType extends GraphQlType {
                             return $value;
                         })
                 )
+                ->deprecated('My reason')
                 ->withDescription('')
                 ->mappedBy(function($data, $arguments){
                     if ($arguments['name'] ?? null) {
@@ -51,6 +53,14 @@ final class QueryType extends GraphQlType {
                     return 'Hello World!';
                 })
             ,
+
+            Field::withName('mamelsQuery')
+                ->ofType(Type::string())
+                ->withArguments(
+                    Argument::withName('query')
+                        ->ofType(MamelsQueryInputType::class)
+                )
+                ->mappedBy(fn($data, array $args) => 'My result: ' . ($args['query']['name'] ?? '-- no query --')),
 
             Field::withName('mamels')
                 ->ofType(

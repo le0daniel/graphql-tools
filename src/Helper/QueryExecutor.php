@@ -33,11 +33,24 @@ final class QueryExecutor
     public function __construct(
         private   readonly Schema $schema,
         private   readonly array $extensionFactories = [FieldMessages::class],
-        private   readonly ?array $validationRules = null,
+        private   readonly array $validationRules = [],
         ?callable $errorFormatter = null
     )
     {
         $this->errorFormatter = $errorFormatter;
+    }
+
+    private function collectValidationRules(Extensions $extensions): ?array {
+        $validationRulesDefinedByExtensions = $extensions->collectValidationRules();
+
+        if (empty($this->validationRules) && empty($validationRulesDefinedByExtensions)) {
+            return null;
+        }
+
+        return [
+            ...$this->validationRules,
+            ...$validationRulesDefinedByExtensions
+        ];
     }
 
     public function execute(
@@ -61,6 +74,7 @@ final class QueryExecutor
             return $result;
         }
 
+
         $result = GraphQL::executeQuery(
             $this->schema,
             $source,
@@ -68,7 +82,7 @@ final class QueryExecutor
             contextValue: new OperationContext($context, $extensions),
             variableValues: $variables ?? [],
             operationName: $operationName,
-            validationRules: $this->validationRules
+            validationRules: $this->collectValidationRules($extensions),
         );
 
         $extensions->dispatchEndEvent(EndEvent::create($result));

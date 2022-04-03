@@ -6,7 +6,6 @@ namespace GraphQlTools\Test\Feature;
 
 use GraphQL\Executor\ExecutionResult;
 use GraphQlTools\Context;
-use GraphQlTools\Helper\Extension\FieldMessages;
 use GraphQlTools\Helper\Extension\Tracing;
 use GraphQlTools\Helper\QueryExecutor;
 use GraphQlTools\TypeRepository;
@@ -28,7 +27,7 @@ abstract class ExecutionTestCase extends TestCase {
     abstract protected function queryType(): string;
 
     protected function extensions(): array {
-        return [Tracing::class, FieldMessages::class];
+        return [Tracing::class];
     }
 
     protected function mutationType(): ?string {

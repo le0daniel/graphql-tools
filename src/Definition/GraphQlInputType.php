@@ -25,6 +25,8 @@ abstract class GraphQlInputType extends InputObjectType {
         );
     }
 
+    abstract protected function fields(): array;
+
     public static function typeName(): string {
         $typeName = Classes::baseName(static::class);
         return str_ends_with($typeName, self::CLASS_POSTFIX)

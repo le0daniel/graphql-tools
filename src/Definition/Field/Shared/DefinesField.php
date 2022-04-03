@@ -27,11 +27,13 @@ trait DefinesField
         return $this;
     }
 
-    final public function isDeprecated(): bool {
+    final public function isDeprecated(): bool
+    {
         return !!$this->deprecatedReason;
     }
 
-    final protected function hideBecauseOfDeprecation() {
+    final protected function hideBecauseOfDeprecation()
+    {
         return $this->automaticallyRemoveIfPast
             && $this->removalDate
             && $this->removalDate->getTimestamp() < time();
@@ -43,7 +45,8 @@ trait DefinesField
         return $this;
     }
 
-    final protected function computeDeprecationReason(): ?string {
+    final protected function computeDeprecationReason(): ?string
+    {
         if (!$this->deprecatedReason) {
             return null;
         }
@@ -53,12 +56,21 @@ trait DefinesField
             : $this->deprecatedReason;
     }
 
+    private function computeDeprecatedDescriptionMessage(): string
+    {
+        if (!$this->removalDate) {
+            return '**DEPRECATED**, no removal date specified.';
+        }
+
+        return '**DEPRECATED**, Removal Date: ' . $this->removalDate->format('Y-m-d') . '.';
+    }
+
     final protected function computeDescription(): ?string
     {
         $descriptionParts = [];
 
         if ($this->deprecatedReason) {
-            $descriptionParts[] = '**DEPRECATED**, Removal Date: ' . $this->removalDate->format('Y-m-d') . '.';
+            $descriptionParts[] = $this->computeDeprecatedDescriptionMessage();
         }
 
         if ($this->isBeta) {

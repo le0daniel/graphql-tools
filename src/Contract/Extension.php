@@ -6,6 +6,7 @@ namespace GraphQlTools\Contract;
 
 use Closure;
 use GraphQL\Type\Definition\ResolveInfo;
+use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
@@ -31,6 +32,15 @@ abstract class Extension implements JsonSerializable {
      */
     public function priority(): int {
         return self::DEFAULT_PRIORITY;
+    }
+
+    /**
+     * Dynamically add a validation rule.
+     *
+     * @return ValidationRule|null
+     */
+    public function addValidationRule(): ?ValidationRule {
+        return null;
     }
 
     public function start(StartEvent $startEvent): void {

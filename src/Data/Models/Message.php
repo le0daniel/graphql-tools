@@ -24,23 +24,12 @@ final class Message extends Holder
     public const TYPE_INFO = 'info';
     public const TYPE_NOTICE = 'notice';
 
-    public static function info(string $message): static
+    public static function beta(string $fieldName, string $parentName): static
     {
         return new self([
-            'message' => $message,
-            'type' => self::TYPE_INFO,
-        ]);
-    }
-
-    public static function beta(ResolveInfo $resolveInfo, ?string $additionalInformation = null): static
-    {
-        $pathString = Paths::toString($resolveInfo->path);
-        $infoMessage = $additionalInformation
-            ? "**Info**: {$additionalInformation}"
-            : '';
-        return new self([
-            'message' => "You used the beta field / argument `{$resolveInfo->fieldName}` at path: `{$pathString}`:" .
-                " This field can still change without a notice. Make sure **not** to use this field / argument in production. {$infoMessage}",
+            'message' =>
+                "You used the beta field `{$parentName}.{$fieldName}`: " .
+                "This field can still change without a notice. Make sure **not** to use this field / argument in production.",
             'type' => self::TYPE_BETA,
         ]);
     }
@@ -53,13 +42,26 @@ final class Message extends Holder
         ]);
     }
 
-    public static function deprecated(ResolveInfo $info, ?string $reason = null): static
+    public static function deprecatedEnumValue(string $enumName, string $valueName, string $reason): static
     {
-        $reason ??= $info->fieldDefinition->deprecationReason;
-        $pathString = implode(' > ', $info->path);
-
         return new self([
-            'message' => "You used the deprecated field / argument `{$info->fieldName}` at `{$pathString}`: {$reason}",
+            'message' => "Deprecated enum value used `{$enumName}.{$valueName}`: $reason",
+            'type' => self::TYPE_DEPRECATION
+        ]);
+    }
+
+    public static function deprecatedArgument(string $fieldName, string $parentName, string $argumentName, string $reason): static
+    {
+        return new self([
+            'message' => "Deprecated argument `{$argumentName}` used at `{$parentName}.{$fieldName}`: {$reason}",
+            'type' => self::TYPE_DEPRECATION
+        ]);
+    }
+
+    public static function deprecated(string $fieldName, string $parentName, string $reason): static
+    {
+        return new self([
+            'message' => "Deprecated field used at `{$parentName}.{$fieldName}`: $reason",
             'type' => self::TYPE_DEPRECATION
         ]);
     }
