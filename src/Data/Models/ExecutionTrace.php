@@ -3,6 +3,7 @@
 namespace GraphQlTools\Data\Models;
 
 use DateTimeImmutable;
+use GraphQlTools\Utility\Lists;
 
 /**
  * @property-read string $query
@@ -24,8 +25,8 @@ final class ExecutionTrace extends Holder
         array             $errors,
     ): self
     {
-        Holder::verifyListOfInstances(FieldTrace::class, $fieldTraces);
-        Holder::verifyListOfInstances(GraphQlError::class, $errors);
+        Lists::verifyOfType(FieldTrace::class, $fieldTraces);
+        Lists::verifyOfType(GraphQlError::class, $errors);
 
         return new self([
             'query' => $query,
