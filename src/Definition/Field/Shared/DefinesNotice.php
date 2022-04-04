@@ -4,7 +4,6 @@ namespace GraphQlTools\Definition\Field\Shared;
 
 trait DefinesNotice
 {
-
     protected string|null $notice = null;
 
     public function withNotice(string $notice): static {

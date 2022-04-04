@@ -6,7 +6,6 @@ use DateTimeInterface;
 
 trait DefinesField
 {
-
     protected string|null $description = null;
     protected bool $isBeta = false;
     protected bool $automaticallyRemoveIfPast = false;
@@ -27,27 +26,21 @@ trait DefinesField
         return $this;
     }
 
-    final public function isDeprecated(): bool
-    {
-        return !!$this->deprecatedReason;
-    }
-
-    final protected function hideBecauseOfDeprecation()
+    final protected function hideBecauseOfDeprecation(): bool
     {
         return $this->automaticallyRemoveIfPast
             && $this->removalDate
             && $this->removalDate->getTimestamp() < time();
     }
 
-    final public function isBeta(): static
+    private function isDeprecated(): bool
     {
-        $this->isBeta = true;
-        return $this;
+        return !!$this->deprecatedReason;
     }
 
     final protected function computeDeprecationReason(): ?string
     {
-        if (!$this->deprecatedReason) {
+        if (!$this->isDeprecated()) {
             return null;
         }
 
@@ -58,11 +51,9 @@ trait DefinesField
 
     private function computeDeprecatedDescriptionMessage(): string
     {
-        if (!$this->removalDate) {
-            return '**DEPRECATED**, no removal date specified.';
-        }
-
-        return '**DEPRECATED**, Removal Date: ' . $this->removalDate->format('Y-m-d') . '.';
+        return $this->removalDate
+            ? '**DEPRECATED**, Removal Date: ' . $this->removalDate->format('Y-m-d') . '.'
+            : '**DEPRECATED**, no removal date specified.';
     }
 
     final protected function computeDescription(): ?string
