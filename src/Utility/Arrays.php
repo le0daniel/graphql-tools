@@ -5,12 +5,24 @@ declare(strict_types=1);
 namespace GraphQlTools\Utility;
 
 
+use Closure;
 use RuntimeException;
 
 final class Arrays
 {
 
-    public static function containsOneOf(array $array, array $values): bool {
+    public static function mapWithKeys(array $array, Closure $closure): array
+    {
+        $items = [];
+        foreach ($array as $key => $value) {
+            [$newKey, $newValue] = $closure($key, $value);
+            $items[$newKey] = $newValue;
+        }
+        return $items;
+    }
+
+    public static function containsOneOf(array $array, array $values): bool
+    {
         foreach ($values as $value) {
             if (in_array($value, $array, true)) {
                 return true;
@@ -19,7 +31,8 @@ final class Arrays
         return false;
     }
 
-    public static function mergeKeyValues(array $array, array $arrayToMerge): array {
+    public static function mergeKeyValues(array $array, array $arrayToMerge): array
+    {
         foreach ($arrayToMerge as $key => $value) {
             $array[$key] = $value;
         }
@@ -36,7 +49,8 @@ final class Arrays
         return false;
     }
 
-    public static function onlyKeys(array $array, array $keys, bool $throwOnNonExistentKey = true): array {
+    public static function onlyKeys(array $array, array $keys, bool $throwOnNonExistentKey = true): array
+    {
         $result = [];
         foreach ($keys as $key) {
             if (!array_key_exists($key, $array) && $throwOnNonExistentKey) {
@@ -55,7 +69,8 @@ final class Arrays
         return is_array($value) || $value instanceof \ArrayAccess;
     }
 
-    public static function nonRecursiveFlatten(&$array): array {
+    public static function nonRecursiveFlatten(&$array): array
+    {
         $flattened = [];
         foreach ($array as $potentialArray) {
             $valueToPush = is_array($potentialArray)
@@ -86,7 +101,8 @@ final class Arrays
         return array_splice($array, $offset, $length);
     }
 
-    public static function blacklistKeys(array $array, array $blacklist, bool $recursive = true): array {
+    public static function blacklistKeys(array $array, array $blacklist, bool $recursive = true): array
+    {
         $filtered = [];
         foreach ($array as $key => $value) {
             if (in_array($key, $blacklist)) {
@@ -114,11 +130,13 @@ final class Arrays
         return array_values($array);
     }
 
-    public static function last(array $array): mixed {
+    public static function last(array $array): mixed
+    {
         return array_pop($array);
     }
 
-    public static function removeNullValues(array $array): array {
+    public static function removeNullValues(array $array): array
+    {
         $result = [];
         foreach ($array as $key => $value) {
             if ($value !== null) {

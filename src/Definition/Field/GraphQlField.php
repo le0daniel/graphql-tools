@@ -27,12 +27,12 @@ abstract class GraphQlField
         return new static($name);
     }
 
-    final public function toFieldDefinition(TypeRepository $repository): ?FieldDefinition
-    {
-        if ($this->hideBecauseOfDeprecation() || $repository->shouldHideField($this->isBeta, $this->metadata)) {
-            return null;
-        }
+    final public function isHidden(TypeRepository $repository): bool {
+        return $this->hideBecauseOfDeprecation() || $repository->shouldHideField($this->isBeta, $this->metadata);
+    }
 
+    final public function toFieldDefinition(TypeRepository $repository): FieldDefinition
+    {
         return FieldDefinition::create([
             'name' => $this->name,
             'resolve' => $this->getResolver(),

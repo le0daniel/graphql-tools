@@ -57,9 +57,13 @@ trait DefinesFields
                 throw DefinitionException::from($fieldDeclaration, GraphQlField::class);
             }
 
-            if ($fieldDefinition = $fieldDeclaration->toFieldDefinition($this->typeRepository)) {
-                $initializedFields[] = $fieldDefinition;
+            if ($fieldDeclaration->isHidden($this->typeRepository)) {
+                continue;
             }
+
+            $initializedFields[] = $fieldDeclaration->toFieldDefinition($this->typeRepository);
+            // Lazy init fields if needed.
+            // $initializedFields[$fieldDeclaration->name] = fn() => $fieldDeclaration->toFieldDefinition($this->typeRepository);
         }
 
         return $initializedFields;

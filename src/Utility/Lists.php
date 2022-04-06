@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\Utility;
 
+use Closure;
 use RuntimeException;
 
 class Lists
@@ -18,6 +19,16 @@ class Lists
                 throw new RuntimeException("Expected items to be instance of `$className`, got `$itemClassName`.");
             }
         }
+    }
+
+    public static function mapWithIndex(array $list, Closure $closure): array {
+        $items = [];
+
+        foreach ($list as $key => $value) {
+            $items[] = $closure($key, $value);
+        }
+
+        return $items;
     }
 
 }

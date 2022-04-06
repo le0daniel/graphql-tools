@@ -10,14 +10,44 @@ use RuntimeException;
 
 abstract class Holder implements ArrayAccess, JsonSerializable
 {
+    public const UNDEFINED = '__undefined__';
+
     final protected function __construct(private readonly array $items) {}
 
-    final public function toArray(): array {
+    /**
+     * Overwrite this method to serialize custom data properties differently.
+     * This is useful for example for DateTime objects, which you might want to serialize
+     * to a specific format. The value passed to this method already went through getValue(string $name)
+     *
+     * You can also use this to omit certain values. If you return NULL, the key will still exist
+     * in JSON. If you return Holder::UNDEFINED, the value is omitted from the result completely.
+     *
+     * @param string $name
+     * @param mixed $value
+     * @return mixed
+     */
+    protected function serializeValue(string $name, mixed $value): mixed {
+        return $value;
+    }
+
+    /**
+     * Overwrite this function to cast certain values into a specific object.
+     * This might be useful to cast dates as DateTimeImmutable for example.
+     *
+     * @param string $name
+     * @return mixed
+     */
+    protected function getValue(string $name): mixed {
+        return $this->items[$name] ?? null;
+    }
+
+    final public function __serialize(): array
+    {
         return $this->items;
     }
 
-    protected function getValue(string $name): mixed {
-        return $this->items[$name] ?? null;
+    final public function toArray(): array {
+        return $this->items;
     }
 
     final public function __get(string $name): mixed {
@@ -26,15 +56,6 @@ abstract class Holder implements ArrayAccess, JsonSerializable
 
     final public function __isset(string $name): bool{
         return $this->getValue($name) !== null;
-    }
-
-    protected function serializeValue(string $name, mixed $value): mixed {
-        return $value;
-    }
-
-    final public function __serialize(): array
-    {
-        return $this->items;
     }
 
     final public function __unserialize(array $data)
@@ -66,7 +87,12 @@ abstract class Holder implements ArrayAccess, JsonSerializable
     final public function jsonSerialize(): array {
         $data = [];
         foreach (array_keys($this->items) as $propertyName) {
-            $data[$propertyName] = $this->serializeValue($propertyName, $this->getValue($propertyName));
+            $serializedValue = $this->serializeValue($propertyName, $this->getValue($propertyName));
+
+            if ($serializedValue !== self::UNDEFINED) {
+                $data[$propertyName] = $serializedValue;
+            }
+
         }
         return $data;
     }
