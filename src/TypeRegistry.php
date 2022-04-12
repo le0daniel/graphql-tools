@@ -94,6 +94,9 @@ class TypeRegistry {
      * This method can be used to completely hide fields depending on a configuration
      *
      * You might want to only expose types which are public and not in beta for example.
+     * You can use $field->ofSchemaVariant(Enum::MySchemaVariantPublic) to set an
+     * arbitrary value as schema variant. Then you can use the registry to dynamically
+     * hide the field. Additionally, you can use field Metadata to further add context.
      *
      * @param mixed $schemaVariant
      * @param mixed $fieldMetadata
@@ -107,6 +110,9 @@ class TypeRegistry {
      * This method can be used to completely hide fields depending on a configuration
      *
      * You might want to only expose types which are public and not in beta for example.
+     * You can use $argumentOrInputField->ofSchemaVariant(Enum::MySchemaVariantPublic) to set an
+     * arbitrary value as schema variant. Then you can use the registry to dynamically
+     * hide the field. Additionally, you can use field Metadata to further add context.
      *
      * @param mixed $schemaVariant
      * @param mixed $fieldMetadata

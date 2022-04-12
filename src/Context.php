@@ -25,6 +25,13 @@ class Context
         return null;
     }
 
+    /**
+     * Create an instance of a DataLoader executor, Must either be a callable or
+     * an instance extending the ExecutableByDataLoader contract.
+     *
+     * @param string $className
+     * @return callable|ExecutableByDataLoader
+     */
     protected function makeInstanceOfDataLoaderExecutor(string $className): callable|ExecutableByDataLoader {
         return new $className;
     }
