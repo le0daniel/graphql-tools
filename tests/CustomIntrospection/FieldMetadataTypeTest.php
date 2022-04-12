@@ -6,6 +6,7 @@ use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\CustomIntrospection\FieldMetadataType;
 use GraphQlTools\Helper\TypeTestCase;
+use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Fields;
 
 class FieldMetadataTypeTest extends TypeTestCase
@@ -16,12 +17,12 @@ class FieldMetadataTypeTest extends TypeTestCase
         return FieldMetadataType::class;
     }
 
-    private function fieldDefinition(): FieldDefinition {
-        return FieldDefinition::create([
+    private function fieldDefinition(mixed $metadata = null): FieldDefinition {
+        return FieldDefinition::create(Arrays::removeNullValues([
             'name' => 'myFieldName',
             'type' => Type::int(),
-            Fields::METADATA_CONFIG_KEY => 'my-metadata'
-        ]);
+            Fields::METADATA_CONFIG_KEY => $metadata
+        ]));
     }
 
     public function testNameField(){
@@ -40,10 +41,18 @@ class FieldMetadataTypeTest extends TypeTestCase
     }
 
     public function testMetadataField(){
-        $fieldDefinition = $this->fieldDefinition();
+        $fieldDefinition = $this->fieldDefinition('my-metadata');
         $result = $this->field('metadata')
             ->visit($fieldDefinition);
 
         self::assertEquals('my-metadata', $result);
+    }
+
+    public function testEmptyMetadataField(){
+        $fieldDefinition = $this->fieldDefinition();
+        $result = $this->field('metadata')
+            ->visit($fieldDefinition);
+
+        self::assertEquals(null, $result);
     }
 }
