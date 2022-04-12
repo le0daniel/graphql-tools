@@ -15,7 +15,11 @@ class DataLoader
     private array $queuedItems = [];
     private mixed $loadedData = null;
 
-    final public function __construct(protected ExecutableByDataLoader $callable, private array $arguments = [])
+    /**
+     * @param ExecutableByDataLoader|callable $callable
+     * @param array $arguments
+     */
+    final public function __construct(protected mixed $callable, private array $arguments = [])
     {
     }
 
@@ -31,7 +35,9 @@ class DataLoader
 
     protected function loadData(array $queuedItems): mixed
     {
-        return $this->callable->fetchData($queuedItems, $this->arguments);
+        return $this->callable instanceof ExecutableByDataLoader
+            ? $this->callable->fetchData($queuedItems, $this->arguments)
+            : ($this->callable)($queuedItems, $this->arguments);
     }
 
     private function unqueueItems(): array

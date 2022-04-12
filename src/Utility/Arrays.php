@@ -11,6 +11,11 @@ use RuntimeException;
 final class Arrays
 {
 
+    public static function allKeysExist(array &$array, array $requiredKeys): bool {
+        $keyIntersection = array_intersect_key(array_flip($requiredKeys), $array);
+        return count($requiredKeys) === count($keyIntersection);
+    }
+
     public static function mapWithKeys(array $array, Closure $closure): array
     {
         $items = [];

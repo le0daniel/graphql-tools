@@ -25,7 +25,7 @@ class Context
         return null;
     }
 
-    protected function makeInstanceOfDataLoaderExecutor(string $className): ExecutableByDataLoader {
+    protected function makeInstanceOfDataLoaderExecutor(string $className): callable|ExecutableByDataLoader {
         return new $className;
     }
 
