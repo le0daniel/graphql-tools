@@ -30,13 +30,13 @@ Everything begins by defining a new Type Repository. The Type Repository makes s
     require_once __DIR__ . '/vendor/autoload.php';   
 
     // Extend this class to implement specific methods
-    $typeRepository = new TypeRegistry(
+    $typeRegistry = new TypeRegistry(
         // This should be cached for production, usually in build process
         TypeRegistry::createTypeMapFromDirectory(__DIR__ . '/YOUR_DIRECTORY_WITH_ALL_TYPE_DECLARATIONS')
     );
 
     $executor = new QueryExecutor(
-        $typeRepository->toSchema(
+        $typeRegistry->toSchema(
             RootQueryType::class, // Your own root query type
             RootMutationType::class, // Your own root mutation type
             [], // Eagerly loaded types
@@ -64,16 +64,16 @@ When defining fields with custom types, you must use the TypeRepository.
 
 ```php
     use GraphQlTools\TypeRegistry;
-    $typeRepository = new TypeRegistry(
+    $typeRegistry = new TypeRegistry(
         TypeRegistry::createTypeMapFromDirectory(__DIR__ . '/YOUR_DIRECTORY_WITH_ALL_TYPE_DECLARATIONS')
     );
 
     // This will return the instance of the Root Query Type
     // and if not available, create if for the first time
-    $query = $typeRepository->type(RootQueryType::class);
+    $queryType = $typeRegistry->type(RootQueryType::class);
     
     // Therefore the following comparison will return true
-    $query === $typeRepository->type(RootQueryType::class); // => true
+    $queryType === $typeRegistry->type(RootQueryType::class); // => true
 ```
 
 Every Type / Union / Interface / InputType / Enum will be injected automatically with the instance of the TypeRepository.
@@ -89,6 +89,17 @@ You can simply extend the Context Object to add functionality to it.
 class MyCustomContext extends \GraphQlTools\Context {
 
     public function __construct(public readonly User $currentUser, private \Psr\Container\ContainerInterface $container) {}
+
+    /**
+    * Decouples the Schema and GraphQL from all your business logic. 
+    * @param string $className
+    * @return callable|\GraphQlTools\Contract\ExecutableByDataLoader
+    * @throws \Psr\Container\ContainerExceptionInterface
+    * @throws \Psr\Container\NotFoundExceptionInterface
+     */
+    protected function makeInstanceOfDataLoaderExecutor(string $className) : callable|\GraphQlTools\Contract\ExecutableByDataLoader{
+        $this->container->get($className);
+    }
 
     /**
     * Inject Classes into fieldLoadingFunctions after the positional arguments
@@ -138,6 +149,7 @@ Full example of Type definition:
     use GraphQlTools\TypeRegistry;
     use GraphQlTools\Definition\Field\DeferredField;
     use GraphQlTools\Definition\Field\Argument;
+    use GraphQlTools\Context;
     
     final class AnimalType extends GraphQlType {
         
@@ -156,12 +168,14 @@ Full example of Type definition:
                 
                 // Define custom types using the repository
                 Field::withName('customType')
-                    ->ofType(fn(TypeRegistry $typeRepository) => $typeRepository->type(MyCustomTypeClass::class)),
+                    ->ofType(fn(TypeRegistry $typeRepository) => $typeRepository->type(MyCustomTypeClass::class))
+                    ->ofSchemaVariant('Only-On-Public'), # Adds metadata to dynamically hide a field
+                   
                 
                 // With custom resolver
                 Field::withName('sameCustomType')
                     ->ofType(MyCustomType::class)
-                    ->mappedBy(fn($data, array $arguments) => $data['items']),
+                    ->resolvedBy(fn($data, array $arguments) => $data['items']),
                 
                 // Defer a field, the logic of deferring is abstracted away    
                 Field::withName('myField')
@@ -178,12 +192,15 @@ Full example of Type definition:
                         Argument::withName('second')
                             ->ofType(MyType::class),
                     )
-                    ->resolveData(static function(array $aggregatedData, array $arguments, Context $context){
-                        return yourDataLoadingFunction(array_column($aggregatedData, 'id'));
+                    ->resolvedBy(function ($data, $arguments, Context $context, $resolveInfo) {
+                        $context
+                            ->withDataLoader(MyDataLoaderExecutor::class, $arguments, $resolveInfo)
+                            // ->loadMany($data->foreignIds)
+                            // You can also manually map, depends on your usecase.
+                            // ->loadAndMapManually($data->id)->then(fn($loadedData) => $loadedData->findById($data->id))
+                            ->load($data->id)
                     })
-                    ->mappedBy(static function(array $data, array $arguments, array $loadedData){
-                        return $loadedData[$data['id']];
-                    })             
+                             
             ];
         }
         
