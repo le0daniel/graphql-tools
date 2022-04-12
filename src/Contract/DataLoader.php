@@ -61,6 +61,7 @@ class DataLoader
         }
 
         $startTime = Time::nanoSeconds();
+
         try {
             $result = $this->loadData($this->unqueueItems());
             if ($result === null) {
@@ -74,7 +75,7 @@ class DataLoader
         }
     }
 
-    final public function clearQueueIfNeeded(): void
+    private function clearQueueIfNeeded(): void
     {
         if ($this->loadedData) {
             $this->loadedData = null;
