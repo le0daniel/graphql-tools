@@ -3,6 +3,7 @@
 namespace GraphQlTools\Definition\Field;
 
 use GraphQL\Type\Definition\FieldDefinition;
+use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Field\Shared\DefinesArguments;
 use GraphQlTools\Definition\Field\Shared\DefinesField;
 use GraphQlTools\Definition\Field\Shared\DefinesMetadata;
@@ -33,6 +34,10 @@ abstract class GraphQlField
 
     final public function toFieldDefinition(TypeRegistry $repository, bool $withoutResolver = false): FieldDefinition
     {
+        if (!isset($this->ofType)) {
+            throw DefinitionException::fromMissingFieldDeclaration('ofType', $this->name, 'Every field must have a type defined.');
+        }
+
         return FieldDefinition::create([
             'name' => $this->name,
             'resolve' => $withoutResolver ? null : $this->getResolver(),
