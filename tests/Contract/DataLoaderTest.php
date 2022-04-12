@@ -30,6 +30,20 @@ class DataLoaderTest extends TestCase
         ];
     }
 
+    public function testMultipleLoads(){
+        /** @var DataLoader $dataLoader */
+        [$counter, $dataLoader] = $this->getDataLoader([1 => 'test', 2 => 'other']);
+
+        $dataLoader->load(2)->then(fn($data) => self::assertEquals(null, $data));
+        Deferred::runQueue();
+
+        $dataLoader->load(2)->then(fn($data) => self::assertEquals(null, $data));
+        Deferred::runQueue();
+
+        self::assertEquals(2, $counter->count);
+
+    }
+
     public function testLoadMany()
     {
         [$counter, $dataLoader] = $this->getDataLoader([1 => 'test', 2 => 'other']);
