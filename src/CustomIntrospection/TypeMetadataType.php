@@ -10,7 +10,7 @@ use GraphQlTools\Definition\Field\Argument;
 use GraphQlTools\Definition\Field\GraphQlField;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlType;
-use GraphQlTools\TypeRepository;
+use GraphQlTools\TypeRegistry;
 use GraphQlTools\Utility\Fields;
 use GraphQlTools\Utility\Types;
 use JetBrains\PhpStorm\Pure;
@@ -31,7 +31,7 @@ final class TypeMetadataType extends GraphQlType
         ];
     }
 
-    public static function rootQueryField(TypeRepository $typeRepository): GraphQlField
+    public static function rootQueryField(TypeRegistry $typeRepository): GraphQlField
     {
         return Field::withName( '__typeMetadata')
             ->ofType(TypeMetadataType::class)
@@ -64,7 +64,7 @@ final class TypeMetadataType extends GraphQlType
                 ->resolvedBy(static fn(ObjectType $type): mixed => $type->config[Fields::METADATA_CONFIG_KEY] ?? null),
 
             Field::withName('fields')
-                ->ofType(fn(TypeRepository $typeRepository) => new ListOfType($typeRepository->type(FieldMetadataType::class)))
+                ->ofType(fn(TypeRegistry $typeRepository) => new ListOfType($typeRepository->type(FieldMetadataType::class)))
                 ->resolvedBy(static fn(ObjectType $type): array => $type->getFields())
             ,
             Field::withName('fieldByName')

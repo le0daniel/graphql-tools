@@ -9,7 +9,7 @@ use GraphQlTools\Definition\Field\Shared\DefinesMetadata;
 use GraphQlTools\Definition\Field\Shared\DefinesNotice;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
 use GraphQlTools\Helper\ProxyResolver;
-use GraphQlTools\TypeRepository;
+use GraphQlTools\TypeRegistry;
 use GraphQlTools\Utility\Fields;
 use JetBrains\PhpStorm\Pure;
 
@@ -27,11 +27,11 @@ abstract class GraphQlField
         return new static($name);
     }
 
-    final public function isHidden(TypeRepository $repository): bool {
-        return $this->hideBecauseOfDeprecation() || $repository->shouldHideField($this->isBeta, $this->metadata);
+    final public function isHidden(TypeRegistry $repository): bool {
+        return $this->hideBecauseOfDeprecation() || $repository->shouldHideField($this->schemaVariant, $this->metadata);
     }
 
-    final public function toFieldDefinition(TypeRepository $repository, bool $withoutResolver = false): FieldDefinition
+    final public function toFieldDefinition(TypeRegistry $repository, bool $withoutResolver = false): FieldDefinition
     {
         return FieldDefinition::create([
             'name' => $this->name,
@@ -42,7 +42,7 @@ abstract class GraphQlField
             'args' => $this->buildArguments($repository),
 
             // Separate config keys for additional value
-            Fields::BETA_FIELD_CONFIG_KEY => $this->isBeta,
+            Fields::SCHEMA_VARIANT => $this->schemaVariant,
             Fields::NOTICE_CONFIG_KEY => $this->notice,
             Fields::METADATA_CONFIG_KEY => $this->metadata,
         ]);

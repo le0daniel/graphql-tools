@@ -9,7 +9,7 @@ use GraphQlTools\Definition\Field\GraphQlField;
 use GraphQlTools\Definition\Shared\DefinesTypes;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\DefinesFields;
-use GraphQlTools\TypeRepository;
+use GraphQlTools\TypeRegistry;
 use GraphQlTools\Utility\Classes;
 use GraphQlTools\Utility\Fields;
 use RuntimeException;
@@ -28,7 +28,7 @@ abstract class GraphQlType extends ObjectType
      */
     abstract protected function fields(): array;
 
-    final public function __construct(private TypeRepository $typeRepository)
+    final public function __construct(private TypeRegistry $typeRepository)
     {
         parent::__construct(
             [

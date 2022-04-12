@@ -6,16 +6,16 @@ namespace GraphQlTools\Test;
 
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Test\Dummies\Schema\QueryType;
-use GraphQlTools\TypeRepository;
+use GraphQlTools\TypeRegistry;
 use GraphQlTools\Utility\Types;
 use PHPUnit\Framework\TestCase;
 
 final class TypeRepositoryTest extends TestCase {
 
-    private TypeRepository $repository;
+    private TypeRegistry $repository;
 
     protected function setUp(): void {
-        $this->repository = new TypeRepository([
+        $this->repository = new TypeRegistry([
             QueryType::typeName() => QueryType::class
         ]);
     }

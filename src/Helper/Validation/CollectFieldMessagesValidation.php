@@ -73,11 +73,6 @@ class CollectFieldMessagesValidation extends ValidationRule
                     $this->messages[] = Message::deprecated($field->name, $parentType, $reason);
                 }
 
-                if (Fields::isBetaField($field)) {
-                    $parentName = self::getParentName($parentType);
-                    $this->messages[] = Message::beta($field->name, $parentName);
-                }
-
                 if ($notice = Fields::getFieldNotice($field)) {
                     $this->messages[] = Message::notice($notice);
                 }

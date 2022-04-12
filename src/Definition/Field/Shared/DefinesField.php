@@ -7,7 +7,7 @@ use DateTimeInterface;
 trait DefinesField
 {
     protected string|null $description = null;
-    protected bool $isBeta = false;
+    protected mixed $schemaVariant = null;
     protected bool $automaticallyRemoveIfPast = false;
     protected string|bool $deprecatedReason = false;
     protected DateTimeInterface|null $removalDate = null;
@@ -15,6 +15,11 @@ trait DefinesField
     final public function withDescription(string $description): static
     {
         $this->description = $description;
+        return $this;
+    }
+
+    final public function ofSchemaVariant(mixed $variant): static {
+        $this->schemaVariant = $variant;
         return $this;
     }
 
@@ -31,11 +36,6 @@ trait DefinesField
         return $this->automaticallyRemoveIfPast
             && $this->removalDate
             && $this->removalDate->getTimestamp() < time();
-    }
-
-    private function isDeprecated(): bool
-    {
-        return !!$this->deprecatedReason;
     }
 
     final protected function computeDeprecationReason(): ?string
@@ -64,15 +64,16 @@ trait DefinesField
             $descriptionParts[] = $this->computeDeprecatedDescriptionMessage();
         }
 
-        if ($this->isBeta) {
-            $descriptionParts[] = '**BETA**:';
-        }
-
         if ($this->description) {
             $descriptionParts[] = $this->description;
         }
 
         return empty($descriptionParts) ? null : implode(' ', $descriptionParts);
+    }
+
+    private function isDeprecated(): bool
+    {
+        return !!$this->deprecatedReason;
     }
 
 }

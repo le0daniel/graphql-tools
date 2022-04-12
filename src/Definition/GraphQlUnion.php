@@ -9,7 +9,7 @@ use GraphQL\Type\Definition\UnionType;
 use GraphQlTools\Definition\Shared\DefinesTypes;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\ResolvesType;
-use GraphQlTools\TypeRepository;
+use GraphQlTools\TypeRegistry;
 use GraphQlTools\Utility\Classes;
 
 abstract class GraphQlUnion extends UnionType
@@ -19,7 +19,7 @@ abstract class GraphQlUnion extends UnionType
     private const CLASS_POSTFIX = 'Union';
 
     final public function __construct(
-        private TypeRepository $typeRepository
+        private TypeRegistry $typeRepository
     )
     {
         parent::__construct(

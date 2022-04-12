@@ -9,7 +9,7 @@ use GraphQlTools\Definition\Field\GraphQlField;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\DefinesFields;
 use GraphQlTools\Definition\Shared\ResolvesType;
-use GraphQlTools\TypeRepository;
+use GraphQlTools\TypeRegistry;
 use GraphQlTools\Utility\Classes;
 
 abstract class GraphQlInterface extends InterfaceType {
@@ -25,7 +25,7 @@ abstract class GraphQlInterface extends InterfaceType {
      */
     abstract protected function fields(): array;
 
-    final public function __construct(private TypeRepository $typeRepository) {
+    final public function __construct(private TypeRegistry $typeRepository) {
         parent::__construct(
             [
                 'name' => static::typeName(),

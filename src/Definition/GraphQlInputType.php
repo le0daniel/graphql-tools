@@ -7,7 +7,7 @@ namespace GraphQlTools\Definition;
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQlTools\Definition\Shared\DefinesFields;
 use GraphQlTools\Definition\Shared\HasDescription;
-use GraphQlTools\TypeRepository;
+use GraphQlTools\TypeRegistry;
 use GraphQlTools\Utility\Classes;
 
 abstract class GraphQlInputType extends InputObjectType {
@@ -15,7 +15,7 @@ abstract class GraphQlInputType extends InputObjectType {
 
     private const CLASS_POSTFIX = 'Type';
 
-    final public function __construct(private TypeRepository $typeRepository){
+    final public function __construct(private TypeRegistry $typeRepository){
         parent::__construct(
             [
                 'name' => static::typeName(),

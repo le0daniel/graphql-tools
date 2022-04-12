@@ -4,7 +4,7 @@ namespace GraphQlTools\Definition\Field\Shared;
 
 use GraphQlTools\Definition\Field\Argument;
 use GraphQlTools\Definition\Field\InvalidArgumentException;
-use GraphQlTools\TypeRepository;
+use GraphQlTools\TypeRegistry;
 use Throwable;
 
 trait DefinesArguments
@@ -18,7 +18,7 @@ trait DefinesArguments
         return $this;
     }
 
-    final protected function buildArguments(TypeRepository $typeRepository): ?array
+    final protected function buildArguments(TypeRegistry $typeRepository): ?array
     {
         if (empty($this->arguments)) {
             return null;

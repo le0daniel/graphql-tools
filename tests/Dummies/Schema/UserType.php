@@ -8,7 +8,7 @@ use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\Field\Argument;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlType;
-use GraphQlTools\TypeRepository;
+use GraphQlTools\TypeRegistry;
 
 final class UserType extends GraphQlType {
 
@@ -26,7 +26,7 @@ final class UserType extends GraphQlType {
                 ->resolvedBy(fn($data, array $arguments) => $arguments['name'] ?? 'no name given'),
 
             Field::withName('data')
-                ->ofType(fn(TypeRepository $typeRepository) => $typeRepository->type(JsonScalar::class))
+                ->ofType(fn(TypeRegistry $typeRepository) => $typeRepository->type(JsonScalar::class))
                 ->resolvedBy(fn() => ['test' => ['json' => [1, 2, 3, 4]]])
             ,
         ];

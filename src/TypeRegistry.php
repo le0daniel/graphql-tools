@@ -23,7 +23,7 @@ use ReflectionClass;
 use ReflectionException;
 use RuntimeException;
 
-class TypeRepository {
+class TypeRegistry {
 
     private const CLASS_MAP_INSTANCES = [
         GraphQlType::class,
@@ -95,11 +95,11 @@ class TypeRepository {
      *
      * You might want to only expose types which are public and not in beta for example.
      *
-     * @param bool $isBeta
+     * @param mixed $schemaVariant
      * @param mixed $fieldMetadata
      * @return bool
      */
-    public function shouldHideField(bool $isBeta, mixed $fieldMetadata): bool {
+    public function shouldHideField(mixed $schemaVariant, mixed $fieldMetadata): bool {
         return false;
     }
 
@@ -108,11 +108,11 @@ class TypeRepository {
      *
      * You might want to only expose types which are public and not in beta for example.
      *
-     * @param bool $isBeta
+     * @param mixed $schemaVariant
      * @param mixed $fieldMetadata
      * @return bool
      */
-    public function shouldHideInputField(bool $isBeta, mixed $fieldMetadata): bool {
+    public function shouldHideInputField(mixed $schemaVariant, mixed $fieldMetadata): bool {
         return false;
     }
 

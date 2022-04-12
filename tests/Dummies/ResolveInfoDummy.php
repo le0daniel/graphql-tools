@@ -6,7 +6,7 @@ namespace GraphQlTools\Test\Dummies;
 
 use GraphQL\Type\Definition\FieldDefinition;
 use \GraphQL\Type\Definition\ResolveInfo as BaseResolveInfo;
-use GraphQlTools\TypeRepository;
+use GraphQlTools\TypeRegistry;
 
 final class ResolveInfoDummy {
 
@@ -24,7 +24,7 @@ final class ResolveInfoDummy {
         $instance = $reflection->newInstanceWithoutConstructor();
         $instance->path = $path;
         $instance->fieldName = 'TestFieldName';
-        $instance->parentType = new $parentTypeClass(new TypeRepository([]));
+        $instance->parentType = new $parentTypeClass(new TypeRegistry([]));
         $instance->fieldDefinition = FieldDefinition::create(
             [
                 'deprecationReason' => $deprecationReason,

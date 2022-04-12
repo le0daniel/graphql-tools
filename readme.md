@@ -26,13 +26,13 @@ Everything begins by defining a new Type Repository. The Type Repository makes s
 
 ```php
 <?php
-    use GraphQlTools\Context;use GraphQlTools\Helper\QueryExecutor;use GraphQlTools\TypeRepository;
+    use GraphQlTools\Context;use GraphQlTools\Helper\QueryExecutor;use GraphQlTools\TypeRegistry;
     require_once __DIR__ . '/vendor/autoload.php';   
 
     // Extend this class to implement specific methods
-    $typeRepository = new TypeRepository(
+    $typeRepository = new TypeRegistry(
         // This should be cached for production, usually in build process
-        TypeRepository::createTypeMapFromDirectory(__DIR__ . '/YOUR_DIRECTORY_WITH_ALL_TYPE_DECLARATIONS')
+        TypeRegistry::createTypeMapFromDirectory(__DIR__ . '/YOUR_DIRECTORY_WITH_ALL_TYPE_DECLARATIONS')
     );
 
     $executor = new QueryExecutor(
@@ -63,9 +63,9 @@ The Type Repository's job is to ensure that types are only created once.
 When defining fields with custom types, you must use the TypeRepository.
 
 ```php
-    use GraphQlTools\TypeRepository;
-    $typeRepository = new TypeRepository(
-        TypeRepository::createTypeMapFromDirectory(__DIR__ . '/YOUR_DIRECTORY_WITH_ALL_TYPE_DECLARATIONS')
+    use GraphQlTools\TypeRegistry;
+    $typeRepository = new TypeRegistry(
+        TypeRegistry::createTypeMapFromDirectory(__DIR__ . '/YOUR_DIRECTORY_WITH_ALL_TYPE_DECLARATIONS')
     );
 
     // This will return the instance of the Root Query Type
@@ -135,7 +135,7 @@ Full example of Type definition:
     use GraphQL\Type\Definition\Type;
     use GraphQlTools\Definition\GraphQlType;
     use GraphQlTools\Definition\Field\Field;
-    use GraphQlTools\TypeRepository;
+    use GraphQlTools\TypeRegistry;
     use GraphQlTools\Definition\Field\DeferredField;
     use GraphQlTools\Definition\Field\Argument;
     
@@ -156,7 +156,7 @@ Full example of Type definition:
                 
                 // Define custom types using the repository
                 Field::withName('customType')
-                    ->ofType(fn(TypeRepository $typeRepository) => $typeRepository->type(MyCustomTypeClass::class)),
+                    ->ofType(fn(TypeRegistry $typeRepository) => $typeRepository->type(MyCustomTypeClass::class)),
                 
                 // With custom resolver
                 Field::withName('sameCustomType')
@@ -191,7 +191,7 @@ Full example of Type definition:
         protected function interfaces() : array{
             return [
                 MamelType::class,
-                fn(TypeRepository $typeRepository) => $typeRepository->type(MyType::class),
+                fn(TypeRegistry $typeRepository) => $typeRepository->type(MyType::class),
             ];
         }
         

@@ -5,9 +5,9 @@ namespace GraphQlTools\Definition\Shared;
 use Closure;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\DefinitionException;
-use GraphQlTools\TypeRepository;
+use GraphQlTools\TypeRegistry;
 
-/** @property-read  TypeRepository $typeRepository */
+/** @property-read  TypeRegistry $typeRepository */
 trait DefinesTypes
 {
     protected function initTypes(array $typeDeclarations): array {

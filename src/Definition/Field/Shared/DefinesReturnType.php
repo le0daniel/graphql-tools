@@ -5,7 +5,7 @@ namespace GraphQlTools\Definition\Field\Shared;
 use Closure;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\DefinitionException;
-use GraphQlTools\TypeRepository;
+use GraphQlTools\TypeRegistry;
 
 trait DefinesReturnType
 {
@@ -18,7 +18,7 @@ trait DefinesReturnType
         return $this;
     }
 
-    final protected function resolveReturnType(TypeRepository $repository): mixed
+    final protected function resolveReturnType(TypeRegistry $repository): mixed
     {
         if ($this->ofType instanceof Type) {
             return $this->ofType;

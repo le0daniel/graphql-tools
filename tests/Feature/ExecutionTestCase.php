@@ -8,16 +8,16 @@ use GraphQL\Executor\ExecutionResult;
 use GraphQlTools\Context;
 use GraphQlTools\Helper\Extension\Tracing;
 use GraphQlTools\Helper\QueryExecutor;
-use GraphQlTools\TypeRepository;
+use GraphQlTools\TypeRegistry;
 use PHPUnit\Framework\TestCase;
 
 abstract class ExecutionTestCase extends TestCase {
     /**
      * Must return an instance of a repository
      *
-     * @return TypeRepository
+     * @return TypeRegistry
      */
-    abstract protected function typeRepository(bool $withMetadataIntrospection = true): TypeRepository;
+    abstract protected function typeRepository(bool $withMetadataIntrospection = true): TypeRegistry;
 
     /**
      * Defines the root query type

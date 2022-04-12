@@ -5,7 +5,7 @@ namespace GraphQlTools\Test\Definition\Field;
 use DateTime;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\Field\InputField;
-use GraphQlTools\TypeRepository;
+use GraphQlTools\TypeRegistry;
 use PHPUnit\Framework\TestCase;
 
 class InputFieldTest extends TestCase
@@ -16,7 +16,7 @@ class InputFieldTest extends TestCase
         self::assertIsArray(
             InputField::withName('test')
                 ->ofType(Type::id())
-                ->toInputFieldDefinitionArray(new TypeRepository([]))
+                ->toInputFieldDefinitionArray(new TypeRegistry([]))
         );
     }
 
@@ -26,7 +26,7 @@ class InputFieldTest extends TestCase
             InputField::withName('test')
                 ->ofType(Type::id())
                 ->deprecated('', new DateTime('2020-10-10'), true)
-                ->toInputFieldDefinitionArray(new TypeRepository([]))
+                ->toInputFieldDefinitionArray(new TypeRegistry([]))
         );
     }
 }

@@ -6,15 +6,15 @@ namespace GraphQlTools\Test\Feature;
 
 use GraphQlTools\Context;
 use GraphQlTools\Test\Dummies\Schema\QueryType;
-use GraphQlTools\TypeRepository;
+use GraphQlTools\TypeRegistry;
 
 class QueryTest extends ExecutionTestCase
 {
 
-    protected function typeRepository(bool $withMetadataIntrospection = true): TypeRepository
+    protected function typeRepository(bool $withMetadataIntrospection = true): TypeRegistry
     {
-        return new TypeRepository(
-            TypeRepository::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema', $withMetadataIntrospection)
+        return new TypeRegistry(
+            TypeRegistry::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema', $withMetadataIntrospection)
         );
     }
 

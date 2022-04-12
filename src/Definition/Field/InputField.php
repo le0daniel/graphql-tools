@@ -5,7 +5,7 @@ namespace GraphQlTools\Definition\Field;
 use GraphQlTools\Definition\Field\Shared\DefinesField;
 use GraphQlTools\Definition\Field\Shared\DefinesMetadata;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
-use GraphQlTools\TypeRepository;
+use GraphQlTools\TypeRegistry;
 use GraphQlTools\Utility\Fields;
 
 class InputField
@@ -27,9 +27,9 @@ class InputField
         return $this;
     }
 
-    final public function toInputFieldDefinitionArray(TypeRepository $repository): ?array
+    final public function toInputFieldDefinitionArray(TypeRegistry $repository): ?array
     {
-        if ($this->hideBecauseOfDeprecation() || $repository->shouldHideInputField($this->isBeta, $this->metadata)) {
+        if ($this->hideBecauseOfDeprecation() || $repository->shouldHideInputField($this->schemaVariant, $this->metadata)) {
             return null;
         }
 
@@ -39,7 +39,7 @@ class InputField
             'type' => $this->resolveReturnType($repository),
             'defaultValue' => $this->defaultValue,
             'deprecatedReason' => $this->computeDeprecationReason(),
-            Fields::BETA_FIELD_CONFIG_KEY => $this->isBeta,
+            Fields::SCHEMA_VARIANT => $this->schemaVariant,
             Fields::METADATA_CONFIG_KEY => $this->metadata,
         ];
     }
