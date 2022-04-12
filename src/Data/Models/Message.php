@@ -6,7 +6,10 @@ declare(strict_types=1);
 namespace GraphQlTools\Data\Models;
 
 
+use GraphQL\Type\Definition\CompositeType;
+use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\ResolveInfo;
+use GraphQL\Type\Definition\Type;
 use GraphQlTools\Utility\Paths;
 use JsonSerializable;
 
@@ -58,10 +61,17 @@ final class Message extends Holder
         ]);
     }
 
-    public static function deprecated(string $fieldName, string $parentName, string $reason): static
+    public static function deprecated(string $fieldName, Type|string|null $parent, string $reason): static
     {
+        $parentName = is_string($parent)
+            ? $parent
+            : $parent?->name;
+        $isOnInterface = $parent instanceof InterfaceType;
+
         return new self([
-            'message' => "Deprecated field used at `{$parentName}.{$fieldName}`: $reason",
+            'message' => $isOnInterface
+                ? "Deprecated field used on interface at `{$parentName}.{$fieldName}`: {$reason}"
+                : "Deprecated field used at `{$parentName}.{$fieldName}`: {$reason}",
             'type' => self::TYPE_DEPRECATION
         ]);
     }

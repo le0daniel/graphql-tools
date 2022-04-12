@@ -21,15 +21,15 @@ final class FieldMetadataType extends GraphQlType
         return [
             Field::withName('name')
                 ->ofType(Type::nonNull(Type::string()))
-                ->mappedBy(static fn(FieldDefinition $definition): string => $definition->name)
+                ->resolvedBy(static fn(FieldDefinition $definition): string => $definition->name)
             ,
             Field::withName('type')
                 ->ofType(Type::nonNull(Type::string()))
-                ->mappedBy(static fn(FieldDefinition $definition): string => (string) $definition->getType()),
+                ->resolvedBy(static fn(FieldDefinition $definition): string => (string) $definition->getType()),
 
             Field::withName('metadata')
                 ->ofType(MetadataScalar::class)
-                ->mappedBy(static fn(FieldDefinition $definition) => $definition->config[Fields::METADATA_CONFIG_KEY] ?? null),
+                ->resolvedBy(static fn(FieldDefinition $definition) => $definition->config[Fields::METADATA_CONFIG_KEY] ?? null),
         ];
     }
 

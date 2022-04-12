@@ -2,10 +2,11 @@
 
 namespace GraphQlTools\Definition\Field;
 
+use Exception;
 use GraphQL\Error\ClientAware;
 use Throwable;
 
-final class InvalidArgumentException extends \Exception implements ClientAware
+final class InvalidArgumentException extends Exception implements ClientAware
 {
 
     public function __construct(string $fieldName, string $message, Throwable $previous)

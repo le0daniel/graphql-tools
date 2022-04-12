@@ -41,7 +41,7 @@ trait DefinesFields
         return $initializedInputFields;
     }
 
-    private function initFields(array $fields): array
+    private function initFields(array $fields, bool $hideFieldsForInterface = false): array
     {
         $this->fieldAreInitialized = true;
         $allDeclaredFields = array_merge($fields, $this->fieldsToAppend);
@@ -61,7 +61,7 @@ trait DefinesFields
                 continue;
             }
 
-            $initializedFields[] = $fieldDeclaration->toFieldDefinition($this->typeRepository);
+            $initializedFields[] = $fieldDeclaration->toFieldDefinition($this->typeRepository, $hideFieldsForInterface);
             // Lazy init fields if needed.
             // $initializedFields[$fieldDeclaration->name] = fn() => $fieldDeclaration->toFieldDefinition($this->typeRepository);
         }

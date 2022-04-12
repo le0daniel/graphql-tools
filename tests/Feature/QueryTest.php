@@ -112,21 +112,6 @@ class QueryTest extends ExecutionTestCase
         self::assertNull($result->data);
     }
 
-    public function testDeferredField(): void {
-        $result = $this->execute('
-            query {
-                animals {
-                    ... on Tiger {
-                        deferred
-                    }
-                }
-            }
-        ');
-
-        self::assertEquals('My Deferred', $result->data['animals'][1]['deferred']);
-        self::assertEquals('Second Deferred', $result->data['animals'][2]['deferred']);
-    }
-
     public function testFieldMetadata(): void
     {
         $result = $this->execute('

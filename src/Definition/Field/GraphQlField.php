@@ -31,11 +31,11 @@ abstract class GraphQlField
         return $this->hideBecauseOfDeprecation() || $repository->shouldHideField($this->isBeta, $this->metadata);
     }
 
-    final public function toFieldDefinition(TypeRepository $repository): FieldDefinition
+    final public function toFieldDefinition(TypeRepository $repository, bool $withoutResolver = false): FieldDefinition
     {
         return FieldDefinition::create([
             'name' => $this->name,
-            'resolve' => $this->getResolver(),
+            'resolve' => $withoutResolver ? null : $this->getResolver(),
             'type' => $this->resolveReturnType($repository),
             'deprecationReason' => $this->computeDeprecationReason(),
             'description' => $this->computeDescription(),

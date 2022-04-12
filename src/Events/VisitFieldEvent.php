@@ -6,7 +6,7 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\Event;
 
 /**
- * @method create(mixed $typeData, array $arguments, ResolveInfo $resolveInfo)
+ * @method static create(mixed $typeData, array $arguments, ResolveInfo $resolveInfo)
  */
 final class VisitFieldEvent extends Event
 {

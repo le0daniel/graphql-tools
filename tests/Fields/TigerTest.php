@@ -6,6 +6,7 @@ use GraphQlTools\Data\Models\Holder;
 use GraphQlTools\Helper\TypeTestCase;
 use GraphQlTools\Test\Dummies\HolderDummy;
 use GraphQlTools\Test\Dummies\Schema\TigerType;
+use Throwable;
 
 class TigerTest extends TypeTestCase
 {
@@ -17,30 +18,25 @@ class TigerTest extends TypeTestCase
 
     public function testSoundField()
     {
-        $result = $this->visitField('sound', ['sound' => 'true']);
+        $result = $this->field('sound')->visit(['sound' => 'true']);
         $this->assertEquals('true', $result);
     }
 
     public function testDeferredField()
     {
-        $result = $this->visitField('deferred', ['id' => 2]);
+        $result = $this->field('deferred')
+            ->mockedDataloader('test', fn() => [
+                2 => 'My Deferred',
+                3 => 'Second Deferred'
+            ])
+            ->visit(['id' => 2]);
         $this->assertEquals('My Deferred', $result);
     }
 
     public function testFieldWithArgs()
     {
-        $this->expectVisitException("Validation failed for 'test': Failed", 'withArg', null, []);
-        $this->assertEquals('success', $this->visitField('withArg', null, ['test' => 'success']));
-    }
-
-    public function testFieldWithInjections() {
-        $result = $this->visitField(
-            'fieldWithInjections',
-            [],
-            [],
-            $this->contextWithMocks([HolderDummy::class => HolderDummy::create(['result' => 'result'])])
-        );
-
-        self::assertEquals('result', $result);
+        $this->expectException(Throwable::class);
+        $this->expectExceptionMessage("Validation failed for 'test': Failed");
+        $this->field('withArg')->visit(null, ['test2' => 'success']);
     }
 }

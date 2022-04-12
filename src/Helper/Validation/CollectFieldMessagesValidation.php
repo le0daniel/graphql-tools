@@ -13,6 +13,8 @@ use GraphQL\Type\Definition\EnumValueDefinition;
 use GraphQL\Type\Definition\FieldArgument;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\InputObjectType;
+use GraphQL\Type\Definition\InterfaceType;
+use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Validator\Rules\ValidationRule;
 use GraphQL\Validator\ValidationContext;
 use GraphQlTools\Data\Models\Message;
@@ -63,14 +65,16 @@ class CollectFieldMessagesValidation extends ValidationRule
                     return;
                 }
 
+                /** @var ObjectType|InterfaceType $parentType */
+                $parentType = $context->getParentType();
+
                 if ($field->isDeprecated()) {
-                    $parentName = self::getParentName($context->getParentType());
                     $reason = $field->deprecationReason ?? '-- No specific Reason Provided --';
-                    $this->messages[] = Message::deprecated($field->name, $parentName, $reason);
+                    $this->messages[] = Message::deprecated($field->name, $parentType, $reason);
                 }
 
                 if (Fields::isBetaField($field)) {
-                    $parentName = self::getParentName($context->getParentType());
+                    $parentName = self::getParentName($parentType);
                     $this->messages[] = Message::beta($field->name, $parentName);
                 }
 

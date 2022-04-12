@@ -16,18 +16,18 @@ final class UserType extends GraphQlType {
         return [
             Field::withName('id')
                 ->ofType(Type::id())
-                ->mappedBy(fn($data) => $data['id']),
+                ->resolvedBy(fn($data) => $data['id']),
 
             Field::withName('name')
                 ->ofType(Type::nonNull(Type::string()))
                 ->withArguments(
                     Argument::withName('name')->ofType( Type::string())
                 )
-                ->mappedBy(fn($data, array $arguments) => $arguments['name'] ?? 'no name given'),
+                ->resolvedBy(fn($data, array $arguments) => $arguments['name'] ?? 'no name given'),
 
             Field::withName('data')
                 ->ofType(fn(TypeRepository $typeRepository) => $typeRepository->type(JsonScalar::class))
-                ->mappedBy(fn() => ['test' => ['json' => [1, 2, 3, 4]]])
+                ->resolvedBy(fn() => ['test' => ['json' => [1, 2, 3, 4]]])
             ,
         ];
     }

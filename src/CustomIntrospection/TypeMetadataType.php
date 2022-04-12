@@ -47,7 +47,7 @@ final class TypeMetadataType extends GraphQlType
                         return $typeName;
                     })
             )
-            ->mappedBy(static function ($data, array $arguments) use ($typeRepository): ?Type {
+            ->resolvedBy(static function ($data, array $arguments) use ($typeRepository): ?Type {
                 return Types::enforceTypeLoading($typeRepository->type($arguments['name']));
             });
     }
@@ -57,22 +57,22 @@ final class TypeMetadataType extends GraphQlType
         return [
             Field::withName('name')
                 ->ofType(Type::nonNull(Type::string()))
-                ->mappedBy(static fn(ObjectType $type): string => $type->name),
+                ->resolvedBy(static fn(ObjectType $type): string => $type->name),
 
             Field::withName('metadata')
                 ->ofType(MetadataScalar::class)
-                ->mappedBy(static fn(ObjectType $type): mixed => $type->config[Fields::METADATA_CONFIG_KEY] ?? null),
+                ->resolvedBy(static fn(ObjectType $type): mixed => $type->config[Fields::METADATA_CONFIG_KEY] ?? null),
 
             Field::withName('fields')
                 ->ofType(fn(TypeRepository $typeRepository) => new ListOfType($typeRepository->type(FieldMetadataType::class)))
-                ->mappedBy(static fn(ObjectType $type): array => $type->getFields())
+                ->resolvedBy(static fn(ObjectType $type): array => $type->getFields())
             ,
             Field::withName('fieldByName')
                 ->ofType(FieldMetadataType::class)
                 ->withArguments(
                     Argument::withName('name')->ofType(Type::nonNull(Type::string()))
                 )
-                ->mappedBy(static fn(ObjectType $type, array $arguments): ?FieldDefinition => $type->findField($arguments['name']))
+                ->resolvedBy(static fn(ObjectType $type, array $arguments): ?FieldDefinition => $type->findField($arguments['name']))
             ,
         ];
     }

@@ -5,10 +5,15 @@ declare(strict_types=1);
 namespace GraphQlTools;
 
 use GraphQL\Type\Definition\ResolveInfo;
+use GraphQlTools\Contract\DataLoader;
+use GraphQlTools\Contract\ExecutableByDataLoader;
 use GraphQlTools\Utility\Injections;
+use GraphQlTools\Utility\Paths;
 
 class Context
 {
+    private array $dataLoaders = [];
+
     /**
      * Return an instance of a class given it's type name. This is very useful for
      * service injection on Aggregated Loading Functions or Mutation fields.
@@ -20,22 +25,23 @@ class Context
         return null;
     }
 
-    /**
-     * Every resolve function of a contextual loader can be called by the context, so
-     * that you have the opportunity to inject additional services.
-     *
-     * You might want to inject all arguments, but this will force you to use the names
-     * correctly. Therefor the solution here only injects arguments after the provided
-     * positional arguments
-     *
-     * @param callable $aggregatedLoadingFunction
-     * @param array $aggregatedData
-     * @param array $arguments
-     * @return mixed
-     */
-    public function executeResolveDataFunction(callable $aggregatedLoadingFunction, array $aggregatedData, array $arguments): mixed
-    {
-        return Injections::withPositionalArguments($aggregatedLoadingFunction, [$aggregatedData, $arguments, $this], $this->injectInstance(...));
+    protected function makeInstanceOfDataLoaderExecutor(string $className): ExecutableByDataLoader {
+        return new $className;
+    }
+
+    private function computeDataLoaderKey(string $executorClassName, array $arguments, ResolveInfo $resolveInfo): string {
+        $path = Paths::toString($resolveInfo->path);
+        $encodedArguments = json_encode($arguments, JSON_THROW_ON_ERROR);
+        return "{$executorClassName}:{$path}:{$encodedArguments}";
+    }
+
+    final public function withDataLoader(string $executorClassName, array $arguments, ResolveInfo $resolveInfo): DataLoader {
+        $key = $this->computeDataLoaderKey($executorClassName, $arguments, $resolveInfo);
+        if (!isset($this->dataLoaders[$key])) {
+            $this->dataLoaders[$key] = new DataLoader($this->makeInstanceOfDataLoaderExecutor($executorClassName), $arguments);
+        }
+
+        return $this->dataLoaders[$key];
     }
 
     /**
