@@ -38,23 +38,6 @@ class CollectFieldMessagesValidation extends ValidationRule
         return $parent ? $parent->name : '';
     }
 
-    private function inspectObjectInputForDeprecations(ObjectValueNode $node, ValidationContext $context): void
-    {
-        /** @var InputObjectType $type */
-        $type = $context->getInputType();
-
-        foreach ($node->fields as $inputField) {
-            $field = $type->getField($inputField->name->value);
-
-            $deprecationReason = $field->config['deprecatedReason'] ?? false;
-            $isDeprecated = !!$deprecationReason;
-
-            if ($isDeprecated) {
-                var_dump("Deprecated Input field used: {$type->name}.{$field->name}");
-            }
-        }
-    }
-
     public function getVisitor(ValidationContext $context)
     {
         return [
@@ -103,11 +86,6 @@ class CollectFieldMessagesValidation extends ValidationRule
 
                 $deprecationReason = $argument->config['deprecatedReason'] ?? false;
                 $isDeprecated = !!$deprecationReason;
-
-                // $isObjectInput = $node->value instanceof ObjectValueNode;
-                // if ($isObjectInput && $this->recursivelyInspectInputObjectForDeprecations) {
-                //     $this->inspectObjectInputForDeprecations($node->value, $context);
-                // }
 
                 if (!$isDeprecated) {
                     return;

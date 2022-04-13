@@ -6,10 +6,9 @@ use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
 use GraphQlTools\Contract\ExecutableByDataLoader;
-use GraphQlTools\Definition\Field\GraphQlField;
+use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
-use ReflectionClass;
-use ReflectionObject;
+use GraphQlTools\TypeRegistry;
 use RuntimeException;
 use Throwable;
 
@@ -21,31 +20,20 @@ class FieldTestCase
     {
     }
 
-    private function getField(): GraphQlField
-    {
-        $typeReflection = new ReflectionClass($this->className);
-        $type = $typeReflection->newInstanceWithoutConstructor();
-
-        $fieldsMethod = $typeReflection->getMethod('fields');
-        $fieldsMethod->setAccessible(true);
-
-        /** @var GraphQlField $field */
-        foreach ($fieldsMethod->invoke($type) as $field) {
-            if ($field->name === $this->fieldName) {
-                return $field;
+    private function mockedTypeRegistry(): TypeRegistry {
+        return new class () extends TypeRegistry {
+            public function __construct()
+            {
+                parent::__construct([]);
             }
-        }
-
-        throw new RuntimeException("Could not find field with name '{$this->fieldName}' on type '{$this->className}'");
-
+        };
     }
 
-    private function getFieldResolver(GraphQlField $field): callable {
-        $fieldReflection = new ReflectionObject($field);
-
-        $resolverMethod = $fieldReflection->getMethod('getResolver');
-        $resolverMethod->setAccessible(true);
-        return $resolverMethod->invoke($field);
+    private function getFieldResolver(): callable {
+        /** @var GraphQlType $type */
+        $type = new ($this->className)($this->mockedTypeRegistry());
+        $field = $type->findField($this->fieldName);
+        return $field->resolveFn;
     }
 
     private function defaultResolveInfo(): ResolveInfo {
@@ -105,8 +93,7 @@ class FieldTestCase
 
     public function visit(mixed $rootData, array $arguments = [], ?Context $context = null, ?ResolveInfo $resolveInfo = null)
     {
-        $field = $this->getField();
-        $resolver = $this->getFieldResolver($field);
+        $resolver = $this->getFieldResolver();
         $resolveInfo ??= $this->defaultResolveInfo();
         $context ??= $this->buildDefaultContext();
         $operationContext = new OperationContext($context, new Extensions());
