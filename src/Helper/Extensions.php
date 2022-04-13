@@ -9,8 +9,9 @@ use GraphQlTools\Contract\Extension;
 use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
+use JsonSerializable;
 
-final class Extensions implements \JsonSerializable
+final class Extensions implements JsonSerializable
 {
 
     /** @var Extension[] */
