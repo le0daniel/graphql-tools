@@ -8,6 +8,7 @@ use GraphQL\Deferred;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQlTools\Contract\Extension;
+use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Helper\Extensions;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
@@ -35,11 +36,13 @@ final class ProxyResolverTest extends TestCase {
 
         /** @var Extension $dummyExtension */
         $dummyExtension = $this->prophesize(Extension::class);
-        $dummyExtension->visitField(Argument::any(), Argument::any(), Argument::any(), Argument::any())
+        $operationContext = new OperationContext(new Context(), new Extensions($dummyExtension->reveal()));
+        $resolveInfo = ResolveInfoDummy::withDefaults();
+
+        $dummyExtension->visitField(Argument::type(VisitFieldEvent::class))
             ->willReturn(fn($value) => "Extension: {$value}");
 
-        $operationContext = new OperationContext(new Context(), new Extensions($dummyExtension->reveal()));
-        $result = $resolver(null, null, $operationContext, ResolveInfoDummy::withDefaults());
+        $result = $resolver(null, null, $operationContext, $resolveInfo);
         self::assertEquals('Value', $result);
     }
 
@@ -48,7 +51,7 @@ final class ProxyResolverTest extends TestCase {
 
         /** @var Extension $dummyExtension */
         $dummyExtension = $this->prophesize(Extension::class);
-        $dummyExtension->visitField(Argument::any(), Argument::any(), Argument::any(), Argument::any())
+        $dummyExtension->visitField(Argument::type(VisitFieldEvent::class))
             ->willReturn(fn($value) => "Extension: {$value}");
 
         $operationContext = new OperationContext(new Context(), new Extensions($dummyExtension->reveal()));

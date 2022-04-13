@@ -36,16 +36,11 @@ class FieldTestCase
         return $field->resolveFn;
     }
 
-    private function defaultResolveInfo(): ResolveInfo {
+    private function buildResolveInfo(): ResolveInfo {
         return ResolveInfoDummy::withDefaults(path: [
             bin2hex(random_bytes(12)),
             bin2hex(random_bytes(12))
         ]);
-    }
-
-    public function mockedDataloader(string $className, mixed $willReturn): self {
-        $this->dataLoaderMock[$className] = $willReturn;
-        return $this;
     }
 
     private function buildDataLoaderMocks(): array {
@@ -53,13 +48,15 @@ class FieldTestCase
         foreach ($this->dataLoaderMock as $key => $value) {
             $mocks[$key] = new class ($value) implements ExecutableByDataLoader {
 
-                public function __construct(private mixed $value)
+                public function __construct(private mixed $returnValue)
                 {
                 }
 
                 public function fetchData(array $queuedItems, array $arguments): mixed
                 {
-                    return is_callable($this->value) ? ($this->value)($queuedItems, $arguments) : $this->value;
+                    return is_callable($this->returnValue)
+                        ? ($this->returnValue)($queuedItems, $arguments)
+                        : $this->returnValue;
                 }
             };
         }
@@ -91,10 +88,15 @@ class FieldTestCase
         return $throwable;
     }
 
+    public function mockedDataloader(string $className, mixed $willReturn): self {
+        $this->dataLoaderMock[$className] = $willReturn;
+        return $this;
+    }
+
     public function visit(mixed $rootData, array $arguments = [], ?Context $context = null, ?ResolveInfo $resolveInfo = null)
     {
         $resolver = $this->getFieldResolver();
-        $resolveInfo ??= $this->defaultResolveInfo();
+        $resolveInfo ??= $this->buildResolveInfo();
         $context ??= $this->buildDefaultContext();
         $operationContext = new OperationContext($context, new Extensions());
 
