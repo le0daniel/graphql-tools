@@ -11,6 +11,8 @@ use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Utility\Paths;
+use JetBrains\PhpStorm\ArrayShape;
+use JetBrains\PhpStorm\Internal\TentativeType;
 use JsonSerializable;
 
 /**
@@ -20,45 +22,15 @@ use JsonSerializable;
  * @property-read string $message
  * @property-read string $type
  */
-final class Message extends Holder
+final class Message implements JsonSerializable
 {
-    public const TYPE_DEPRECATION = 'deprecation';
-    public const TYPE_BETA = 'beta';
-    public const TYPE_INFO = 'info';
-    public const TYPE_NOTICE = 'notice';
-
-    public static function beta(string $fieldName, string $parentName): static
+    public function __construct(public readonly string $message, public readonly string $type)
     {
-        return new self([
-            'message' =>
-                "You used the beta field `{$parentName}.{$fieldName}`: " .
-                "This field can still change without a notice. Make sure **not** to use this field / argument in production.",
-            'type' => self::TYPE_BETA,
-        ]);
-    }
-
-    public static function notice(string $notice): static
-    {
-        return new self([
-            'message' => $notice,
-            'type' => self::TYPE_NOTICE
-        ]);
-    }
-
-    public static function deprecatedEnumValue(string $enumName, string $valueName, string $reason): static
-    {
-        return new self([
-            'message' => "Deprecated enum value used `{$enumName}.{$valueName}`: $reason",
-            'type' => self::TYPE_DEPRECATION
-        ]);
     }
 
     public static function deprecatedArgument(string $fieldName, string $parentName, string $argumentName, string $reason): static
     {
-        return new self([
-            'message' => "Deprecated argument `{$argumentName}` used at `{$parentName}.{$fieldName}`: {$reason}",
-            'type' => self::TYPE_DEPRECATION
-        ]);
+        return new self("Deprecated argument `{$argumentName}` used at `{$parentName}.{$fieldName}`: {$reason}", 'deprecation');
     }
 
     public static function deprecated(string $fieldName, Type|string|null $parent, string $reason): static
@@ -68,11 +40,20 @@ final class Message extends Holder
             : $parent?->name;
         $isOnInterface = $parent instanceof InterfaceType;
 
-        return new self([
-            'message' => $isOnInterface
+        return new self(
+            $isOnInterface
                 ? "Deprecated field used on interface at `{$parentName}.{$fieldName}`: {$reason}"
                 : "Deprecated field used at `{$parentName}.{$fieldName}`: {$reason}",
-            'type' => self::TYPE_DEPRECATION
-        ]);
+            'deprecation'
+        );
+    }
+
+    #[ArrayShape(['message' => "string", 'type' => "string"])]
+    public function jsonSerialize(): array
+    {
+        return [
+            'message' => $this->message,
+            'type' => $this->type,
+        ];
     }
 }
