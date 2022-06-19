@@ -25,6 +25,53 @@ final class DataLoader
     {
     }
 
+    public function getLoadingTraces(): array
+    {
+        return $this->loadingTraces;
+    }
+
+    /**
+     * Defer the loading of an Item. An item *MUST* be an identifier (string|int), object or an array with
+     * a property called 'id' for identification.
+     *
+     * To defer loading of items containing arguments, you can use something similar to:
+     * `$dataLoader->load(['id' => 1, 'args' => [...]])`
+     * Then make sure that the data loader returns a data structure where the value can be accessed as
+     * $data[$item['id']]. In case you enqueue an object, return an SqlObjectStorage instance.
+     *
+     * @param mixed $item
+     * @return SyncPromise
+     */
+    public function load(mixed $item): SyncPromise
+    {
+        $this->clearLoadedDataIfNeeded();
+        $this->verifyArrayItemsContainIdentifier($item);
+        $this->queuedItems[] = &$item;
+
+        // If an array is given, an identifier is required to map to the correct data. This is due
+        // to arrays being passed as values and not as references.
+        $identifier = is_array($item) ? $item[self::IDENTIFIER_ARRAY_KEY] : $item;
+
+        return new Deferred(function () use (&$identifier) {
+            $this->loadDataOnce();
+            $this->throwOnDataLoadingError();
+
+            $valueOrThrowable = $this->loadedData[$identifier] ?? null;
+
+            // For a throwable which is an instance
+            if ($valueOrThrowable instanceof Throwable) {
+                throw $valueOrThrowable;
+            }
+            return $valueOrThrowable;
+        });
+    }
+
+    public function loadMany(mixed ...$items): SyncPromise
+    {
+        $promises = array_map(fn(mixed $item): SyncPromise => $this->load($item), $items);
+        return new SyncPromise(static fn() => $promises);
+    }
+
     private function traceDataLoading(int $duration): void
     {
         $this->loadingTraces[] = [
@@ -48,6 +95,10 @@ final class DataLoader
 
     private function throwOnDataLoadingError(): void
     {
+        if ($this->loadedData === null) {
+            throw new RuntimeException("Loaded data is unexpectedly NULL.");
+        }
+
         if ($this->loadedData instanceof Throwable) {
             throw $this->loadedData;
         }
@@ -62,11 +113,13 @@ final class DataLoader
         $startTime = Time::nanoSeconds();
 
         try {
-            $result = $this->loadData($this->unqueueItems());
-            if ($result === null) {
-                throw new RuntimeException("DataLoader failed to load data. Expected not null, got null.");
+            $this->loadedData = $this->loadData($this->unqueueItems());
+            if ($this->loadedData === null) {
+                throw new RuntimeException(
+                    "DataLoader failed to load data, null is not an acceptable value, got: 'null'." . PHP_EOL .
+                    "Hint: Ensure that the loading function always returns a value which is not null, throw an error instead."
+                );
             }
-            $this->loadedData = $result;
         } catch (Throwable $exception) {
             $this->loadedData = $exception;
         } finally {
@@ -90,38 +143,5 @@ final class DataLoader
                 "Hint: Make sure to use \$dataLoader->load(['id' => 'yourID!', ...])."
             );
         }
-    }
-
-    public function getLoadingTraces(): array
-    {
-        return $this->loadingTraces;
-    }
-
-    final public function load(mixed $item): SyncPromise
-    {
-        $this->clearLoadedDataIfNeeded();
-        $this->verifyArrayItemsContainIdentifier($item);
-        $this->queuedItems[] = &$item;
-
-        // If an array is given, an identifier is required to map to the correct data. This is due
-        // to arrays being passed as values and not as references.
-        $identifier = is_array($item) ? $item[self::IDENTIFIER_ARRAY_KEY] : $item;
-
-        return new Deferred(function () use (&$identifier) {
-            $this->loadDataOnce();
-            $this->throwOnDataLoadingError();
-
-            $valueOrThrowable = $this->loadedData[$identifier] ?? null;
-            if ($valueOrThrowable instanceof Throwable) {
-                throw $valueOrThrowable;
-            }
-            return $valueOrThrowable;
-        });
-    }
-
-    final public function loadMany(mixed ...$items): SyncPromise
-    {
-        $promises = array_map(fn(mixed $item): SyncPromise => $this->load($item), $items);
-        return new SyncPromise(static fn() => $promises);
     }
 }
