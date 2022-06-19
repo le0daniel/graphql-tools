@@ -2,15 +2,17 @@
 
 namespace GraphQlTools\Utility;
 
+use Generator;
+
 final class Directories
 {
     /**
      * @param string $directory
      * @param string $regex
-     * @return \Generator|\SplFileInfo[]
+     * @return Generator|\SplFileInfo[]
      * @throws \Exception
      */
-    public static function fileIteratorWithRegex(string $directory, string $regex): \Generator {
+    public static function fileIteratorWithRegex(string $directory, string $regex): Generator {
         if (!is_dir($directory)) {
             throw new \Exception("Directory `{$directory}` does not exist");
         }
