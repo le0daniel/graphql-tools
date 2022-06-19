@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\Helper;
 
+use ArrayAccess;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
@@ -16,11 +17,12 @@ class FieldTestCase
 {
     private array $dataLoaderMock = [];
 
-    public function __construct(private string $className, private string $fieldName)
+    public function __construct(private readonly string $className, private readonly string $fieldName)
     {
     }
 
-    private function mockedTypeRegistry(): TypeRegistry {
+    private function mockedTypeRegistry(): TypeRegistry
+    {
         return new class () extends TypeRegistry {
             public function __construct()
             {
@@ -29,21 +31,24 @@ class FieldTestCase
         };
     }
 
-    private function getFieldResolver(): callable {
+    private function getFieldResolver(): callable
+    {
         /** @var GraphQlType $type */
         $type = new ($this->className)($this->mockedTypeRegistry());
         $field = $type->findField($this->fieldName);
         return $field->resolveFn;
     }
 
-    private function buildResolveInfo(): ResolveInfo {
+    private function buildResolveInfo(): ResolveInfo
+    {
         return ResolveInfoDummy::withDefaults(path: [
             bin2hex(random_bytes(12)),
             bin2hex(random_bytes(12))
         ]);
     }
 
-    private function buildDataLoaderMocks(): array {
+    private function buildDataLoaderMocks(): array
+    {
         $mocks = [];
         foreach ($this->dataLoaderMock as $key => $value) {
             $mocks[$key] = new class ($value) implements ExecutableByDataLoader {
@@ -52,10 +57,10 @@ class FieldTestCase
                 {
                 }
 
-                public function fetchData(array $queuedItems, array $arguments): mixed
+                public function fetchData(array $queuedItems): array|ArrayAccess
                 {
                     return is_callable($this->returnValue)
-                        ? ($this->returnValue)($queuedItems, $arguments)
+                        ? ($this->returnValue)($queuedItems)
                         : $this->returnValue;
                 }
             };
@@ -63,32 +68,35 @@ class FieldTestCase
         return $mocks;
     }
 
-    private function buildDefaultContext(): Context {
+    private function buildDefaultContext(): Context
+    {
         $mocks = $this->buildDataLoaderMocks();
         return new class ($mocks) extends Context {
             public function __construct(private array $mocks)
             {
             }
 
-            protected function makeInstanceOfDataLoaderExecutor(string $className): ExecutableByDataLoader
+            protected function makeInstanceOfDataLoaderExecutor(string $classNameOrLoaderName): ExecutableByDataLoader
             {
-                $instance = $this->mocks[$className] ?? null;
+                $instance = $this->mocks[$classNameOrLoaderName] ?? null;
                 if (!$instance) {
-                    throw new RuntimeException("No mock defined for '{$className}'");
+                    throw new RuntimeException("No mock defined for '{$classNameOrLoaderName}'");
                 }
                 return $instance;
             }
         };
     }
 
-    private static function rethrowThrowable(mixed $throwable): mixed {
+    private static function rethrowThrowable(mixed $throwable): mixed
+    {
         if ($throwable instanceof Throwable) {
             throw $throwable;
         }
         return $throwable;
     }
 
-    public function mockedDataloader(string $className, mixed $willReturn): self {
+    public function mockedDataloader(string $className, mixed $willReturn): self
+    {
         $this->dataLoaderMock[$className] = $willReturn;
         return $this;
     }
