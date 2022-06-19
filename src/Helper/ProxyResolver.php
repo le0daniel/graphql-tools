@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GraphQlTools\Helper;
 
 use ArrayAccess;
+use Closure;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Executor\Promise\Promise;
 use GraphQL\Type\Definition\ResolveInfo;
@@ -14,17 +15,13 @@ use Throwable;
 
 final class ProxyResolver
 {
-    /** @var callable|null */
-    private $resolveFunction;
-
-    public function __construct(?callable $resolveFunction = null)
+    public function __construct(private readonly ?Closure $resolveFunction = null)
     {
-        $this->resolveFunction = $resolveFunction;
     }
 
     public static function isPromise(mixed $potentialPromise): bool
     {
-        return $potentialPromise instanceof SyncPromise || $potentialPromise instanceof Promise;
+        return is_object($potentialPromise) && method_exists($potentialPromise, 'then') && method_exists($potentialPromise, 'catch');
     }
 
     /**
@@ -36,7 +33,7 @@ final class ProxyResolver
      * @param ResolveInfo $info
      * @return mixed
      */
-    private function resolveFieldToValue($typeData, array $arguments, Context $context, ResolveInfo $info): mixed
+    private function resolveToValue($typeData, array $arguments, Context $context, ResolveInfo $info): mixed
     {
         if ($this->resolveFunction) {
             return ($this->resolveFunction)($typeData, $arguments, $context, $info);
@@ -76,7 +73,7 @@ final class ProxyResolver
         );
 
         try {
-            $promiseOrValue = $this->resolveFieldToValue(
+            $promiseOrValue = $this->resolveToValue(
                 $typeData,
                 $arguments,
                 $operationContext->context,
