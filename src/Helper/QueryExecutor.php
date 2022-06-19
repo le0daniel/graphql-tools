@@ -4,20 +4,28 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Helper;
 
+use Closure;
 use GraphQL\Error\SyntaxError;
 use GraphQL\Executor\ExecutionResult;
 use GraphQL\GraphQL;
 use GraphQL\Language\Parser;
 use GraphQL\Type\Schema;
+use GraphQL\Validator\DocumentValidator;
+use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Context;
+use GraphQlTools\Contract\ContextualValidationRule;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Helper\Extension\FieldMessages;
+use GraphQlTools\Helper\Validation\CollectFieldMessagesValidation;
+use GraphQlTools\Utility\Arrays;
 
 final class QueryExecutor
 {
-    /** @var callable|null */
-    private $errorFormatter;
+    public const DEFAULT_CONTEXTUAL_VALIDATION_RULE = [CollectFieldMessagesValidation::class];
+
+    /** @var ValidationRule[] */
+    private readonly array $validationRules;
 
     /**
      * Extensions must be an array of factories or class names which can be constructed
@@ -27,30 +35,43 @@ final class QueryExecutor
      *
      * @param Schema $schema
      * @param string[]|callable[] $extensionFactories
-     * @param array|null $validationRules
-     * @param callable|null $errorFormatter
+     * @param ValidationRule[] $validationRules
      */
     public function __construct(
-        private   readonly Schema $schema,
-        private   readonly array $extensionFactories = [FieldMessages::class],
-        private   readonly array $validationRules = [],
-        ?callable $errorFormatter = null
+        private readonly Schema $schema,
+        private readonly array  $extensionFactories = [],
+        array                   $validationRules = [],
     )
     {
-        $this->errorFormatter = $errorFormatter;
+        $this->validationRules = empty($validationRules)
+            ? DocumentValidator::allRules()
+            : $validationRules;
     }
 
-    private function collectValidationRules(Extensions $extensions): ?array {
-        $validationRulesDefinedByExtensions = $extensions->collectValidationRules();
+    private function initializeContextualValidationRules(array $validationRules): array
+    {
+        return array_map(static function (Closure|string|ContextualValidationRule $factory): ContextualValidationRule {
+            if ($factory instanceof ContextualValidationRule) {
+                return $factory;
+            }
 
-        if (empty($this->validationRules) && empty($validationRulesDefinedByExtensions)) {
-            return null;
+            return is_string($factory)
+                ? new $factory
+                : $factory();
+        }, $validationRules);
+    }
+
+    private function serializeValidationRules(array $validationRules): array
+    {
+        $serialized = [];
+        foreach ($validationRules as $validationRule) {
+            if (!$validationRule instanceof ContextualValidationRule || !$validationRule->isVisibleInResult()) {
+                continue;
+            }
+
+            $serialized[$validationRule->key()] = $validationRule;
         }
-
-        return [
-            ...$this->validationRules,
-            ...$validationRulesDefinedByExtensions
-        ];
+        return $serialized;
     }
 
     public function execute(
@@ -59,10 +80,17 @@ final class QueryExecutor
         ?array  $variables = null,
         mixed   $rootValue = null,
         ?string $operationName = null,
+        array   $contextualValidationRules = self::DEFAULT_CONTEXTUAL_VALIDATION_RULE,
     ): ExecutionResult
     {
         $extensions = Extensions::createFromExtensionFactories($this->extensionFactories);
         $extensions->dispatchStartEvent(StartEvent::create($query));
+
+
+        $validationRules = [
+            ... $this->validationRules,
+            ... $this->initializeContextualValidationRules($contextualValidationRules),
+        ];
 
         try {
             $source = Parser::parse($query);
@@ -74,7 +102,6 @@ final class QueryExecutor
             return $result;
         }
 
-
         $result = GraphQL::executeQuery(
             $this->schema,
             $source,
@@ -82,16 +109,16 @@ final class QueryExecutor
             contextValue: new OperationContext($context, $extensions),
             variableValues: $variables ?? [],
             operationName: $operationName,
-            validationRules: $this->collectValidationRules($extensions),
+            validationRules: $validationRules,
         );
 
         $extensions->dispatchEndEvent(EndEvent::create($result));
 
-        if ($this->errorFormatter) {
-            $result->setErrorFormatter($this->errorFormatter);
-        }
+        $result->extensions = Arrays::mergeKeyValues(
+            $extensions->jsonSerialize(),
+            $this->serializeValidationRules($validationRules)
+        );
 
-        $result->extensions = $extensions->jsonSerialize();
         return $result;
     }
 
