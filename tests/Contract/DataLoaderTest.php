@@ -4,23 +4,26 @@ namespace GraphQlTools\Test\Contract;
 
 use Closure;
 use GraphQL\Deferred;
-use GraphQlTools\Contract\DataLoader;
+use GraphQL\Executor\Promise\Adapter\SyncPromise;
+use GraphQlTools\Helper\DataLoader;
 use PHPUnit\Framework\TestCase;
 
 class DataLoaderTest extends TestCase
 {
-
-    private function getDataLoader(array $data, ?Closure $dataAssertions = null){
+    private function getDataLoader(array $data, ?Closure $dataAssertions = null)
+    {
         $counter = new class () {
             public int $count = 0;
-            public function increase(): void {
+
+            public function increase(): void
+            {
                 $this->count++;
             }
         };
 
         return [
             $counter,
-            new DataLoader(function(...$args) use ($counter, $data, $dataAssertions) {
+            new DataLoader(function (...$args) use ($counter, $data, $dataAssertions) {
                 if ($dataAssertions) {
                     $dataAssertions(...$args);
                 }
@@ -30,53 +33,49 @@ class DataLoaderTest extends TestCase
         ];
     }
 
-    public function testMultipleLoads(){
-        /** @var DataLoader $dataLoader */
-        [$counter, $dataLoader] = $this->getDataLoader([1 => 'test', 2 => 'other']);
+    private static function promissesToValues(array $promisses): array {
+        return array_map(static fn(SyncPromise $promise) => $promise->result, $promisses);
+    }
 
-        $dataLoader->load(2)->then(fn($data) => self::assertEquals(null, $data));
+    public function testMultipleLoads()
+    {
+        $dataLoader = new DataLoader(fn() => [1 => 'test', 2 => 'other']);
+
+        $promise1 = $dataLoader->load(2);
         Deferred::runQueue();
 
-        $dataLoader->load(2)->then(fn($data) => self::assertEquals(null, $data));
+        $promise2 = $dataLoader->load(2);
         Deferred::runQueue();
 
-        self::assertEquals(2, $counter->count);
+        self::assertEquals('other', $promise1->result);
+        self::assertEquals('other', $promise2->result);
+    }
 
+    public function testLoadingWithArrayItems()
+    {
+        $dataLoader = new DataLoader(fn() => [1 => 'test', 2 => 'other']);
+
+        $promise1 = $dataLoader->load(['id' => 1, 'args' => []]);
+        $promise2 = $dataLoader->load(['id' => 2, 'args' => []]);
+        Deferred::runQueue();
+
+        self::assertEquals('test', $promise1->result);
+        self::assertEquals('other', $promise2->result);
     }
 
     public function testLoadMany()
     {
-        [$counter, $dataLoader] = $this->getDataLoader([1 => 'test', 2 => 'other']);
+        $dataLoader = new DataLoader(fn() => [1 => 'test', 2 => 'other']);
 
-        $dataLoader->loadMany(1, 2)->then(function (array $items) {
-            self::assertEquals('test', $items[0]);
-            self::assertEquals('other', $items[1]);
-        });
-
-        $dataLoader->loadMany(1, 3)->then(function (array $items) {
-            self::assertEquals('test', $items[0]);
-            self::assertEquals(null, $items[1]);
-        });
-
+        $promise1 = $dataLoader->loadMany(1, 2);
+        $promise2 = $dataLoader->loadMany(1, 3);
         Deferred::runQueue();
-        self::assertEquals(1, $counter->count);
-    }
 
-    public function testLoadAndMapManually()
-    {
-        /** @var DataLoader $dataLoader */
-        [$counter, $dataLoader] = $this->getDataLoader([1 => 'test', 2 => 'other']);
+        self::assertEquals('test', $promise1->result[0]->result);
+        self::assertEquals('other', $promise1->result[1]->result);
 
-        $dataLoader->loadAndMapManually(1)->then(function (array $items) {
-            self::assertEquals([1 => 'test', 2 => 'other'], $items);
-        });
-
-        $dataLoader->loadAndMapManually(1, 2, 3)->then(function (array $items) {
-            self::assertEquals([1 => 'test', 2 => 'other'], $items);
-        });
-
-        Deferred::runQueue();
-        self::assertEquals(1, $counter->count);
+        self::assertEquals('test', $promise2->result[0]->result);
+        self::assertEquals(null, $promise2->result[1]->result);
     }
 
     public function testLoad()
@@ -94,15 +93,15 @@ class DataLoaderTest extends TestCase
 
     public function testGetLoadingTraces()
     {
-        /** @var DataLoader $dataLoader */
-        [$counter, $dataLoader] = $this->getDataLoader([1 => 'test', 2 => 'other']);
-        $dataLoader->load(1);
-        $dataLoader->load(1);
-        $dataLoader->load(1);
-        $dataLoader->load(1);
-        $dataLoader->load(1);
+        $dataLoader = new DataLoader(fn() => [1 => 'test', 2 => 'other']);
+        $promisses = [
+            $dataLoader->load(1),
+            $dataLoader->load(1),
+            $dataLoader->load(1),
+        ];
 
         Deferred::runQueue();
         self::assertCount(1, $dataLoader->getLoadingTraces());
+        self::assertEquals(['test', 'test', 'test'], self::promissesToValues($promisses));
     }
 }
