@@ -2,6 +2,8 @@
 
 namespace GraphQlTools\Contract;
 
+use ArrayAccess;
+
 interface ExecutableByDataLoader
 {
 
@@ -9,9 +11,8 @@ interface ExecutableByDataLoader
      * Fetch queued items with optional arguments
      *
      * @param array $queuedItems
-     * @param array $arguments
      * @return mixed
      */
-    public function fetchData(array $queuedItems, array $arguments): mixed;
+    public function fetchData(array $queuedItems): array|ArrayAccess;
 
 }
