@@ -13,14 +13,8 @@ class LaravelContext extends Context
     {
     }
 
-    protected function makeInstanceOfDataLoaderExecutor(string $className): callable|ExecutableByDataLoader
+    protected function makeInstanceOfDataLoaderExecutor(string $classNameOrLoaderName): callable|ExecutableByDataLoader
     {
-        return $this->container->get($className);
+        return $this->container->get($classNameOrLoaderName);
     }
-
-    protected function injectInstance(string $className): mixed
-    {
-        return $this->container->get($className);
-    }
-
 }
