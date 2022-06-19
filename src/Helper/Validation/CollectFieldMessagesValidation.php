@@ -6,31 +6,23 @@ use GraphQL\Language\AST\ArgumentNode;
 use GraphQL\Language\AST\EnumValueNode;
 use GraphQL\Language\AST\FieldNode;
 use GraphQL\Language\AST\NodeKind;
-use GraphQL\Language\AST\ObjectValueNode;
 use GraphQL\Type\Definition\CompositeType;
 use GraphQL\Type\Definition\EnumType;
 use GraphQL\Type\Definition\EnumValueDefinition;
 use GraphQL\Type\Definition\FieldArgument;
 use GraphQL\Type\Definition\FieldDefinition;
-use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\ObjectType;
-use GraphQL\Validator\Rules\ValidationRule;
 use GraphQL\Validator\ValidationContext;
+use GraphQlTools\Contract\ContextualValidationRule;
 use GraphQlTools\Data\Models\Message;
-use GraphQlTools\Utility\Fields;
 
-class CollectFieldMessagesValidation extends ValidationRule
+class CollectFieldMessagesValidation extends ContextualValidationRule
 {
     private array $messages = [];
 
     public function __construct()
     {
-    }
-
-    public function getMessages(): array
-    {
-        return $this->messages;
     }
 
     private static function getParentName(CompositeType|null $parent): string
@@ -54,10 +46,6 @@ class CollectFieldMessagesValidation extends ValidationRule
                 if ($field->isDeprecated()) {
                     $reason = $field->deprecationReason ?? '-- No specific Reason Provided --';
                     $this->messages[] = Message::deprecated($field->name, $parentType, $reason);
-                }
-
-                if ($notice = Fields::getFieldNotice($field)) {
-                    $this->messages[] = Message::notice($notice);
                 }
             },
             NodeKind::ENUM => function (EnumValueNode $node) use ($context): void {
@@ -103,4 +91,18 @@ class CollectFieldMessagesValidation extends ValidationRule
         ];
     }
 
+    public function key(): string
+    {
+        return 'deprecations';
+    }
+
+    public function isVisibleInResult(): bool
+    {
+        return true;
+    }
+
+    public function jsonSerialize(): array
+    {
+        return $this->messages;
+    }
 }
