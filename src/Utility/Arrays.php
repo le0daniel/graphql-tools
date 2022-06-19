@@ -36,9 +36,12 @@ final class Arrays
         return false;
     }
 
-    public static function mergeKeyValues(array $array, array $arrayToMerge): array
+    public static function mergeKeyValues(array $array, array $arrayToMerge, bool $throwOnKeyConflict = false): array
     {
         foreach ($arrayToMerge as $key => $value) {
+            if ($throwOnKeyConflict && array_key_exists($key, $array)) {
+                throw new RuntimeException("The key '{$key}' does already exist in the array to merge into.");
+            }
             $array[$key] = $value;
         }
         return $array;
