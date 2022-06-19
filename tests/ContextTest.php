@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\Test;
 
+use Closure;
 use GraphQlTools\Context;
 use GraphQlTools\Contract\ExecutableByDataLoader;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
@@ -19,9 +20,9 @@ class ContextTest extends TestCase
             {
             }
 
-            protected function makeInstanceOfDataLoaderExecutor(string $className): ExecutableByDataLoader
+            protected function makeInstanceOfDataLoaderExecutor(string $classNameOrLoaderName): Closure|ExecutableByDataLoader
             {
-                return $this->mocks[$className];
+                return $this->mocks[$classNameOrLoaderName];
             }
         };
     }
@@ -29,21 +30,18 @@ class ContextTest extends TestCase
     public function testWithDataLoader()
     {
         $context = $this->contextWithMocks([
-            ExecutableByDataLoader::class => $this->prophesize(ExecutableByDataLoader::class)->reveal()
+            ExecutableByDataLoader::class => $this->prophesize(ExecutableByDataLoader::class)->reveal(),
+            'test' => fn() => null,
         ]);
 
-        $resolveInfo = ResolveInfoDummy::withDefaults(path: ['brand', 0, 'library']);
-        $secondResolveInfo = ResolveInfoDummy::withDefaults(path: ['brand', 1, 'library']);
-        $differentResolveInfo = ResolveInfoDummy::withDefaults(path: ['brand', 1, 'id']);
-
         self::assertSame(
-            $context->withDataLoader(ExecutableByDataLoader::class, [], $resolveInfo),
-            $context->withDataLoader(ExecutableByDataLoader::class, [], $secondResolveInfo),
+            $context->withDataLoader(ExecutableByDataLoader::class),
+            $context->withDataLoader(ExecutableByDataLoader::class),
         );
 
-        self::assertNotSame(
-            $context->withDataLoader(ExecutableByDataLoader::class, [], $resolveInfo),
-            $context->withDataLoader(ExecutableByDataLoader::class, [], $differentResolveInfo),
+        self::assertSame(
+            $context->withDataLoader('test'),
+            $context->withDataLoader('test'),
         );
     }
 }
