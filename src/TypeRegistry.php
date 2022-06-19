@@ -8,14 +8,13 @@ use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
 use GraphQL\Utils\SchemaPrinter;
+use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlEnum;
 use GraphQlTools\Definition\GraphQlInputType;
 use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlScalar;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Definition\GraphQlUnion;
-use GraphQlTools\CustomIntrospection\TypeMetadataType;
-use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Classes;
 use GraphQlTools\Utility\Directories;
 use GraphQlTools\Utility\Reflections;
@@ -62,11 +61,10 @@ class TypeRegistry {
      * and cache it for production.
      *
      * @param string $directory
-     * @param bool $includeMetadataTypeExtension
      * @return array
      * @throws ReflectionException
      */
-    public static function createTypeMapFromDirectory(string $directory, bool $includeMetadataTypeExtension = false): array {
+    final public static function createTypeMapFromDirectory(string $directory): array {
         $typeMap = [];
 
         foreach (Directories::fileIteratorWithRegex($directory, '/\.php$/') as $phpFile) {
@@ -85,9 +83,7 @@ class TypeRegistry {
             }
         }
 
-        return $includeMetadataTypeExtension
-            ? Arrays::mergeKeyValues($typeMap, TypeMetadataType::typeMap())
-            : $typeMap;
+        return $typeMap;
     }
 
     /**
@@ -99,10 +95,10 @@ class TypeRegistry {
      * hide the field. Additionally, you can use field Metadata to further add context.
      *
      * @param mixed $schemaVariant
-     * @param mixed $fieldMetadata
+     * @param Field $field
      * @return bool
      */
-    public function shouldHideField(mixed $schemaVariant, mixed $fieldMetadata): bool {
+    public function shouldHideField(mixed $schemaVariant, Field $field): bool {
         return false;
     }
 
@@ -141,11 +137,6 @@ class TypeRegistry {
         /** @var GraphQlType $rootQueryType */
         $rootQueryType = $this->eagerlyResolveType($queryClassOrTypeName);
 
-        // Append Metadata Query to the root query.
-        if (array_key_exists(TypeMetadataType::TYPE_NAME, $this->typeResolutionMap)) {
-            $rootQueryType->appendField(TypeMetadataType::rootQueryField($this));
-        }
-
         return new Schema(
             SchemaConfig::create(
                 [
@@ -174,7 +165,7 @@ class TypeRegistry {
             $className = $this->typeResolutionMap[$typeName] ?? null;
 
             if (!$className) {
-                throw new RuntimeException("Could not resolve type `{$typeName}`. Is it in the type-map?");
+                throw new RuntimeException("Could not resolve type with name `{$typeName}`. Is it in the type-map?");
             }
 
             $this->typeInstances[$typeName] = new $className($this);
