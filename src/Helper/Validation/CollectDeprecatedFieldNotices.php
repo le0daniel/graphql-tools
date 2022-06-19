@@ -17,7 +17,7 @@ use GraphQL\Validator\ValidationContext;
 use GraphQlTools\Contract\ContextualValidationRule;
 use GraphQlTools\Data\Models\Message;
 
-class CollectFieldMessagesValidation extends ContextualValidationRule
+class CollectDeprecatedFieldNotices extends ContextualValidationRule
 {
     private array $messages = [];
 

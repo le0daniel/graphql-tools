@@ -16,13 +16,12 @@ use GraphQlTools\Context;
 use GraphQlTools\Contract\ContextualValidationRule;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
-use GraphQlTools\Helper\Extension\FieldMessages;
-use GraphQlTools\Helper\Validation\CollectFieldMessagesValidation;
+use GraphQlTools\Helper\Validation\CollectDeprecatedFieldNotices;
 use GraphQlTools\Utility\Arrays;
 
 final class QueryExecutor
 {
-    public const DEFAULT_CONTEXTUAL_VALIDATION_RULE = [CollectFieldMessagesValidation::class];
+    public const DEFAULT_CONTEXTUAL_VALIDATION_RULE = [CollectDeprecatedFieldNotices::class];
 
     /** @var ValidationRule[] */
     private readonly array $validationRules;
@@ -50,15 +49,18 @@ final class QueryExecutor
 
     private function initializeContextualValidationRules(array $validationRules): array
     {
-        return array_map(static function (Closure|string|ContextualValidationRule $factory): ContextualValidationRule {
-            if ($factory instanceof ContextualValidationRule) {
-                return $factory;
+        return Arrays::mapWithKeys($validationRules, static function (Closure|string|ValidationRule $factory): array {
+            if ($factory instanceof ValidationRule) {
+                return [$factory->getName(), $factory];
             }
 
-            return is_string($factory)
+            /** @var ValidationRule $instance */
+            $instance = is_string($factory)
                 ? new $factory
                 : $factory();
-        }, $validationRules);
+
+            return [$instance->getName(), $instance];
+        });
     }
 
     private function serializeValidationRules(array $validationRules): array
@@ -103,21 +105,22 @@ final class QueryExecutor
         }
 
         $result = GraphQL::executeQuery(
-            $this->schema,
-            $source,
-            $rootValue,
+            schema: $this->schema,
+            source: $source,
+            rootValue: $rootValue,
             contextValue: new OperationContext($context, $extensions),
             variableValues: $variables ?? [],
             operationName: $operationName,
             validationRules: $validationRules,
         );
 
-        $extensions->dispatchEndEvent(EndEvent::create($result));
-
         $result->extensions = Arrays::mergeKeyValues(
             $extensions->jsonSerialize(),
-            $this->serializeValidationRules($validationRules)
+            $this->serializeValidationRules($validationRules),
+            throwOnKeyConflict: true
         );
+
+        $extensions->dispatchEndEvent(EndEvent::create($result));
 
         return $result;
     }
