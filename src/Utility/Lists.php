@@ -20,15 +20,4 @@ class Lists
             }
         }
     }
-
-    public static function mapWithIndex(array $list, Closure $closure): array {
-        $items = [];
-
-        foreach ($list as $key => $value) {
-            $items[] = $closure($key, $value);
-        }
-
-        return $items;
-    }
-
 }
