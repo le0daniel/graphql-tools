@@ -50,16 +50,6 @@ final class Extensions implements JsonSerializable
         return new self(...$instances);
     }
 
-    public function collectValidationRules(): array {
-        $validationRules = [];
-        foreach ($this->extensions as $extension) {
-            if ($rule = $extension->addValidationRule()) {
-                $validationRules[] = $rule;
-            }
-        }
-        return $validationRules;
-    }
-
     public function willVisitField(VisitFieldEvent $event): Closure
     {
         $afterStack = [];
