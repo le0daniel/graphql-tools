@@ -14,18 +14,6 @@ final class Reflections
 {
     private const PARENT_CLASSES_MAX_DEPTH = 5;
 
-    public static function ofCallable(callable $callable): ReflectionFunction|ReflectionMethod {
-        if (is_array($callable)) {
-            return new ReflectionMethod(...$callable);
-        }
-
-        if (is_string($callable) && str_contains($callable, '::')) {
-            return new ReflectionMethod($callable);
-        }
-
-        return new ReflectionFunction($callable);
-    }
-
     #[Pure]
     public static function getAllParentClasses(ReflectionClass $class): array
     {
