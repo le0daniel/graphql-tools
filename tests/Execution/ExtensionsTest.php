@@ -7,7 +7,6 @@ use GraphQlTools\Contract\Extension;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;
-use GraphQlTools\Helper\Extension\FieldMessages;
 use GraphQlTools\Helper\Extensions;
 use GraphQlTools\Helper\Extension\Tracing;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
@@ -27,11 +26,6 @@ class ExtensionsTest extends TestCase
             fn() => new Tracing()
         ]);
         self::assertTrue(true);
-    }
-
-    public function testExtensionValidationRules() {
-        self::assertEmpty((new Extensions())->collectValidationRules());
-        self::assertCount(1, (new Extensions(new FieldMessages()))->collectValidationRules());
     }
 
     public function testExtensionsEventDispatching() {
