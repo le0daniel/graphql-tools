@@ -17,10 +17,6 @@ final class DataLoader
     private array $queuedItems = [];
     private mixed $loadedData = null;
 
-    /**
-     * @param ExecutableByDataLoader|callable $callable
-     * @param array $arguments
-     */
     final public function __construct(protected readonly Closure|ExecutableByDataLoader $callable)
     {
     }

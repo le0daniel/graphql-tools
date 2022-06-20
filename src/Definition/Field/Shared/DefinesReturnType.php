@@ -9,23 +9,18 @@ use GraphQlTools\TypeRegistry;
 
 trait DefinesReturnType
 {
-    /** @var Type|callable|string */
-    protected mixed $ofType;
+    protected Type|string|Closure $ofType;
 
-    final public function ofType(Type|callable|string $resolveType): static
+    final public function ofType(Type|Closure|string $resolveType): static
     {
         $this->ofType = $resolveType;
         return $this;
     }
 
-    final protected function resolveReturnType(TypeRegistry $repository): mixed
+    final protected function resolveReturnType(TypeRegistry $repository): Closure|Type
     {
-        if ($this->ofType instanceof Type) {
+        if ($this->ofType instanceof Type || $this->ofType instanceof Closure) {
             return $this->ofType;
-        }
-
-        if ($this->ofType instanceof Closure) {
-            return call_user_func($this->ofType, $repository);
         }
 
         if (is_string($this->ofType)) {

@@ -3,6 +3,7 @@
 namespace GraphQlTools\Helper;
 
 use ArrayAccess;
+use Closure;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
@@ -32,12 +33,12 @@ class FieldTestCase
         };
     }
 
-    private function getFieldResolver(): callable
+    private function getFieldResolver(): Closure
     {
         /** @var GraphQlType $type */
         $type = new ($this->className)($this->mockedTypeRegistry());
         $field = $type->findField($this->fieldName);
-        return $field->resolveFn;
+        return ($field->resolveFn)(...);
     }
 
     private function buildResolveInfo(): ResolveInfo

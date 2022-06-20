@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GraphQlTools;
 
+use Closure;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
@@ -119,13 +120,13 @@ class TypeRegistry {
         return false;
     }
 
-    /**
-     * returns a lazy loaded type
-     * @param string $classOrTypeName
-     * @return callable
-     */
-    final public function type(string $classOrTypeName): callable {
+    final public function type(string $classOrTypeName): Closure {
         return fn() => $this->resolveTypeByName($this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName);
+    }
+
+    final public function eagerlyResolveType(string $classOrTypeName): Type {
+        $typeName = $this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName;
+        return $this->resolveTypeByName($typeName);
     }
 
     final public function toSchema(
@@ -175,9 +176,6 @@ class TypeRegistry {
         return $this->typeInstances[$typeName];
     }
 
-    final public function eagerlyResolveType(string $classOrTypeName): Type {
-        $typeName = $this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName;
-        return $this->resolveTypeByName($typeName);
-    }
+
 
 }

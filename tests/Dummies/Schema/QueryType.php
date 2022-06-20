@@ -53,7 +53,7 @@ final class QueryType extends GraphQlType {
 
             Field::withName('mamels')
                 ->ofType(
-                    static fn(TypeRegistry $typeRegistry) => Type::nonNull(Type::listOf(Type::nonNull($typeRegistry->type(MamelInterface::class))))
+                    Type::nonNull(Type::listOf(Type::nonNull($this->typeRegistry->type(MamelInterface::class))))
                 )
                 ->resolvedBy(function ($item, array $arguments, Context $context) {
                     return self::ANIMALS;
@@ -73,14 +73,14 @@ final class QueryType extends GraphQlType {
                 ),
 
             Field::withName('user')
-                ->ofType(fn(TypeRegistry $typeRegistry) => new NonNull($typeRegistry->type(UserType::class)))
+                ->ofType(new NonNull($this->typeRegistry->type(UserType::class)))
                 ->resolvedBy(fn() => ['id' => self::USER_ID]),
 
             Field::withName('jsonInput')
                 ->ofType(JsonScalar::class)
                 ->withArguments(
                     InputField::withName('json')
-                        ->ofType(fn(TypeRegistry $typeRegistry) => new NonNull($typeRegistry->type(JsonScalar::class)))
+                        ->ofType(new NonNull($this->typeRegistry->type(JsonScalar::class)))
                 )
                 ->resolvedBy(
                     function ($r, array $arguments) {
@@ -90,7 +90,9 @@ final class QueryType extends GraphQlType {
             ,
 
             Field::withName('animals')
-                ->ofType(fn(TypeRegistry $typeRegistry) => Type::nonNull(Type::listOf(Type::nonNull($typeRegistry->type(AnimalUnion::class)))))
+                ->ofType(
+                    Type::nonNull(Type::listOf(Type::nonNull($this->typeRegistry->type(AnimalUnion::class))))
+                )
                 ->resolvedBy(fn() => self::ANIMALS)
             ,
         ];

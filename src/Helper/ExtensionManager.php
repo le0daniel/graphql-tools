@@ -28,7 +28,8 @@ final class ExtensionManager implements JsonSerializable
      * considered contextual for each execution and are freshly built on each
      * query.
      *
-     * @param array $extensionFactories
+     * @template T
+     * @param array<Closure|class-string<T>> $extensionFactories
      * @return ExtensionManager
      */
     public static function createFromExtensionFactories(array $extensionFactories): ExtensionManager
@@ -37,8 +38,8 @@ final class ExtensionManager implements JsonSerializable
         $columnToSort = [];
 
         /** @var Extension|callable(): Extension $instance */
-        foreach ($extensionFactories as $instance) {
-            $instance = is_callable($instance) ? $instance() : new $instance;
+        foreach ($extensionFactories as $classNameOrCallable) {
+            $instance = $classNameOrCallable instanceof Closure ? $classNameOrCallable() : new $classNameOrCallable;
             $columnToSort[] = $instance->priority();
             $instances[] = $instance;
         }
