@@ -91,38 +91,24 @@ class MyCustomContext extends \GraphQlTools\Context {
     public function __construct(public readonly User $currentUser, private \Psr\Container\ContainerInterface $container) {}
 
     /**
-    * Decouples the Schema and GraphQL from all your business logic. 
-    * @param string $className
+    * Decouples the Schema and GraphQL from all your business logic.
+    *
+    * A data loader executor is responsible to load data from a source and perform business logic.
+    * You can refer to a data loader by any string. This method is used to return a loading function or instance
+    * of ExecutableByDataLoader. This allows you to separate the business logic completely from GraphQL.
+    * 
+    * @param string $classNameOrLoaderName
     * @return callable|\GraphQlTools\Contract\ExecutableByDataLoader
     * @throws \Psr\Container\ContainerExceptionInterface
     * @throws \Psr\Container\NotFoundExceptionInterface
      */
-    protected function makeInstanceOfDataLoaderExecutor(string $className) : callable|\GraphQlTools\Contract\ExecutableByDataLoader{
+    protected function makeInstanceOfDataLoaderExecutor(string $classNameOrLoaderName) : callable|\GraphQlTools\Contract\ExecutableByDataLoader{
         $this->container->get($className);
-    }
-
-    /**
-    * Inject Classes into fieldLoadingFunctions after the positional arguments
-    * Example: $deferredField->loadAggregated(function(array $queuedData, array $validatedArguments, Context $context, MyCustomService $service) {
-    *   // your Logic
-    * })
-    * 
-    * Or into the resolve function of a mutation field:
-    * $mutationField->resolvedBy(fn($data, $arguments, $context, $info, MyClass $service) => $service->resolve($arguments))
-    */
-    protected function injectInstance(string $className) : mixed{
-        return $this->container->get($className);
     }
 }
 ```
 
 In this example, every resolver now gets access to the current user through your context. Additionally, the context resolves dependencies for resolve functions.
-
-You can have even more control of the injections by overwriting the `executeAggregatedLoadingFunction` and `executeMutationResolveFunction`. 
-By default, positional Arguments are always passed first and only additional arguments are injected. There you can change the logic of it.
-
-Injections are only possible for `DeferredField -> loadAggregated` and `MutationField -> resolvedBy`. This is due to how they are executed — to mitigate N+1 issues.
-
 
 ## Defining Types
 
@@ -157,7 +143,7 @@ Full example of Type definition:
             return 'Provide the description of your type.';
         }
         
-        protected function fields() : array{
+        protected function fields() : array {
             // To prevent circular types, this is already wrapped in a closure
             // Provide the fields of your type.
             // --
@@ -168,13 +154,13 @@ Full example of Type definition:
                 
                 // Define custom types using the repository
                 Field::withName('customType')
-                    ->ofType(fn(TypeRegistry $typeRepository) => $typeRepository->type(MyCustomTypeClass::class))
+                    ->ofType($this->typeRegistry->type(MyCustomTypeClass::class))
                     ->ofSchemaVariant('Only-On-Public'), # Adds metadata to dynamically hide a field
                    
                 
-                // With custom resolver
+                // With custom resolver, the definition here is equal to above.
                 Field::withName('sameCustomType')
-                    ->ofType(MyCustomType::class)
+                    ->ofType(MyCustomTypeClass::class)
                     ->resolvedBy(fn($data, array $arguments) => $data['items']),
                 
                 // Defer a field, the logic of deferring is abstracted away    
@@ -193,10 +179,8 @@ Full example of Type definition:
                     )
                     ->resolvedBy(function ($data, $arguments, Context $context, $resolveInfo) {
                         $context
-                            ->withDataLoader(MyDataLoaderExecutor::class, $arguments, $resolveInfo)
-                            // ->loadMany($data->foreignIds)
-                            // You can also manually map, depends on your usecase.
-                            // ->loadAndMapManually($data->id)->then(fn($loadedData) => $loadedData->findById($data->id))
+                            ->withDataLoader(MyDataLoaderExecutor::class)
+                            // ->loadMany(...$data->tagIds)
                             ->load($data->id)
                     })
                              
@@ -207,7 +191,7 @@ Full example of Type definition:
         protected function interfaces() : array{
             return [
                 MamelType::class,
-                fn(TypeRegistry $typeRepository) => $typeRepository->type(MyType::class),
+                $this->typeRegistry->type(MyType::class),
             ];
         }
         
@@ -219,12 +203,6 @@ Full example of Type definition:
         // with slightly different endings being removed.
         public static function typeName(): string {
             return 'Animal';
-        }
-        
-        protected function metadata() : mixed{
-            return [
-                'My Custom metadata for introspection'
-            ]       
         }
     }
 ```
