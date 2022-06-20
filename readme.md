@@ -35,16 +35,17 @@ Everything begins by defining a new Type Repository. The Type Repository makes s
         TypeRegistry::createTypeMapFromDirectory(__DIR__ . '/YOUR_DIRECTORY_WITH_ALL_TYPE_DECLARATIONS')
     );
 
-    $executor = new QueryExecutor(
-        $typeRegistry->toSchema(
-            RootQueryType::class, // Your own root query type
-            RootMutationType::class, // Your own root mutation type
-            [], // Eagerly loaded types
-            [], // Array of directives
-        )
+    $schema = $typeRegistry->toSchema(
+        RootQueryType::class, // Your own root query type
+        RootMutationType::class, // Your own root mutation type
+        [], // Eagerly loaded types
+        [], // Array of directives
     );
 
+    $executor = new QueryExecutor();
+
     $result = $executor->execute(
+        $schema,
         ' query { whoami }',
         new Context(),
         [], // variables array

@@ -80,15 +80,17 @@ abstract class ExecutionTestCase extends TestCase {
 
     protected function execute(string $query, bool $withMetadataIntrospection = true) {
         $repository = $this->typeRepository($withMetadataIntrospection);
+        $schema = $repository->toSchema(
+            $this->queryType(),
+            $this->mutationType(),
+            $this->eagerlyLoadedTypes(),
+        );
+
         $executor = new QueryExecutor(
-            $repository->toSchema(
-                $this->queryType(),
-                $this->mutationType(),
-                $this->eagerlyLoadedTypes(),
-            ),
             $this->extensions()
         );
-        return $executor->execute($query, new Context());
+
+        return $executor->execute($schema, $query, new Context());
     }
 
     protected function tearDown(): void {}

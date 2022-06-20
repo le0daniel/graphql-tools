@@ -35,12 +35,10 @@ final class QueryExecutor
      * and destroyed afterwards. They should be used to collect data and add them to
      * result as an array.
      *
-     * @param Schema $schema
      * @param string[]|callable[] $extensionFactories
      * @param ValidationRule[] $validationRules
      */
     public function __construct(
-        private readonly Schema $schema,
         private readonly array  $extensionFactories = self::DEFAULT_ENABLED_EXTENSIONS,
         array                   $validationRules = [],
     )
@@ -84,6 +82,7 @@ final class QueryExecutor
     }
 
     public function execute(
+        Schema $schema,
         string  $query,
         Context $context,
         ?array  $variables = null,
@@ -112,7 +111,7 @@ final class QueryExecutor
         }
 
         $result = GraphQL::executeQuery(
-            schema: $this->schema,
+            schema: $schema,
             source: $source,
             rootValue: $rootValue,
             contextValue: new OperationContext($context, $extensionManager),
