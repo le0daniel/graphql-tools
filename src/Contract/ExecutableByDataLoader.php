@@ -11,7 +11,7 @@ interface ExecutableByDataLoader
      * Fetch queued items with optional arguments
      *
      * @param array $queuedItems
-     * @return mixed
+     * @return array|ArrayAccess
      */
     public function fetchData(array $queuedItems): array|ArrayAccess;
 
