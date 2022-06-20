@@ -15,7 +15,7 @@ abstract class GraphQlInputType extends InputObjectType {
 
     private const CLASS_POSTFIX = 'Type';
 
-    final public function __construct(private TypeRegistry $typeRepository){
+    final public function __construct(protected readonly TypeRegistry $typeRepository){
         parent::__construct(
             [
                 'name' => static::typeName(),

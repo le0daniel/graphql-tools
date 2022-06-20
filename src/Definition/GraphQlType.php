@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\ObjectType;
-use GraphQlTools\Definition\Field\GraphQlField;
+use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Shared\DefinesTypes;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\DefinesFields;
 use GraphQlTools\TypeRegistry;
 use GraphQlTools\Utility\Classes;
-use GraphQlTools\Utility\Fields;
-use RuntimeException;
 
 abstract class GraphQlType extends ObjectType
 {
@@ -24,11 +22,11 @@ abstract class GraphQlType extends ObjectType
      * Return an array of fields of that specific type. The fields
      * are then initialized correctly and a proxy attached to them.
      *
-     * @return GraphQlField[]
+     * @return Field[]
      */
     abstract protected function fields(): array;
 
-    final public function __construct(private TypeRegistry $typeRepository)
+    final public function __construct(protected readonly TypeRegistry $typeRegistry)
     {
         parent::__construct(
             [
@@ -36,14 +34,8 @@ abstract class GraphQlType extends ObjectType
                 'description' => $this->description(),
                 'fields' => fn() => $this->initFields($this->fields()),
                 'interfaces' => fn() => $this->initTypes($this->interfaces()),
-                Fields::METADATA_CONFIG_KEY => $this->metadata(),
             ]
         );
-    }
-
-    protected function metadata(): mixed
-    {
-        return null;
     }
 
     /**

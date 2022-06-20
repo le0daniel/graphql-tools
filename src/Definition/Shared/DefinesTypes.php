@@ -7,7 +7,7 @@ use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\TypeRegistry;
 
-/** @property-read  TypeRegistry $typeRepository */
+/** @property-read TypeRegistry $typeRepository */
 trait DefinesTypes
 {
     protected function initTypes(array $typeDeclarations): array {
@@ -16,12 +16,8 @@ trait DefinesTypes
 
     protected function declarationToType(mixed $declaration): mixed
     {
-        if ($declaration instanceof Type) {
+        if ($declaration instanceof Type || $declaration instanceof Closure) {
             return $declaration;
-        }
-
-        if ($declaration instanceof Closure) {
-            return $declaration($this->typeRepository);
         }
 
         if (is_string($declaration)) {

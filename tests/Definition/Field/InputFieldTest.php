@@ -16,7 +16,7 @@ class InputFieldTest extends TestCase
         self::assertIsArray(
             InputField::withName('test')
                 ->ofType(Type::id())
-                ->toInputFieldDefinitionArray(new TypeRegistry([]))
+                ->toDefinition(new TypeRegistry([]))
         );
     }
 
@@ -26,7 +26,7 @@ class InputFieldTest extends TestCase
             InputField::withName('test')
                 ->ofType(Type::id())
                 ->deprecated('', new DateTime('2020-10-10'), true)
-                ->toInputFieldDefinitionArray(new TypeRegistry([]))
+                ->toDefinition(new TypeRegistry([]))
         );
     }
 }

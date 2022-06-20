@@ -2,31 +2,29 @@
 
 namespace GraphQlTools\Definition\Field\Shared;
 
-use GraphQlTools\Definition\Field\Argument;
-use GraphQlTools\Definition\Field\InvalidArgumentException;
+use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\TypeRegistry;
-use Throwable;
 
 trait DefinesArguments
 {
-    /** @var Argument[] */
-    protected array $arguments = [];
+    /** @var InputField[] */
+    protected readonly array $inputFields;
 
-    final public function withArguments(Argument ...$arguments): static
+    final public function withArguments(InputField ...$arguments): static
     {
-        $this->arguments = $arguments;
+        $this->inputFields = $arguments;
         return $this;
     }
 
-    final protected function buildArguments(TypeRegistry $typeRepository): ?array
+    final protected function buildArguments(TypeRegistry $registry): ?array
     {
-        if (empty($this->arguments)) {
+        if (isset($this->inputFields)) {
             return null;
         }
 
         $arguments = [];
-        foreach ($this->arguments as $argument) {
-            if (!$definition = $argument->toInputFieldDefinitionArray($typeRepository)) {
+        foreach ($this->inputFields as $inputField) {
+            if (!$definition = $inputField->toDefinition($registry)) {
                 continue;
             }
 
@@ -34,26 +32,6 @@ trait DefinesArguments
         }
 
         return $arguments;
-    }
-
-    final protected function validateArguments(array $arguments): array
-    {
-        $validatedArguments = [];
-
-        foreach ($this->arguments as $argument) {
-            try {
-                $value = $arguments[$argument->name] ?? null;
-                $validatedArguments[$argument->name] = $argument->validateValue($value, $arguments);
-            } catch (Throwable $exception) {
-                throw new InvalidArgumentException(
-                    $argument->name,
-                    $exception->getMessage(),
-                    $exception
-                );
-            }
-        }
-
-        return $validatedArguments;
     }
 
 }

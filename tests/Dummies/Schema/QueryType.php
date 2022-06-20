@@ -7,8 +7,8 @@ namespace GraphQlTools\Test\Dummies\Schema;
 use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Context;
-use GraphQlTools\Definition\Field\Argument;
 use GraphQlTools\Definition\Field\Field;
+use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Test\Dummies\Schema\Input\MamelsQueryInputType;
 use GraphQlTools\TypeRegistry;
@@ -31,18 +31,8 @@ final class QueryType extends GraphQlType {
                 // Alternative if type repo is needed
                 // ->ofType(fn(TypeRepository $typeRepository) => new NonNull(Type::string()))
                 ->withArguments(
-                    Argument::withName('name')
+                    InputField::withName('name')
                         ->ofType(Type::string())
-                        ->withValidator(function(mixed $value) {
-                            if (!$value) {
-                                return $value;
-                            }
-
-                            if (strlen($value) < 5) {
-                                throw new \Exception("Invalid, string to short: '{$value}'");
-                            }
-                            return $value;
-                        })
                 )
                 ->deprecated('My reason')
                 ->withDescription('')
@@ -58,7 +48,7 @@ final class QueryType extends GraphQlType {
             Field::withName('mamelsQuery')
                 ->ofType(Type::string())
                 ->withArguments(
-                    Argument::withName('query')
+                    InputField::withName('query')
                         ->ofType(MamelsQueryInputType::class)
                 )
                 ->resolvedBy(fn($data, array $args) => 'My result: ' . ($args['query']['name'] ?? '-- no query --')),
@@ -79,7 +69,7 @@ final class QueryType extends GraphQlType {
             Field::withName('createAnimal')
                 ->ofType(Type::string())
                 ->withArguments(
-                    Argument::withName('input')->ofType(CreateAnimalInputType::class)
+                    InputField::withName('input')->ofType(CreateAnimalInputType::class)
                 )->resolvedBy(
                     fn($data, array $arguments) => "Done: {$arguments['input']['id']}"
                 ),
@@ -91,7 +81,7 @@ final class QueryType extends GraphQlType {
             Field::withName('jsonInput')
                 ->ofType(JsonScalar::class)
                 ->withArguments(
-                    Argument::withName('json')
+                    InputField::withName('json')
                         ->ofType(fn(TypeRegistry $typeRepository) => new NonNull($typeRepository->type(JsonScalar::class)))
                 )
                 ->resolvedBy(fn($d, array $arguments) => ['json' => $arguments['json']])

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace GraphQlTools\Test\Dummies\Schema;
 
 use GraphQL\Type\Definition\Type;
-use GraphQlTools\Definition\Field\Argument;
 use GraphQlTools\Definition\Field\Field;
+use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\TypeRegistry;
 
@@ -21,7 +21,7 @@ final class UserType extends GraphQlType {
             Field::withName('name')
                 ->ofType(Type::nonNull(Type::string()))
                 ->withArguments(
-                    Argument::withName('name')->ofType( Type::string())
+                    InputField::withName('name')->ofType( Type::string())
                 )
                 ->resolvedBy(fn($data, array $arguments) => $arguments['name'] ?? 'no name given'),
 

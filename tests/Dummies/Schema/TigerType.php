@@ -8,8 +8,8 @@ use Exception;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Context;
-use GraphQlTools\Definition\Field\Argument;
 use GraphQlTools\Definition\Field\Field;
+use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlType;
 
 final class TigerType extends GraphQlType {
@@ -23,11 +23,8 @@ final class TigerType extends GraphQlType {
             Field::withName('withArg')
                 ->ofType(Type::string())
                 ->withArguments(
-                    Argument::withName('test')
+                    InputField::withName('test')
                         ->ofType(Type::string())
-                        ->withValidator(static function (mixed $argument) {
-                            return $argument ?? throw new Exception('Failed');
-                        })
                 )
                 ->resolvedBy(fn($tiger, array $arguments) => $arguments['test']),
 

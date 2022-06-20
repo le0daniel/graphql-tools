@@ -6,22 +6,16 @@ namespace GraphQlTools\Helper;
 
 use ArrayAccess;
 use Closure;
-use GraphQL\Executor\Promise\Adapter\SyncPromise;
-use GraphQL\Executor\Promise\Promise;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Context;
 use GraphQlTools\Events\VisitFieldEvent;
+use GraphQlTools\Utility\Promises;
 use Throwable;
 
 final class ProxyResolver
 {
     public function __construct(private readonly ?Closure $resolveFunction = null)
     {
-    }
-
-    public static function isPromise(mixed $potentialPromise): bool
-    {
-        return is_object($potentialPromise) && method_exists($potentialPromise, 'then') && method_exists($potentialPromise, 'catch');
     }
 
     /**
@@ -80,10 +74,10 @@ final class ProxyResolver
                 $info
             );
 
-            return self::isPromise($promiseOrValue)
+            return Promises::is($promiseOrValue)
                 ? $promiseOrValue
-                    ->then(static fn($resolvedValue) => $afterFieldResolution($resolvedValue))
-                    ->catch(static fn(Throwable $error) => $afterFieldResolution($error))
+                    ->then(static fn(mixed $resolvedValue): mixed => $afterFieldResolution($resolvedValue))
+                    ->catch(static fn(Throwable $error): Throwable => $afterFieldResolution($error))
                 : $afterFieldResolution($promiseOrValue);
 
         } catch (Throwable $error) {

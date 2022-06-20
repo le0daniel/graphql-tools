@@ -6,16 +6,20 @@ use DateTimeInterface;
 
 trait DefinesField
 {
-    protected string|null $description = null;
-    protected mixed $schemaVariant = null;
+    protected readonly string $description;
+    protected readonly mixed $schemaVariant;
     protected bool $automaticallyRemoveIfPast = false;
-    protected string|bool $deprecatedReason = false;
-    protected DateTimeInterface|null $removalDate = null;
+    protected readonly string|bool $deprecatedReason;
+    protected readonly DateTimeInterface|null $removalDate;
 
     final public function withDescription(string $description): static
     {
         $this->description = $description;
         return $this;
+    }
+
+    final protected function getSchemaVariant(): mixed {
+        return $this->schemaVariant ?? null;
     }
 
     final public function ofSchemaVariant(mixed $variant): static {
@@ -31,10 +35,10 @@ trait DefinesField
         return $this;
     }
 
-    final protected function hideBecauseOfDeprecation(): bool
+    final protected function hideFieldBecauseDeprecationDateIsPassed(): bool
     {
         return $this->automaticallyRemoveIfPast
-            && $this->removalDate
+            && isset($this->removalDate)
             && $this->removalDate->getTimestamp() < time();
     }
 
@@ -44,14 +48,14 @@ trait DefinesField
             return null;
         }
 
-        return $this->removalDate
+        return isset($this->removalDate)
             ? "{$this->deprecatedReason}. Removal Date: {$this->removalDate->format('Y-m-d')}"
             : $this->deprecatedReason;
     }
 
     private function computeDeprecatedDescriptionMessage(): string
     {
-        return $this->removalDate
+        return isset($this->removalDate)
             ? '**DEPRECATED**, Removal Date: ' . $this->removalDate->format('Y-m-d') . '.'
             : '**DEPRECATED**, no removal date specified.';
     }
@@ -60,11 +64,11 @@ trait DefinesField
     {
         $descriptionParts = [];
 
-        if ($this->deprecatedReason) {
+        if (isset($this->deprecatedReason)) {
             $descriptionParts[] = $this->computeDeprecatedDescriptionMessage();
         }
 
-        if ($this->description) {
+        if (isset($this->description)) {
             $descriptionParts[] = $this->description;
         }
 
@@ -73,7 +77,7 @@ trait DefinesField
 
     private function isDeprecated(): bool
     {
-        return !!$this->deprecatedReason;
+        return isset($this->deprecatedReason);
     }
 
 }

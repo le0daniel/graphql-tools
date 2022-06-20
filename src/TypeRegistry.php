@@ -9,6 +9,7 @@ use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
 use GraphQL\Utils\SchemaPrinter;
 use GraphQlTools\Definition\Field\Field;
+use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlEnum;
 use GraphQlTools\Definition\GraphQlInputType;
 use GraphQlTools\Definition\GraphQlInterface;
@@ -94,11 +95,11 @@ class TypeRegistry {
      * arbitrary value as schema variant. Then you can use the registry to dynamically
      * hide the field. Additionally, you can use field Metadata to further add context.
      *
-     * @param mixed $schemaVariant
      * @param Field $field
+     * @param mixed $schemaVariant
      * @return bool
      */
-    public function shouldHideField(mixed $schemaVariant, Field $field): bool {
+    public function shouldHideField(Field $field, mixed $schemaVariant): bool {
         return false;
     }
 
@@ -110,11 +111,11 @@ class TypeRegistry {
      * arbitrary value as schema variant. Then you can use the registry to dynamically
      * hide the field. Additionally, you can use field Metadata to further add context.
      *
+     * @param mixed $inputField
      * @param mixed $schemaVariant
-     * @param mixed $fieldMetadata
      * @return bool
      */
-    public function shouldHideInputField(mixed $schemaVariant, mixed $fieldMetadata): bool {
+    public function shouldHideInputField(InputField $inputField, mixed $schemaVariant): bool {
         return false;
     }
 
@@ -174,7 +175,7 @@ class TypeRegistry {
         return $this->typeInstances[$typeName];
     }
 
-    private function eagerlyResolveType(string $classOrTypeName): Type {
+    final public function eagerlyResolveType(string $classOrTypeName): Type {
         $typeName = $this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName;
         return $this->resolveTypeByName($typeName);
     }

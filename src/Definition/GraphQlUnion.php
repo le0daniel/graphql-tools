@@ -19,7 +19,7 @@ abstract class GraphQlUnion extends UnionType
     private const CLASS_POSTFIX = 'Union';
 
     final public function __construct(
-        private TypeRegistry $typeRepository
+        protected readonly TypeRegistry $typeRepository
     )
     {
         parent::__construct(

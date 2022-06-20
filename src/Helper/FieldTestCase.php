@@ -10,6 +10,7 @@ use GraphQlTools\Contract\ExecutableByDataLoader;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use GraphQlTools\TypeRegistry;
+use GraphQlTools\Utility\Promises;
 use RuntimeException;
 use Throwable;
 
@@ -110,7 +111,7 @@ class FieldTestCase
 
         $result = $resolver($rootData, $arguments, $operationContext, $resolveInfo);
 
-        if (!ProxyResolver::isPromise($result)) {
+        if (!Promises::is($result)) {
             return self::rethrowThrowable($result);
         }
 

@@ -4,12 +4,18 @@ namespace GraphQlTools\Definition\Field\Shared;
 
 trait DefinesMetadata
 {
-    protected mixed $metadata = null;
 
-    final public function withMetadata(mixed $metadata): static
-    {
+    public readonly mixed $metadata;
+
+    public function withMetadata(mixed $metadata): self {
         $this->metadata = $metadata;
         return $this;
+    }
+
+    final protected function setMetadataOnce(): void {
+        if (!isset($this->metadata)) {
+            $this->metadata = null;
+        }
     }
 
 }

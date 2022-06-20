@@ -148,7 +148,7 @@ Full example of Type definition:
     use GraphQlTools\Definition\Field\Field;
     use GraphQlTools\TypeRegistry;
     use GraphQlTools\Definition\Field\DeferredField;
-    use GraphQlTools\Definition\Field\Argument;
+    use GraphQlTools\Definition\Field\InputField;
     use GraphQlTools\Context;
     
     final class AnimalType extends GraphQlType {
@@ -183,13 +183,12 @@ Full example of Type definition:
                     ->withArguments(
                         
                         // Define named arguments, works for all fields
-                        Argument::withName('id')
+                        InputField::withName('id')
                             ->ofType(Type::id())
                             ->withDefaultValue('My Value')
                             ->withDescription('My Description')
-                            ->withValidator(fn(string $value, array $allArguments) => $value or throw new Error()),
                        
-                        Argument::withName('second')
+                        InputField::withName('second')
                             ->ofType(MyType::class),
                     )
                     ->resolvedBy(function ($data, $arguments, Context $context, $resolveInfo) {
