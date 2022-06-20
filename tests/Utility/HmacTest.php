@@ -48,14 +48,16 @@ class HmacTest extends TestCase
         );
     }
 
-    public function testSerialization(){
+    public function testSerialization()
+    {
         self::assertEquals(
             'ae514e0de4fad554f880c8f002d376b5c84e12aede31f9ed21128f2d82583bf1::O:8:"stdClass":0:{}',
             Hmac::serializeAndSign('my-key', new stdClass())
         );
     }
 
-    public function testUnSerialization(){
+    public function testUnSerialization()
+    {
         $unserialized = Hmac::verifyAndUnserialize('my-key', 'ae514e0de4fad554f880c8f002d376b5c84e12aede31f9ed21128f2d82583bf1::O:8:"stdClass":0:{}');
         self::assertInstanceOf(stdClass::class, $unserialized);
     }
