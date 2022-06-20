@@ -24,7 +24,7 @@ trait DefinesTypes
             return $this->typeRegistry->type($declaration);
         }
 
-        throw DefinitionException::from($declaration, 'string (TypeName or TypeClassName)', Type::class, 'fn(TypeRepository $typeRegistry)');
+        throw DefinitionException::from($declaration, 'string (TypeName or TypeClassName)', Type::class);
     }
 
 }
