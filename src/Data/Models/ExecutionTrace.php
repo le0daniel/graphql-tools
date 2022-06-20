@@ -5,17 +5,21 @@ namespace GraphQlTools\Data\Models;
 use DateTimeImmutable;
 use GraphQlTools\Utility\Lists;
 
-/**
- * @property-read string $query
- * @property-read int $startTimeInNanoSeconds
- * @property-read int $endTimeInNanoSeconds
- * @property-read int $durationNs
- * @property-read FieldTrace[]
- * @property-read GraphQlError[] $errors
- * @property-read DateTimeImmutable $startDateTime
- */
-final class ExecutionTrace extends Holder
+final class ExecutionTrace
 {
+    public function __construct(
+        public readonly string    $query,
+        public readonly int       $startTimeInNanoSeconds,
+        public readonly int       $endTimeInNanoSeconds,
+        public readonly array $fieldTraces,
+        public readonly array    $errors,
+        public readonly DateTimeImmutable $startDateTime,
+    )
+    {
+        Lists::verifyOfType(FieldTrace::class, $this->fieldTraces);
+        Lists::verifyOfType(GraphQlError::class, $this->errors);
+    }
+
     public static function from(
         string            $query,
         int               $startTimeInNanoSeconds,
@@ -25,25 +29,19 @@ final class ExecutionTrace extends Holder
         array             $errors,
     ): self
     {
-        Lists::verifyOfType(FieldTrace::class, $fieldTraces);
-        Lists::verifyOfType(GraphQlError::class, $errors);
-
-        return new self([
-            'query' => $query,
-            'startTimeInNanoSeconds' => $startTimeInNanoSeconds,
-            'endTimeInNanoSeconds' => $endTimeInNanoSeconds,
-            'startDateTime' => $startDateTime,
-            'fieldTraces' => $fieldTraces,
-            'errors' => $errors,
-        ]);
+        return new self(
+            $query,
+            $startTimeInNanoSeconds,
+            $endTimeInNanoSeconds,
+            $fieldTraces,
+            $errors,
+            $startDateTime,
+        );
     }
 
-    protected function getValue(string $name): mixed
+    public function durationNs(): int
     {
-        return match ($name) {
-            'durationNs' => $this->endTime - $this->startTime,
-            default => parent::getValue($name),
-        };
+        return $this->endTimeInNanoSeconds - $this->startTimeInNanoSeconds;
     }
 
 }

@@ -6,13 +6,9 @@ declare(strict_types=1);
 namespace GraphQlTools\Data\Models;
 
 
-use GraphQL\Type\Definition\CompositeType;
 use GraphQL\Type\Definition\InterfaceType;
-use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
-use GraphQlTools\Utility\Paths;
 use JetBrains\PhpStorm\ArrayShape;
-use JetBrains\PhpStorm\Internal\TentativeType;
 use JsonSerializable;
 
 /**

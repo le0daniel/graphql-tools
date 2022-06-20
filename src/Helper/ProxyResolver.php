@@ -62,7 +62,7 @@ final class ProxyResolver
         // Ensure arguments are always an array.
         $arguments ??= [];
 
-        $afterFieldResolution = $operationContext->extensions->willVisitField(
+        $afterFieldResolution = $operationContext->extensions->willResolveField(
             VisitFieldEvent::create($typeData, $arguments, $info)
         );
 

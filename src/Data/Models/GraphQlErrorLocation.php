@@ -4,18 +4,22 @@ namespace GraphQlTools\Data\Models;
 
 use GraphQL\Language\SourceLocation;
 
-/**
- * @property-read int $line
- * @property-read int $column
- */
-class GraphQlErrorLocation extends Holder
+class GraphQlErrorLocation
 {
 
-    public static function from(SourceLocation $sourceLocation) {
-        return new self([
-            'line' => $sourceLocation->line,
-            'column' => $sourceLocation->column,
-        ]);
+    public function __construct(
+        public readonly int $line,
+        public readonly int $column,
+    )
+    {
+    }
+
+    public static function from(SourceLocation $sourceLocation)
+    {
+        return new self(
+            $sourceLocation->line,
+            $sourceLocation->column,
+        );
     }
 
 }

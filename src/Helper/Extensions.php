@@ -50,20 +50,22 @@ final class Extensions implements JsonSerializable
         return new self(...$instances);
     }
 
-    public function willVisitField(VisitFieldEvent $event): Closure
+    public function willResolveField(VisitFieldEvent $event): Closure
     {
-        $afterStack = [];
+        $afterCallStack = [];
 
         foreach ($this->extensions as $extension) {
             if ($afterEvent = $extension->visitField($event)) {
-                array_unshift($afterStack, $afterEvent);
+                array_unshift($afterCallStack, $afterEvent);
             }
         }
 
-        return static function (mixed $resolvedValue) use ($afterStack) {
-            foreach ($afterStack as $next) {
+        return static function (mixed $resolvedValue) use (&$afterCallStack) {
+            foreach ($afterCallStack as $next) {
                 $next($resolvedValue);
             }
+
+            // Extensions should not modify the resolved value, they can only read it.
             return $resolvedValue;
         };
     }

@@ -58,7 +58,7 @@ class ExtensionsTest extends TestCase
             fn() => $extension->reveal()
         ]);
 
-        $next = $extensions->willVisitField(VisitFieldEvent::create(
+        $next = $extensions->willResolveField(VisitFieldEvent::create(
             null, [], ResolveInfoDummy::withDefaults(), []
         ));
 

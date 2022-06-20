@@ -6,6 +6,7 @@ use GraphQlTools\Test\Dummies\HolderDummy;
 use GraphQlTools\Utility\Hmac;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use stdClass;
 
 class HmacTest extends TestCase
 {
@@ -49,13 +50,13 @@ class HmacTest extends TestCase
 
     public function testSerialization(){
         self::assertEquals(
-            'e8959909c5e02d5b97d91fd014838e38868d814419e76745a66ec949de54f22d::O:37:"GraphQlTools\Test\Dummies\HolderDummy":1:{s:3:"key";s:5:"value";}',
-            Hmac::serializeAndSign('my-key', HolderDummy::create(['key' => 'value']))
+            'ae514e0de4fad554f880c8f002d376b5c84e12aede31f9ed21128f2d82583bf1::O:8:"stdClass":0:{}',
+            Hmac::serializeAndSign('my-key', new stdClass())
         );
     }
 
     public function testUnSerialization(){
-        $unserialized = Hmac::verifyAndUnserialize('my-key', 'e8959909c5e02d5b97d91fd014838e38868d814419e76745a66ec949de54f22d::O:37:"GraphQlTools\Test\Dummies\HolderDummy":1:{s:3:"key";s:5:"value";}');
-        self::assertInstanceOf(HolderDummy::class, $unserialized);
+        $unserialized = Hmac::verifyAndUnserialize('my-key', 'ae514e0de4fad554f880c8f002d376b5c84e12aede31f9ed21128f2d82583bf1::O:8:"stdClass":0:{}');
+        self::assertInstanceOf(stdClass::class, $unserialized);
     }
 }

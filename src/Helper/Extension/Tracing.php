@@ -25,7 +25,8 @@ final class Tracing extends Extension
 
     /** @var FieldTrace[] */
     private array $fieldTraces = [];
-    /** @var GraphQlError[]  */
+
+    /** @var GraphQlError[] */
     private array $errors = [];
 
     public function priority(): int
@@ -38,20 +39,18 @@ final class Tracing extends Extension
         return 'tracing';
     }
 
-    /** @var callable|null */
-    private $storeTraceFunction;
-
     /**
      * @param bool $addTraceToResult
      */
     public function __construct(
-        private readonly bool $addTraceToResult = true,
-        ?callable $storeTraceFunction = null
-    ){
-        $this->storeTraceFunction = $storeTraceFunction;
+        private readonly bool     $addTraceToResult = true,
+        private readonly ?Closure $storeTraceFunction = null
+    )
+    {
     }
 
-    public function toExecutionTrace(): ExecutionTrace {
+    public function toExecutionTrace(): ExecutionTrace
+    {
         return ExecutionTrace::from(
             $this->query,
             $this->startTimeInNanoseconds,
