@@ -12,7 +12,7 @@ use Throwable;
 
 final class DataLoader
 {
-    private const IDENTIFIER_ARRAY_KEY = 'id';
+    public const IDENTIFIER_KEY = 'itemId';
     private array $loadingTraces = [];
     private array $queuedItems = [];
     private mixed $loadedData = null;
@@ -46,7 +46,7 @@ final class DataLoader
 
         // If an array is given, an identifier is required to map to the correct data. This is due
         // to arrays being passed as values and not as references.
-        $identifier = is_array($item) ? $item[self::IDENTIFIER_ARRAY_KEY] : $item;
+        $identifier = is_array($item) ? $item[self::IDENTIFIER_KEY] : $item;
 
         return new Deferred(function () use (&$identifier) {
             $this->loadDataOnce();
@@ -132,11 +132,11 @@ final class DataLoader
     }
 
     private function verifyArrayItemsContainIdentifier(mixed &$item): void {
-        if (is_array($item) && !array_key_exists(self::IDENTIFIER_ARRAY_KEY, $item)) {
-            $keyName = self::IDENTIFIER_ARRAY_KEY;
+        if (is_array($item) && !array_key_exists(self::IDENTIFIER_KEY, $item)) {
+            $keyName = 'DataLoader::IDENTIFIER_KEY';
             throw new RuntimeException(
                 "An item enqueued in a dataloader is required to have a property called '{$keyName}' for mapping." . PHP_EOL .
-                "Hint: Make sure to use \$dataLoader->load(['id' => 'yourID!', ...])."
+                "Hint: Make sure to use \$dataLoader->load([{$keyName} => 'yourID!', ...])."
             );
         }
     }

@@ -2,13 +2,14 @@
 
 namespace GraphQlTools\Test\Contract;
 
-use Closure;
 use GraphQL\Deferred;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQlTools\Helper\Counter;
 use GraphQlTools\Helper\DataLoader;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use SplObjectStorage;
+use stdClass;
 
 class DataLoaderTest extends TestCase
 {
@@ -34,8 +35,8 @@ class DataLoaderTest extends TestCase
     {
         $dataLoader = new DataLoader(fn() => [1 => 'test', 2 => 'other']);
 
-        $promise1 = $dataLoader->load(['id' => 1, 'args' => []]);
-        $promise2 = $dataLoader->load(['id' => 2, 'args' => []]);
+        $promise1 = $dataLoader->load(['itemId' => 1, 'args' => []]);
+        $promise2 = $dataLoader->load(['itemId' => 2, 'args' => []]);
         Deferred::runQueue();
 
         self::assertEquals('test', $promise1->result);
@@ -97,5 +98,22 @@ class DataLoaderTest extends TestCase
         Deferred::runQueue();
         self::assertCount(1, $dataLoader->getLoadingTraces());
         self::assertEquals(['test', 'test', 'test'], self::promisesToValues($promises));
+    }
+
+    public function testWithObjectLoad(): void {
+        $object1 = new stdClass();
+        $object2 = new stdClass();
+
+        $storage = new SplObjectStorage();
+        $storage[$object1] = 'object1';
+        $storage[$object2] = 'object2';
+
+        $dataLoader = new DataLoader(fn() => $storage);
+        $promise1 = $dataLoader->load($object1);
+        $promise2 = $dataLoader->load($object2);
+
+        Deferred::runQueue();
+        self::assertEquals('object1', $promise1->result);
+        self::assertEquals('object2', $promise2->result);
     }
 }
