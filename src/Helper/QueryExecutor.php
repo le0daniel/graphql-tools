@@ -92,8 +92,8 @@ final class QueryExecutor
         array   $contextualValidationRules = self::DEFAULT_CONTEXTUAL_VALIDATION_RULE,
     ): ExecutionResult
     {
-        $extensions = Extensions::createFromExtensionFactories($this->extensionFactories);
-        $extensions->dispatchStartEvent(StartEvent::create($query));
+        $extensionManager = ExtensionManager::createFromExtensionFactories($this->extensionFactories);
+        $extensionManager->dispatchStartEvent(StartEvent::create($query));
 
 
         $validationRules = [
@@ -105,9 +105,9 @@ final class QueryExecutor
             $source = Parser::parse($query);
         } catch (SyntaxError $exception) {
             $result = new ExecutionResult(null, [$exception]);
-            $extensions->dispatchEndEvent(EndEvent::create($result));
+            $extensionManager->dispatchEndEvent(EndEvent::create($result));
 
-            $result->extensions = $extensions->jsonSerialize();
+            $result->extensions = $extensionManager->jsonSerialize();
             return $result;
         }
 
@@ -115,16 +115,16 @@ final class QueryExecutor
             schema: $this->schema,
             source: $source,
             rootValue: $rootValue,
-            contextValue: new OperationContext($context, $extensions),
+            contextValue: new OperationContext($context, $extensionManager),
             variableValues: $variables ?? [],
             operationName: $operationName,
             validationRules: $validationRules,
         );
 
-        $extensions->dispatchEndEvent(EndEvent::create($result));
+        $extensionManager->dispatchEndEvent(EndEvent::create($result));
 
         $result->extensions = Arrays::mergeKeyValues(
-            $extensions->jsonSerialize(),
+            $extensionManager->jsonSerialize(),
             $this->serializeValidationRules($validationRules),
             throwOnKeyConflict: true
         );

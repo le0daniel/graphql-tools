@@ -7,7 +7,7 @@ use GraphQlTools\Contract\Extension;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;
-use GraphQlTools\Helper\Extensions;
+use GraphQlTools\Helper\ExtensionManager;
 use GraphQlTools\Helper\Extension\Tracing;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use PHPUnit\Framework\TestCase;
@@ -21,7 +21,7 @@ class ExtensionsTest extends TestCase
 
     public function testCreate()
     {
-        Extensions::createFromExtensionFactories([
+        ExtensionManager::createFromExtensionFactories([
             Tracing::class,
             fn() => new Tracing()
         ]);
@@ -42,7 +42,7 @@ class ExtensionsTest extends TestCase
             $extensions[] = $extensionProphecy->reveal();
         }
 
-        $extensionManager = new Extensions(...$extensions);
+        $extensionManager = new ExtensionManager(...$extensions);
         $extensionManager->dispatchStartEvent($startEvent);
         $extensionManager->dispatchEndEvent($endEvent);
     }
@@ -54,7 +54,7 @@ class ExtensionsTest extends TestCase
         $extension->visitField(Argument::type(VisitFieldEvent::class))->willReturn(fn() => 'value');
         $extension->priority()->willReturn(1);
 
-        $extensions = Extensions::createFromExtensionFactories([
+        $extensions = ExtensionManager::createFromExtensionFactories([
             fn() => $extension->reveal()
         ]);
 

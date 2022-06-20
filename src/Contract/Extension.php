@@ -24,6 +24,15 @@ abstract class Extension implements JsonSerializable {
     abstract public function jsonSerialize(): mixed;
 
     /**
+     * Determines if the extension is exposed to the client or not.
+     *
+     * @return bool
+     */
+    public function isVisibleInResult(): bool {
+        return true;
+    }
+
+    /**
      * Defines the priority of the extension. Lower numbers equals higher priority
      *
      * @return int

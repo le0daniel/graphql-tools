@@ -39,6 +39,11 @@ final class Tracing extends Extension
         return 'tracing';
     }
 
+    public function isVisibleInResult(): bool
+    {
+        return $this->addTraceToResult;
+    }
+
     /**
      * @param bool $addTraceToResult
      */
@@ -66,9 +71,7 @@ final class Tracing extends Extension
      */
     public function jsonSerialize(): ?ExecutionTrace
     {
-        return $this->addTraceToResult
-            ? $this->toExecutionTrace()
-            : null;
+        return $this->toExecutionTrace();
     }
 
     public function start(StartEvent $startEvent): void

@@ -11,11 +11,10 @@ use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
 use JsonSerializable;
 
-final class Extensions implements JsonSerializable
+final class ExtensionManager implements JsonSerializable
 {
-
     /** @var Extension[] */
-    private array $extensions;
+    private readonly array $extensions;
 
     public function __construct(Extension ...$extensions)
     {
@@ -30,9 +29,9 @@ final class Extensions implements JsonSerializable
      * query.
      *
      * @param array $extensionFactories
-     * @return Extensions
+     * @return ExtensionManager
      */
-    public static function createFromExtensionFactories(array $extensionFactories): Extensions
+    public static function createFromExtensionFactories(array $extensionFactories): ExtensionManager
     {
         $instances = [];
         $columnToSort = [];
@@ -89,8 +88,8 @@ final class Extensions implements JsonSerializable
         $extensionData = [];
 
         foreach ($this->extensions as $extension) {
-            if ($data = $extension->jsonSerialize()) {
-                $extensionData[$extension->key()] = $data;
+            if ($extension->isVisibleInResult()) {
+                $extensionData[$extension->key()] = $extension->jsonSerialize();
             }
         }
 
