@@ -24,7 +24,7 @@ trait DefinesFields
                 throw DefinitionException::from($inputField, InputField::class);
             }
 
-            $definition =  $inputField->toDefinition($this->typeRepository);
+            $definition =  $inputField->toDefinition($this->typeRegistry);
             if (!$definition) {
                 continue;
             }
@@ -44,7 +44,7 @@ trait DefinesFields
                 throw DefinitionException::from($fieldDeclaration, Field::class);
             }
 
-            $fieldDefinition = $fieldDeclaration->toDefinition($this->typeRepository, $fieldsWithoutResolver);
+            $fieldDefinition = $fieldDeclaration->toDefinition($this->typeRegistry, $fieldsWithoutResolver);
             if (!$fieldDefinition) {
                 continue;
             }

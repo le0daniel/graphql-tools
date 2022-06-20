@@ -18,7 +18,7 @@ trait DefinesArguments
 
     final protected function buildArguments(TypeRegistry $registry): ?array
     {
-        if (isset($this->inputFields)) {
+        if (!isset($this->inputFields)) {
             return null;
         }
 

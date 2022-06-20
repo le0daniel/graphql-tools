@@ -7,7 +7,7 @@ use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\TypeRegistry;
 
-/** @property-read TypeRegistry $typeRepository */
+/** @property-read TypeRegistry $typeRegistry */
 trait DefinesTypes
 {
     protected function initTypes(array $typeDeclarations): array {
@@ -21,10 +21,10 @@ trait DefinesTypes
         }
 
         if (is_string($declaration)) {
-            return $this->typeRepository->type($declaration);
+            return $this->typeRegistry->type($declaration);
         }
 
-        throw DefinitionException::from($declaration, 'string (TypeName or TypeClassName)', Type::class, 'fn(TypeRepository $typeRepository)');
+        throw DefinitionException::from($declaration, 'string (TypeName or TypeClassName)', Type::class, 'fn(TypeRepository $typeRegistry)');
     }
 
 }

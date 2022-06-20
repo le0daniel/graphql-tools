@@ -24,7 +24,7 @@ abstract class GraphQlInterface extends InterfaceType {
      */
     abstract protected function fields(): array;
 
-    final public function __construct(protected readonly TypeRegistry $typeRepository) {
+    final public function __construct(protected readonly TypeRegistry $typeRegistry) {
         parent::__construct(
             [
                 'name' => static::typeName(),

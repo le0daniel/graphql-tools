@@ -14,7 +14,7 @@ class QueryTest extends ExecutionTestCase
     protected function typeRepository(bool $withMetadataIntrospection = true): TypeRegistry
     {
         return new TypeRegistry(
-            TypeRegistry::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema', $withMetadataIntrospection)
+            TypeRegistry::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema')
         );
     }
 
@@ -35,12 +35,6 @@ class QueryTest extends ExecutionTestCase
         $result = $this->execute('query { currentUser(name: "Doris") }');
         $this->assertNoErrors($result);
         self::assertEquals('Hello Doris', $result->data['currentUser']);
-    }
-
-    public function testFieldExecutionWithInvalidArguments(): void
-    {
-        $result = $this->execute('query { currentUser(name: "a") }');
-        $this->assertError($result, "Validation failed for 'name': Invalid, string to short: 'a'");
     }
 
     public function testSimpleExecution(): void
@@ -99,56 +93,5 @@ class QueryTest extends ExecutionTestCase
         self::assertCount(3, $result->data['mamels']);
         self::assertCount(3, $result->data['mamels']);
         $this->assertColumnCount(3, $result->data['mamels'], 'sound');
-    }
-
-    public function testDisabledMetadataQueries(): void {
-        $result = $this->execute('query {
-            meta: __typeMetadata(name: "Lion") {
-                name
-            }
-        }', false);
-
-        self::assertNotEmpty($result->errors);
-        self::assertNull($result->data);
-    }
-
-    public function testFieldMetadata(): void
-    {
-        $result = $this->execute('
-            query {
-                meta: __typeMetadata(name: "Lion") {
-                    name
-                    metadata
-                    fields {
-                        name
-                        type
-                        metadata
-                    }
-                    fieldByName(name: "fieldWithMeta") {
-                        name
-                        type
-                        metadata
-                    }
-                    field2: fieldByName(name: "doesNotExist") {
-                        name
-                        type
-                        metadata
-                    }
-                }
-            }
-        ');
-
-        $this->assertNoErrors($result);
-        self::assertEquals('Lion', $result->data['meta']['name']);
-        self::assertEquals([
-            "policies" => [
-                "mamel:read" => "Must have the scope: `mamel:read` to access this property"
-            ]
-        ], $result->data['meta']['metadata']);
-        self::assertNull($result->data['meta']['field2']);
-        self::assertEquals([
-            "policy" => 'This is my special policy'
-        ], $result->data['meta']['fieldByName']['metadata']);
-        self::assertEquals('String!', $result->data['meta']['fieldByName']['type']);
     }
 }

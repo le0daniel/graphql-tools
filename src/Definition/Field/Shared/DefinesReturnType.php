@@ -36,7 +36,7 @@ trait DefinesReturnType
             $this->ofType,
             'string (TypeName or TypeClassName)',
             Type::class,
-            'fn(TypeRepository $typeRepository)'
+            'fn(TypeRepository $typeRegistry)'
         );
     }
 

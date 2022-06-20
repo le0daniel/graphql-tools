@@ -20,7 +20,7 @@ trait ResolvesType {
 
     final public function resolveType($typeValue, $context, ResolveInfo $info): Type {
         $typeOrClassName = $this->resolveToType($typeValue, $context->context, $info);
-        return $this->typeRepository->eagerlyResolveType($typeOrClassName);
+        return $this->typeRegistry->eagerlyResolveType($typeOrClassName);
     }
 
 }

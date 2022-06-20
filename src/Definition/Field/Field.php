@@ -31,7 +31,7 @@ class Field
         return $this->hideFieldBecauseDeprecationDateIsPassed() || $repository->shouldHideField($this, $this->getSchemaVariant());
     }
 
-    final public function toDefinition(TypeRegistry $registry, bool $withoutResolver): ?FieldDefinition
+    final public function toDefinition(TypeRegistry $registry, bool $withoutResolver = false): ?FieldDefinition
     {
         $this->setMetadataOnce();
         if ($this->isHidden($registry)) {
@@ -44,7 +44,7 @@ class Field
 
         return FieldDefinition::create([
             'name' => $this->name,
-            'resolve' => $withoutResolver ? new ProxyResolver($this->resolveFunction ?? null) : null,
+            'resolve' => $withoutResolver ? null : new ProxyResolver($this->resolveFunction ?? null),
             'type' => $this->resolveReturnType($registry),
             'deprecationReason' => $this->computeDeprecationReason(),
             'description' => $this->computeDescription(),

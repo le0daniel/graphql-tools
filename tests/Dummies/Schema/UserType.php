@@ -26,7 +26,7 @@ final class UserType extends GraphQlType {
                 ->resolvedBy(fn($data, array $arguments) => $arguments['name'] ?? 'no name given'),
 
             Field::withName('data')
-                ->ofType(fn(TypeRegistry $typeRepository) => $typeRepository->type(JsonScalar::class))
+                ->ofType(fn(TypeRegistry $typeRegistry) => $typeRegistry->type(JsonScalar::class))
                 ->resolvedBy(fn() => ['test' => ['json' => [1, 2, 3, 4]]])
             ,
         ];

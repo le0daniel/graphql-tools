@@ -4,7 +4,7 @@ namespace GraphQlTools\Definition\Field\Shared;
 
 trait DefinesDefaultValue
 {
-    protected readonly mixed $defaultValue;
+    protected mixed $defaultValue = null;
 
     final public function withDefaultValue(mixed $defaultValue): self {
         $this->defaultValue = $defaultValue;

@@ -32,11 +32,4 @@ class TigerTest extends TypeTestCase
             ->visit(['id' => 2]);
         $this->assertEquals('My Deferred', $result);
     }
-
-    public function testFieldWithArgs()
-    {
-        $this->expectException(Throwable::class);
-        $this->expectExceptionMessage("Validation failed for 'test': Failed");
-        $this->field('withArg')->visit(null, ['test2' => 'success']);
-    }
 }

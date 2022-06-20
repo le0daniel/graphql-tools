@@ -28,8 +28,6 @@ final class QueryType extends GraphQlType {
             Field::withName('currentUser')
                 ->ofType(Type::string())
                 ->ofSchemaVariant('MySchemaVariant::hides it on other schemas')
-                // Alternative if type repo is needed
-                // ->ofType(fn(TypeRepository $typeRepository) => new NonNull(Type::string()))
                 ->withArguments(
                     InputField::withName('name')
                         ->ofType(Type::string())
@@ -55,7 +53,7 @@ final class QueryType extends GraphQlType {
 
             Field::withName('mamels')
                 ->ofType(
-                    static fn(TypeRegistry $typeRepository) => Type::nonNull(Type::listOf(Type::nonNull($typeRepository->type(MamelInterface::class))))
+                    static fn(TypeRegistry $typeRegistry) => Type::nonNull(Type::listOf(Type::nonNull($typeRegistry->type(MamelInterface::class))))
                 )
                 ->resolvedBy(function ($item, array $arguments, Context $context) {
                     return self::ANIMALS;
@@ -75,20 +73,24 @@ final class QueryType extends GraphQlType {
                 ),
 
             Field::withName('user')
-                ->ofType(fn(TypeRegistry $typeRepository) => new NonNull($typeRepository->type(UserType::class)))
+                ->ofType(fn(TypeRegistry $typeRegistry) => new NonNull($typeRegistry->type(UserType::class)))
                 ->resolvedBy(fn() => ['id' => self::USER_ID]),
 
             Field::withName('jsonInput')
                 ->ofType(JsonScalar::class)
                 ->withArguments(
                     InputField::withName('json')
-                        ->ofType(fn(TypeRegistry $typeRepository) => new NonNull($typeRepository->type(JsonScalar::class)))
+                        ->ofType(fn(TypeRegistry $typeRegistry) => new NonNull($typeRegistry->type(JsonScalar::class)))
                 )
-                ->resolvedBy(fn($d, array $arguments) => ['json' => $arguments['json']])
+                ->resolvedBy(
+                    function ($r, array $arguments) {
+                        return ['json' => $arguments['json']];
+                    }
+                )
             ,
 
             Field::withName('animals')
-                ->ofType(fn(TypeRegistry $typeRepository) => Type::nonNull(Type::listOf(Type::nonNull($typeRepository->type(AnimalUnion::class)))))
+                ->ofType(fn(TypeRegistry $typeRegistry) => Type::nonNull(Type::listOf(Type::nonNull($typeRegistry->type(AnimalUnion::class)))))
                 ->resolvedBy(fn() => self::ANIMALS)
             ,
         ];

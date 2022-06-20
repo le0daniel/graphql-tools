@@ -18,13 +18,4 @@ final class SchemaPrintingTest extends TestCase
         self::assertFalse(str_contains($schemaContent, '__typeMetadata'));
     }
 
-    public function testPrintingWithMetadata(): void {
-        $schema = (new TypeRegistry(
-            TypeRegistry::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema', true)
-        ))->toSchema(QueryType::class);
-
-        $schemaContent = TypeRegistry::print($schema);
-        self::assertTrue(str_contains($schemaContent, '__typeMetadata'));
-    }
-
 }

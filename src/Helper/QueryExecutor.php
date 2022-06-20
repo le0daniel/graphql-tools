@@ -49,7 +49,7 @@ final class QueryExecutor
 
     private function initializeContextualValidationRules(array $validationRules): array
     {
-        return Arrays::mapWithKeys($validationRules, static function (Closure|string|ValidationRule $factory): array {
+        return Arrays::mapWithKeys($validationRules, static function ($key, Closure|string|ValidationRule $factory): array {
             if ($factory instanceof ValidationRule) {
                 return [$factory->getName(), $factory];
             }
@@ -114,13 +114,13 @@ final class QueryExecutor
             validationRules: $validationRules,
         );
 
+        $extensions->dispatchEndEvent(EndEvent::create($result));
+
         $result->extensions = Arrays::mergeKeyValues(
             $extensions->jsonSerialize(),
             $this->serializeValidationRules($validationRules),
             throwOnKeyConflict: true
         );
-
-        $extensions->dispatchEndEvent(EndEvent::create($result));
 
         return $result;
     }
