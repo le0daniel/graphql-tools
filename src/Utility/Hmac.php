@@ -8,12 +8,14 @@ use Throwable;
 class Hmac
 {
 
-    public static function signMessage(string $key, string $message): string {
+    public static function signMessage(string $key, string $message): string
+    {
         $signature = hash_hmac('sha256', $message, $key);
         return "$signature::$message";
     }
 
-    public static function verifySignatureAndReturnMessage(string $key, string $signedMessage): string {
+    public static function verifySignatureAndReturnMessage(string $key, string $signedMessage): string
+    {
         try {
             [$userProvidedSignature, $message] = explode('::', $signedMessage, 2);
         } catch (Throwable) {
@@ -33,11 +35,13 @@ class Hmac
         return $message;
     }
 
-    public static function serializeAndSign(string $key, mixed $data): string {
+    public static function serializeAndSign(string $key, mixed $data): string
+    {
         return self::signMessage($key, serialize($data));
     }
 
-    public static function verifyAndUnserialize(string $key, string $serialized): mixed {
+    public static function verifyAndUnserialize(string $key, string $serialized): mixed
+    {
         $payload = self::verifySignatureAndReturnMessage($key, $serialized);
         return unserialize($payload);
     }

@@ -10,7 +10,8 @@ use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
 use JsonSerializable;
 
-abstract class Extension implements JsonSerializable {
+abstract class Extension implements JsonSerializable
+{
 
     private const DEFAULT_PRIORITY = 100;
 
@@ -34,7 +35,8 @@ abstract class Extension implements JsonSerializable {
      *
      * @return bool
      */
-    public function isVisibleInResult(): bool {
+    public function isVisibleInResult(): bool
+    {
         return true;
     }
 
@@ -43,7 +45,8 @@ abstract class Extension implements JsonSerializable {
      *
      * @return int
      */
-    public function priority(): int {
+    public function priority(): int
+    {
         return self::DEFAULT_PRIORITY;
     }
 
@@ -53,7 +56,8 @@ abstract class Extension implements JsonSerializable {
      * @param StartEvent $event
      * @return void
      */
-    public function start(StartEvent $event): void {
+    public function start(StartEvent $event): void
+    {
 
     }
 
@@ -63,7 +67,8 @@ abstract class Extension implements JsonSerializable {
      * @param EndEvent $event
      * @return void
      */
-    public function end(EndEvent $event): void {
+    public function end(EndEvent $event): void
+    {
 
     }
 
@@ -78,7 +83,8 @@ abstract class Extension implements JsonSerializable {
      * @param VisitFieldEvent $event
      * @return null|Closure(mixed $resolvedFieldValue) => $resolvedFieldValue
      */
-    public function visitField(VisitFieldEvent $event): ?Closure {
+    public function visitField(VisitFieldEvent $event): ?Closure
+    {
         return null;
     }
 }

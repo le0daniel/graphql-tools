@@ -123,7 +123,8 @@ final class RootNode
      * @param array $data
      * @return Node
      */
-    private function dataToNode(array $data): Node {
+    private function dataToNode(array $data): Node
+    {
         $node = new Node();
 
         if (isset($data[self::INDEX])) {
@@ -144,18 +145,20 @@ final class RootNode
         /** @var GraphQlError[] $errors */
         $errors = $this->errorMap[$fieldTrace->pathKey] ?? [];
         if (!empty($errors)) {
-            $node->setError(array_map(fn (GraphQlError $error): Error => $error->toProtobufError(), $errors));
+            $node->setError(array_map(fn(GraphQlError $error): Error => $error->toProtobufError(), $errors));
         }
 
         return $node;
     }
 
-    private static function nodeHasChildren(array $node): bool {
+    private static function nodeHasChildren(array $node): bool
+    {
         return isset($node[self::CHILD]) && count($node[self::CHILD]) > 0;
     }
 
     /** @return Node[] */
-    private function childrenToNodes(array $children): array {
+    private function childrenToNodes(array $children): array
+    {
         $nodes = [];
 
         foreach ($children as $child) {
@@ -171,7 +174,8 @@ final class RootNode
         return $nodes;
     }
 
-    public function toProtobuf(): Node {
+    public function toProtobuf(): Node
+    {
         return (new Node())->setChild(
             $this->childrenToNodes($this->rootChildren)
         );

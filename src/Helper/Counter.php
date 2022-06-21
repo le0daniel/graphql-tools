@@ -11,7 +11,8 @@ final class Counter
         $this->count++;
     }
 
-    public function getCount(): int {
+    public function getCount(): int
+    {
         return $this->count;
     }
 }

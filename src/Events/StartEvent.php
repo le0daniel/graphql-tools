@@ -11,9 +11,8 @@ use GraphQlTools\Contract\Event;
 final class StartEvent extends Event
 {
 
-    public function __construct(int $eventTimeInNanoSeconds, public string $query)
+    protected function __construct(public string $query)
     {
-        parent::__construct($eventTimeInNanoSeconds);
     }
 
 }

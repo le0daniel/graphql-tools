@@ -37,8 +37,8 @@ final class QueryExecutor
      * @param ValidationRule[] $validationRules
      */
     public function __construct(
-        private readonly array  $extensionFactories = [],
-        array                   $validationRules = [],
+        private readonly array $extensionFactories = [],
+        array                  $validationRules = [],
     )
     {
         $this->validationRules = empty($validationRules)
@@ -66,7 +66,7 @@ final class QueryExecutor
         });
     }
 
-    private function serializeValidationRules(array $validationRules): array
+    private function collectValidationRuleExtensions(array $validationRules): array
     {
         $serialized = [];
         foreach ($validationRules as $validationRule) {
@@ -80,7 +80,7 @@ final class QueryExecutor
     }
 
     public function execute(
-        Schema $schema,
+        Schema  $schema,
         string  $query,
         Context $context,
         ?array  $variables = null,
@@ -104,7 +104,7 @@ final class QueryExecutor
             $result = new ExecutionResult(null, [$exception]);
             $extensionManager->dispatchEndEvent(EndEvent::create($result));
 
-            $result->extensions = $extensionManager->jsonSerialize();
+            $result->extensions = $extensionManager->collect();
             return $result;
         }
 
@@ -121,8 +121,8 @@ final class QueryExecutor
         $extensionManager->dispatchEndEvent(EndEvent::create($result));
 
         $result->extensions = Arrays::mergeKeyValues(
-            $extensionManager->jsonSerialize(),
-            $this->serializeValidationRules($validationRules),
+            $extensionManager->collect(),
+            $this->collectValidationRuleExtensions($validationRules),
             throwOnKeyConflict: true
         );
 

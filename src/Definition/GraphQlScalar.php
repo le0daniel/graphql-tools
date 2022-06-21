@@ -8,12 +8,14 @@ use GraphQL\Type\Definition\ScalarType;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Utility\Classes;
 
-abstract class GraphQlScalar extends ScalarType {
+abstract class GraphQlScalar extends ScalarType
+{
     use HasDescription;
 
     private const CLASS_POSTFIX = 'Scalar';
 
-    final public function __construct() {
+    final public function __construct()
+    {
         parent::__construct(
             [
                 'description' => $this->description(),
@@ -22,7 +24,8 @@ abstract class GraphQlScalar extends ScalarType {
         );
     }
 
-    public static function typeName(): string {
+    public static function typeName(): string
+    {
         $typeName = Classes::baseName(static::class);
         return str_ends_with($typeName, self::CLASS_POSTFIX)
             ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))

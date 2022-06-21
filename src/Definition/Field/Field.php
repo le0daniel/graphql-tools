@@ -27,7 +27,8 @@ class Field
         return new self($name);
     }
 
-    private function isHidden(TypeRegistry $repository): bool {
+    private function isHidden(TypeRegistry $repository): bool
+    {
         return $this->hideFieldBecauseDeprecationDateIsPassed() || $repository->shouldHideField($this);
     }
 

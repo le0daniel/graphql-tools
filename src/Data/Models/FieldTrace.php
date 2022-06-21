@@ -27,11 +27,13 @@ final class FieldTrace
     {
     }
 
-    public function lastPathElement(): string|int {
+    public function lastPathElement(): string|int
+    {
         return Arrays::last($this->path);
     }
 
-    public function pathKey(): string {
+    public function pathKey(): string
+    {
         return implode('.', $this->path);
     }
 

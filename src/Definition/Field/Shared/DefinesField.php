@@ -18,13 +18,15 @@ trait DefinesField
         return $this;
     }
 
-    final protected function initializeSchemaVariantOnce(): void {
+    final protected function initializeSchemaVariantOnce(): void
+    {
         if (!isset($this->schemaVariant)) {
             $this->schemaVariant = null;
         }
     }
 
-    final public function ofSchemaVariant(mixed $variant): static {
+    final public function ofSchemaVariant(mixed $variant): static
+    {
         $this->schemaVariant = $variant;
         return $this;
     }

@@ -8,11 +8,11 @@ use GraphQlTools\Utility\Lists;
 final class ExecutionTrace
 {
     public function __construct(
-        public readonly string    $query,
-        public readonly int       $startTimeInNanoSeconds,
-        public readonly int       $endTimeInNanoSeconds,
-        public readonly array $fieldTraces,
-        public readonly array    $errors,
+        public readonly string            $query,
+        public readonly int               $startTimeInNanoSeconds,
+        public readonly int               $endTimeInNanoSeconds,
+        public readonly array             $fieldTraces,
+        public readonly array             $errors,
         public readonly DateTimeImmutable $startDateTime,
     )
     {

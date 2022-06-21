@@ -9,9 +9,8 @@ use GraphQlTools\Contract\Extension;
 use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
-use JsonSerializable;
 
-final class ExtensionManager implements JsonSerializable
+final class ExtensionManager
 {
     /** @var Extension[] */
     private readonly array $extensions;
@@ -70,21 +69,21 @@ final class ExtensionManager implements JsonSerializable
         };
     }
 
-    public function dispatchStartEvent(StartEvent $event)
+    public function dispatchStartEvent(StartEvent $event): void
     {
         foreach ($this->extensions as $extension) {
             $extension->start($event);
         }
     }
 
-    public function dispatchEndEvent(EndEvent $event)
+    public function dispatchEndEvent(EndEvent $event): void
     {
         foreach ($this->extensions as $extension) {
             $extension->end($event);
         }
     }
 
-    public function jsonSerialize(): array
+    public function collect(): array
     {
         $extensionData = [];
 

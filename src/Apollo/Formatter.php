@@ -40,7 +40,8 @@ final class Formatter
         ];
     }
 
-    private static function setHttp(Trace $trace, ?AdditionalExecutionInformation $information): void {
+    private static function setHttp(Trace $trace, ?AdditionalExecutionInformation $information): void
+    {
         $http = new Trace\HTTP();
         $http->setMethod(Trace\HTTP\Method::POST);
 
@@ -60,7 +61,7 @@ final class Formatter
             try {
                 $filteredVariables = Arrays::blacklistKeys($information->variables, self::BLACKLISTED_VARIABLE_VALUES);
                 $trace->setDetails(new Trace\Details([
-                    'variables_json' => array_map(fn(mixed $value): string => (string) json_encode($value), $filteredVariables),
+                    'variables_json' => array_map(fn(mixed $value): string => (string)json_encode($value), $filteredVariables),
                 ]));
             } catch (Exception) {
             }
@@ -85,7 +86,8 @@ final class Formatter
         return $timestamp;
     }
 
-    public static function createReport(SchemaInformation $schemaInformation, array $tracesWithAdditionalInformation): Report {
+    public static function createReport(SchemaInformation $schemaInformation, array $tracesWithAdditionalInformation): Report
+    {
         $report = new Report();
 
         $report->setHeader(
@@ -96,7 +98,7 @@ final class Formatter
         foreach ($tracesWithAdditionalInformation as $traceData) {
             [$id, $trace] = self::singleTraceToProtobuf(
                 $traceData instanceof ExecutionTrace ? $traceData : $traceData[0],
-                $traceData instanceof ExecutionTrace? null : ($traceData[1] ?? null),
+                $traceData instanceof ExecutionTrace ? null : ($traceData[1] ?? null),
             );
             $tracesAndStats[$id][] = $trace;
         }
@@ -108,7 +110,8 @@ final class Formatter
         return $report;
     }
 
-    public static function fullTraceReport(): Report {
+    public static function fullTraceReport(): Report
+    {
         $report = new Report();
         $report->setHeader(new ReportHeader());
     }

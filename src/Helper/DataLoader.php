@@ -139,7 +139,8 @@ final class DataLoader
         }
     }
 
-    private function verifyArrayItemsContainIdentifier(mixed &$item): void {
+    private function verifyArrayItemsContainIdentifier(mixed &$item): void
+    {
         if (is_array($item) && !array_key_exists(self::IDENTIFIER_KEY, $item)) {
             $keyName = 'DataLoader::IDENTIFIER_KEY';
             throw new RuntimeException(

@@ -13,7 +13,7 @@ class GraphQlError
     public function __construct(
         public readonly string $message,
         public readonly ?array $path,
-        public readonly array $locations,
+        public readonly array  $locations,
     )
     {
         Lists::verifyOfType(GraphQlErrorLocation::class, $this->locations);
@@ -28,13 +28,15 @@ class GraphQlError
         );
     }
 
-    public function pathKey(): string {
+    public function pathKey(): string
+    {
         return implode('.', $this->path ?? []);
     }
 
-    public function toProtobufError(): ProtobufError {
+    public function toProtobufError(): ProtobufError
+    {
         $error = new ProtobufError();
-        $locations = array_map(static function(GraphQlErrorLocation $errorLocation): Location {
+        $locations = array_map(static function (GraphQlErrorLocation $errorLocation): Location {
             $protoBufLocation = new Location();
             $protoBufLocation->setColumn($errorLocation->column);
             $protoBufLocation->setLine($errorLocation->line);

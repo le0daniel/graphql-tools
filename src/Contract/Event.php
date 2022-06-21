@@ -6,13 +6,13 @@ use GraphQlTools\Utility\Time;
 
 abstract class Event
 {
+    public readonly int $eventTimeInNanoSeconds;
 
-    public function __construct(public readonly int $eventTimeInNanoSeconds)
+    public static function create(...$payload): static
     {
-    }
-
-    public static function create(...$payload): static {
-        return new static(Time::nanoSeconds(), ... $payload);
+        $instance = new static(... $payload);
+        $instance->eventTimeInNanoSeconds = Time::nanoSeconds();
+        return $instance;
     }
 
 }

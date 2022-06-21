@@ -7,7 +7,6 @@ namespace GraphQlTools\Helper;
 use ArrayAccess;
 use Closure;
 use GraphQL\Type\Definition\ResolveInfo;
-use GraphQlTools\Helper\Context;
 use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Utility\Promises;
 use Throwable;

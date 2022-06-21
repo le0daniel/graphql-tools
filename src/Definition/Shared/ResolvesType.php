@@ -6,7 +6,8 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Helper\Context;
 
-trait ResolvesType {
+trait ResolvesType
+{
 
     /**
      * Resolve a given Data Object to the correct Type. Return a class or type name.
@@ -18,9 +19,10 @@ trait ResolvesType {
      */
     abstract protected function resolveToType(mixed $typeValue, Context $context, ResolveInfo $info): string;
 
-    final public function resolveType($typeValue, $context, ResolveInfo $info): Type {
+    final public function resolveType($typeValue, $context, ResolveInfo $info): Type
+    {
         $typeOrClassName = $this->resolveToType($typeValue, $context->context, $info);
-        return $this->typeRegistry->eagerlyResolveType($typeOrClassName);
+        return $this->typeRegistry->eagerlyLoadType($typeOrClassName);
     }
 
 }

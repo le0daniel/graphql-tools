@@ -12,12 +12,12 @@ use GraphQlTools\Contract\Event;
 final class EndEvent extends Event
 {
 
-    public function __construct(int $eventTimeInNanoSeconds, public readonly ExecutionResult $result)
+    protected function __construct(public readonly ExecutionResult $result)
     {
-        parent::__construct($eventTimeInNanoSeconds);
     }
 
-    public function hasErrors(): bool {
+    public function hasErrors(): bool
+    {
         return count($this->result->errors) > 0;
     }
 

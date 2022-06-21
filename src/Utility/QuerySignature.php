@@ -61,7 +61,8 @@ final class QuerySignature
      * @param Node[] $nodes
      * @return array
      */
-    private static function splitByNodeKind(array $nodes): array {
+    private static function splitByNodeKind(array $nodes): array
+    {
         $splitNodes = [];
 
         foreach ($nodes as $node) {
@@ -125,23 +126,23 @@ final class QuerySignature
                 return $node;
             },
 
-            NodeKind::FRAGMENT_SPREAD => static function(FragmentSpreadNode $node): FragmentSpreadNode {
+            NodeKind::FRAGMENT_SPREAD => static function (FragmentSpreadNode $node): FragmentSpreadNode {
                 $node->directives = NodeList::create(self::sortBy($node->directives, 'name.value'));
                 return $node;
             },
 
-            NodeKind::INLINE_FRAGMENT => static function(InlineFragmentNode $node): InlineFragmentNode {
+            NodeKind::INLINE_FRAGMENT => static function (InlineFragmentNode $node): InlineFragmentNode {
                 $node->directives = NodeList::create(self::sortBy($node->directives, 'name.value'));
                 return $node;
             },
 
-            NodeKind::FRAGMENT_DEFINITION => static function(FragmentDefinitionNode $node): FragmentDefinitionNode {
+            NodeKind::FRAGMENT_DEFINITION => static function (FragmentDefinitionNode $node): FragmentDefinitionNode {
                 $node->directives = NodeList::create(self::sortBy($node->directives, 'name.value'));
                 $node->variableDefinitions = NodeList::create(self::sortBy($node->variableDefinitions, 'variable.name.value'));
                 return $node;
             },
 
-            NodeKind::DIRECTIVE => static function(DirectiveNode $node): DirectiveNode {
+            NodeKind::DIRECTIVE => static function (DirectiveNode $node): DirectiveNode {
                 $node->arguments = NodeList::create(self::sortBy($node->arguments, 'name.value'));
                 return $node;
             }

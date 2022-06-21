@@ -23,12 +23,14 @@ final class ProtobufClass
         return implode(PHP_EOL, $lines);
     }
 
-    private function pregMatchAllContent(string $regex): array {
+    private function pregMatchAllContent(string $regex): array
+    {
         preg_match_all($regex, $this->content, $matches);
         return $matches ?? [];
     }
 
-    private function pregMatchContent(string $regex, ?string $key): mixed {
+    private function pregMatchContent(string $regex, ?string $key): mixed
+    {
         preg_match($regex, $this->content, $matches);
 
         return $key

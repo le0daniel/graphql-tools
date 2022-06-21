@@ -24,7 +24,7 @@ trait DefinesFields
                 throw DefinitionException::from($inputField, InputField::class);
             }
 
-            $definition =  $inputField->toDefinition($this->typeRegistry);
+            $definition = $inputField->toDefinition($this->typeRegistry);
             if (!$definition) {
                 continue;
             }

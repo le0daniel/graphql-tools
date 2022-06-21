@@ -24,7 +24,8 @@ use ReflectionClass;
 use ReflectionException;
 use RuntimeException;
 
-class TypeRegistry {
+class TypeRegistry
+{
 
     private const CLASS_MAP_INSTANCES = [
         GraphQlType::class,
@@ -53,7 +54,8 @@ class TypeRegistry {
      */
     private array $typeInstances = [];
 
-    public function __construct(private readonly array $typeResolutionMap) {
+    public function __construct(private readonly array $typeResolutionMap)
+    {
         $this->classNameToTypeNameMap = array_flip($typeResolutionMap);
     }
 
@@ -66,7 +68,8 @@ class TypeRegistry {
      * @return array
      * @throws ReflectionException
      */
-    final public static function createTypeMapFromDirectory(string $directory): array {
+    final public static function createTypeMapFromDirectory(string $directory): array
+    {
         $typeMap = [];
 
         foreach (Directories::fileIteratorWithRegex($directory, '/\.php$/') as $phpFile) {
@@ -99,7 +102,8 @@ class TypeRegistry {
      * @param Field $field
      * @return bool
      */
-    public function shouldHideField(Field $field): bool {
+    public function shouldHideField(Field $field): bool
+    {
         return false;
     }
 
@@ -114,38 +118,42 @@ class TypeRegistry {
      * @param mixed $inputField
      * @return bool
      */
-    public function shouldHideInputField(InputField $inputField): bool {
+    public function shouldHideInputField(InputField $inputField): bool
+    {
         return false;
     }
 
-    final public function type(string $classOrTypeName): Closure {
+    final public function type(string $classOrTypeName): Closure
+    {
         return fn() => $this->resolveTypeByName($this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName);
     }
 
-    final public function eagerlyResolveType(string $classOrTypeName): Type {
+    final public function eagerlyLoadType(string $classOrTypeName): Type
+    {
         $typeName = $this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName;
         return $this->resolveTypeByName($typeName);
     }
 
     final public function toSchema(
-        string $queryClassOrTypeName,
+        string  $queryClassOrTypeName,
         ?string $mutationClassOrTypeName = null,
-        array $eagerlyLoadTypes = [],
-        ?array $directives = null,
-        bool $assumeValid = true,
-    ): Schema {
+        array   $eagerlyLoadTypes = [],
+        ?array  $directives = null,
+        bool    $assumeValid = true,
+    ): Schema
+    {
         /** @var GraphQlType $rootQueryType */
-        $rootQueryType = $this->eagerlyResolveType($queryClassOrTypeName);
+        $rootQueryType = $this->eagerlyLoadType($queryClassOrTypeName);
 
         return new Schema(
             SchemaConfig::create(
                 [
                     'query' => $rootQueryType,
                     'mutation' => $mutationClassOrTypeName
-                        ? $this->eagerlyResolveType($mutationClassOrTypeName)
+                        ? $this->eagerlyLoadType($mutationClassOrTypeName)
                         : null,
                     'types' => array_map(
-                        fn(string $typeName) => $this->eagerlyResolveType($typeName),
+                        fn(string $typeName) => $this->eagerlyLoadType($typeName),
                         $eagerlyLoadTypes
                     ),
                     'typeLoader' => $this->resolveTypeByName(...),
@@ -156,11 +164,13 @@ class TypeRegistry {
         );
     }
 
-    final public static function print(Schema $schema): string {
+    final public static function print(Schema $schema): string
+    {
         return SchemaPrinter::doPrint($schema);
     }
 
-    private function resolveTypeByName(string $typeName): Type {
+    private function resolveTypeByName(string $typeName): Type
+    {
         if (!isset($this->typeInstances[$typeName])) {
             $className = $this->typeResolutionMap[$typeName] ?? null;
 
@@ -173,7 +183,6 @@ class TypeRegistry {
 
         return $this->typeInstances[$typeName];
     }
-
 
 
 }

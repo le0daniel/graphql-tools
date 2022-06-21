@@ -20,11 +20,13 @@ class Context
      * @param string $classNameOrLoaderName
      * @return Closure|ExecutableByDataLoader
      */
-    protected function makeInstanceOfDataLoaderExecutor(string $classNameOrLoaderName): Closure|ExecutableByDataLoader {
+    protected function makeInstanceOfDataLoaderExecutor(string $classNameOrLoaderName): Closure|ExecutableByDataLoader
+    {
         return new $classNameOrLoaderName;
     }
 
-    public function dataLoader(string $classNameOrLoaderName): DataLoader {
+    public function dataLoader(string $classNameOrLoaderName): DataLoader
+    {
         if (!isset($this->dataLoaderInstances[$classNameOrLoaderName])) {
             $this->dataLoaderInstances[$classNameOrLoaderName] = new DataLoader(
                 $this->makeInstanceOfDataLoaderExecutor($classNameOrLoaderName)

@@ -11,14 +11,12 @@ use GraphQlTools\Contract\Event;
 final class VisitFieldEvent extends Event
 {
 
-    public function __construct(
-        int    $eventTimeInNanoSeconds,
-        public readonly mixed $typeData,
-        public readonly array $arguments,
+    protected function __construct(
+        public readonly mixed       $typeData,
+        public readonly array       $arguments,
         public readonly ResolveInfo $info
     )
     {
-        parent::__construct($eventTimeInNanoSeconds);
     }
 
 }

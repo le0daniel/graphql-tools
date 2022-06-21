@@ -12,8 +12,10 @@ use GraphQlTools\Definition\Shared\ResolvesType;
 use GraphQlTools\Helper\TypeRegistry;
 use GraphQlTools\Utility\Classes;
 
-abstract class GraphQlInterface extends InterfaceType {
+abstract class GraphQlInterface extends InterfaceType
+{
     use DefinesFields, HasDescription, ResolvesType;
+
     private const CLASS_POSTFIX = 'Interface';
 
     /**
@@ -24,7 +26,8 @@ abstract class GraphQlInterface extends InterfaceType {
      */
     abstract protected function fields(): array;
 
-    final public function __construct(protected readonly TypeRegistry $typeRegistry) {
+    final public function __construct(protected readonly TypeRegistry $typeRegistry)
+    {
         parent::__construct(
             [
                 'name' => static::typeName(),
@@ -34,7 +37,8 @@ abstract class GraphQlInterface extends InterfaceType {
         );
     }
 
-    public static function typeName(): string {
+    public static function typeName(): string
+    {
         $typeName = Classes::baseName(static::class);
         return str_ends_with($typeName, self::CLASS_POSTFIX)
             ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))

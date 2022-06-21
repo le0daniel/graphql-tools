@@ -10,7 +10,8 @@ use GraphQlTools\Helper\TypeRegistry;
 /** @property-read TypeRegistry $typeRegistry */
 trait DefinesTypes
 {
-    protected function initTypes(array $typeDeclarations): array {
+    protected function initTypes(array $typeDeclarations): array
+    {
         return array_map([$this, 'declarationToType'], $typeDeclarations);
     }
 

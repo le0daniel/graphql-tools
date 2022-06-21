@@ -6,7 +6,8 @@ trait DefinesDefaultValue
 {
     protected mixed $defaultValue = null;
 
-    final public function withDefaultValue(mixed $defaultValue): self {
+    final public function withDefaultValue(mixed $defaultValue): self
+    {
         $this->defaultValue = $defaultValue;
         return $this;
     }
