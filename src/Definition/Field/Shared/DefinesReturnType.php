@@ -5,7 +5,7 @@ namespace GraphQlTools\Definition\Field\Shared;
 use Closure;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\DefinitionException;
-use GraphQlTools\TypeRegistry;
+use GraphQlTools\Helper\TypeRegistry;
 
 trait DefinesReturnType
 {

@@ -3,7 +3,7 @@
 namespace GraphQlTools\Test\Feature;
 
 use GraphQlTools\Test\Dummies\Schema\QueryType;
-use GraphQlTools\TypeRegistry;
+use GraphQlTools\Helper\TypeRegistry;
 use PHPUnit\Framework\TestCase;
 
 final class SchemaPrintingTest extends TestCase

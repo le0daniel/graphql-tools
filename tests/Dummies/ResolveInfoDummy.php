@@ -6,7 +6,7 @@ namespace GraphQlTools\Test\Dummies;
 
 use GraphQL\Type\Definition\FieldDefinition;
 use \GraphQL\Type\Definition\ResolveInfo as BaseResolveInfo;
-use GraphQlTools\TypeRegistry;
+use GraphQlTools\Helper\TypeRegistry;
 
 final class ResolveInfoDummy {
 

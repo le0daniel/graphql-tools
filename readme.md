@@ -26,7 +26,7 @@ Everything begins by defining a new Type Repository. The Type Repository makes s
 
 ```php
 <?php
-    use GraphQlTools\Context;use GraphQlTools\Helper\QueryExecutor;use GraphQlTools\TypeRegistry;
+    use GraphQlTools\Helper\Context;use GraphQlTools\Helper\QueryExecutor;use GraphQlTools\Helper\TypeRegistry;
     require_once __DIR__ . '/vendor/autoload.php';   
 
     // Extend this class to implement specific methods
@@ -64,7 +64,7 @@ The Type Repository's job is to ensure that types are only created once.
 When defining fields with custom types, you must use the TypeRepository.
 
 ```php
-    use GraphQlTools\TypeRegistry;
+    use GraphQlTools\Helper\TypeRegistry;
     $typeRegistry = new TypeRegistry(
         TypeRegistry::createTypeMapFromDirectory(__DIR__ . '/YOUR_DIRECTORY_WITH_ALL_TYPE_DECLARATIONS')
     );
@@ -87,7 +87,7 @@ The Context is also used to automatically Inject Services (or classes) into the 
 You can simply extend the Context Object to add functionality to it.
 
 ```php
-class MyCustomContext extends \GraphQlTools\Context {
+class MyCustomContext extends \GraphQlTools\Helper\Context {
 
     public function __construct(public readonly User $currentUser, private \Psr\Container\ContainerInterface $container) {}
 
@@ -133,10 +133,10 @@ Full example of Type definition:
     use GraphQL\Type\Definition\Type;
     use GraphQlTools\Definition\GraphQlType;
     use GraphQlTools\Definition\Field\Field;
-    use GraphQlTools\TypeRegistry;
+    use GraphQlTools\Helper\TypeRegistry;
     use GraphQlTools\Definition\Field\DeferredField;
     use GraphQlTools\Definition\Field\InputField;
-    use GraphQlTools\Context;
+    use GraphQlTools\Helper\Context;
     
     final class AnimalType extends GraphQlType {
         

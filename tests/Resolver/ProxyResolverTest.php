@@ -12,7 +12,7 @@ use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Helper\ExtensionManager;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
-use GraphQlTools\Context;
+use GraphQlTools\Helper\Context;
 use GraphQlTools\Helper\ProxyResolver;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;

@@ -12,7 +12,7 @@ use GraphQL\Language\Parser;
 use GraphQL\Type\Schema;
 use GraphQL\Validator\DocumentValidator;
 use GraphQL\Validator\Rules\ValidationRule;
-use GraphQlTools\Context;
+use GraphQlTools\Helper\Context;
 use GraphQlTools\Contract\ContextualValidationRule;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Events\StartEvent;

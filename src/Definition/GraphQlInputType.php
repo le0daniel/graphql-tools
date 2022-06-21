@@ -7,7 +7,7 @@ namespace GraphQlTools\Definition;
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQlTools\Definition\Shared\DefinesFields;
 use GraphQlTools\Definition\Shared\HasDescription;
-use GraphQlTools\TypeRegistry;
+use GraphQlTools\Helper\TypeRegistry;
 use GraphQlTools\Utility\Classes;
 
 abstract class GraphQlInputType extends InputObjectType {

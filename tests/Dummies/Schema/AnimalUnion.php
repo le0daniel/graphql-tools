@@ -6,7 +6,7 @@ namespace GraphQlTools\Test\Dummies\Schema;
 
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
-use GraphQlTools\Context;
+use GraphQlTools\Helper\Context;
 use GraphQlTools\Definition\GraphQlUnion;
 
 final class AnimalUnion extends GraphQlUnion {

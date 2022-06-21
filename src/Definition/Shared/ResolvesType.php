@@ -4,7 +4,7 @@ namespace GraphQlTools\Definition\Shared;
 
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
-use GraphQlTools\Context;
+use GraphQlTools\Helper\Context;
 
 trait ResolvesType {
 

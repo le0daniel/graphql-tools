@@ -3,7 +3,7 @@
 namespace GraphQlTools\Test;
 
 use Closure;
-use GraphQlTools\Context;
+use GraphQlTools\Helper\Context;
 use GraphQlTools\Contract\ExecutableByDataLoader;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use PHPUnit\Framework\TestCase;

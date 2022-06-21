@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace GraphQlTools\Test\Feature;
 
 use GraphQL\Executor\ExecutionResult;
-use GraphQlTools\Context;
+use GraphQlTools\Helper\Context;
 use GraphQlTools\Helper\Extension\Tracing;
 use GraphQlTools\Helper\QueryExecutor;
-use GraphQlTools\TypeRegistry;
+use GraphQlTools\Helper\TypeRegistry;
 use PHPUnit\Framework\TestCase;
 
 abstract class ExecutionTestCase extends TestCase {

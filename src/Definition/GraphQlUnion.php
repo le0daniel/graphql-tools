@@ -9,7 +9,7 @@ use GraphQL\Type\Definition\UnionType;
 use GraphQlTools\Definition\Shared\DefinesTypes;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\ResolvesType;
-use GraphQlTools\TypeRegistry;
+use GraphQlTools\Helper\TypeRegistry;
 use GraphQlTools\Utility\Classes;
 
 abstract class GraphQlUnion extends UnionType

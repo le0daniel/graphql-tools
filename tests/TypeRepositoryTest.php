@@ -6,7 +6,7 @@ namespace GraphQlTools\Test;
 
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Test\Dummies\Schema\QueryType;
-use GraphQlTools\TypeRegistry;
+use GraphQlTools\Helper\TypeRegistry;
 use GraphQlTools\Utility\Types;
 use PHPUnit\Framework\TestCase;
 

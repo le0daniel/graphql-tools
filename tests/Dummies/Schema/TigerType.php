@@ -7,7 +7,7 @@ namespace GraphQlTools\Test\Dummies\Schema;
 use Exception;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
-use GraphQlTools\Context;
+use GraphQlTools\Helper\Context;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlType;

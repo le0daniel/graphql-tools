@@ -5,7 +5,7 @@ namespace GraphQlTools\Test\Definition\Field;
 use DateTime;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\Field\InputField;
-use GraphQlTools\TypeRegistry;
+use GraphQlTools\Helper\TypeRegistry;
 use PHPUnit\Framework\TestCase;
 
 class InputFieldTest extends TestCase

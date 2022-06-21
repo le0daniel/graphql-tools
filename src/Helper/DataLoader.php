@@ -17,6 +17,14 @@ final class DataLoader
     private array $queuedItems = [];
     private mixed $loadedData = null;
 
+    /**
+     * Provide an Executor to the DataLoader. An Executor must accept an array of items (mixed)
+     * and returned a Dictionary (key => value) which is assignable to the loaded items.
+     *
+     * In case you expect the items to be an object, use
+     *
+     * @param Closure|ExecutableByDataLoader $loader
+     */
     final public function __construct(protected readonly Closure|ExecutableByDataLoader $loader)
     {
     }
@@ -31,7 +39,7 @@ final class DataLoader
      * a property called 'id' for identification.
      *
      * To defer loading of items containing arguments, you can use something similar to:
-     * `$dataLoader->load(['id' => 1, 'args' => [...]])`
+     * `$dataLoader->load(['itemId' => 1, 'args' => [...]])`
      * Then make sure that the data loader returns a data structure where the value can be accessed as
      * $data[$item['id']]. In case you enqueue an object, return an SqlObjectStorage instance.
      *

@@ -21,6 +21,12 @@ abstract class Extension implements JsonSerializable {
      */
     abstract public function key(): string;
 
+    /**
+     * Serialize and expose the data to the extensions property of the result
+     * using the key provided.
+     *
+     * @return mixed
+     */
     abstract public function jsonSerialize(): mixed;
 
     /**
@@ -41,10 +47,22 @@ abstract class Extension implements JsonSerializable {
         return self::DEFAULT_PRIORITY;
     }
 
-    public function start(StartEvent $startEvent): void {
+    /**
+     * React to Start Event, when GraphQL execution is started.
+     *
+     * @param StartEvent $event
+     * @return void
+     */
+    public function start(StartEvent $event): void {
 
     }
 
+    /**
+     * React to End Event, when GraphQL execution has been done.
+     *
+     * @param EndEvent $event
+     * @return void
+     */
     public function end(EndEvent $event): void {
 
     }

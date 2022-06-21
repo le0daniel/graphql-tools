@@ -8,7 +8,7 @@ use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlType;
-use GraphQlTools\TypeRegistry;
+use GraphQlTools\Helper\TypeRegistry;
 
 final class UserType extends GraphQlType {
 

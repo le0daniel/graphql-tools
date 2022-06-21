@@ -3,7 +3,7 @@
 namespace GraphQlTools\Framework;
 
 use Closure;
-use GraphQlTools\Context;
+use GraphQlTools\Helper\Context;
 use GraphQlTools\Contract\ExecutableByDataLoader;
 use Psr\Container\ContainerInterface;
 

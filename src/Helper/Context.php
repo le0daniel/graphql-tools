@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GraphQlTools;
+namespace GraphQlTools\Helper;
 
 use Closure;
 use GraphQlTools\Helper\DataLoader;

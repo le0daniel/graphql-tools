@@ -6,12 +6,12 @@ namespace GraphQlTools\Test\Dummies\Schema;
 
 use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\Type;
-use GraphQlTools\Context;
+use GraphQlTools\Helper\Context;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Test\Dummies\Schema\Input\MamelsQueryInputType;
-use GraphQlTools\TypeRegistry;
+use GraphQlTools\Helper\TypeRegistry;
 
 final class QueryType extends GraphQlType {
 

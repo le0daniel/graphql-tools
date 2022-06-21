@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Test\Feature;
 
-use GraphQlTools\Context;
+use GraphQlTools\Helper\Context;
 use GraphQlTools\Test\Dummies\Schema\QueryType;
-use GraphQlTools\TypeRegistry;
+use GraphQlTools\Helper\TypeRegistry;
 
 class QueryTest extends ExecutionTestCase
 {

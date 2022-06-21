@@ -3,7 +3,7 @@
 namespace GraphQlTools\Definition\Field\Shared;
 
 use GraphQlTools\Definition\Field\InputField;
-use GraphQlTools\TypeRegistry;
+use GraphQlTools\Helper\TypeRegistry;
 
 trait DefinesArguments
 {
