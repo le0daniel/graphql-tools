@@ -10,11 +10,12 @@ use GraphQlTools\Contract\ExecutableByDataLoader;
 
 class Context
 {
-    private array $dataLoaders = [];
+    private array $dataLoaderInstances = [];
 
     /**
-     * Create an instance of a DataLoader executor, Must either be a callable or
-     * an instance extending the ExecutableByDataLoader contract.
+     * Create an instance of a DataLoader executor, Must either be a Closue or
+     * an instance extending the ExecutableByDataLoader contract. This is then
+     * given to a new instance of a data loader.
      *
      * @param string $classNameOrLoaderName
      * @return Closure|ExecutableByDataLoader
@@ -23,13 +24,13 @@ class Context
         return new $classNameOrLoaderName;
     }
 
-    final public function withDataLoader(string $classNameOrLoaderName): DataLoader {
-        if (!isset($this->dataLoaders[$classNameOrLoaderName])) {
-            $this->dataLoaders[$classNameOrLoaderName] = new DataLoader(
+    public function dataLoader(string $classNameOrLoaderName): DataLoader {
+        if (!isset($this->dataLoaderInstances[$classNameOrLoaderName])) {
+            $this->dataLoaderInstances[$classNameOrLoaderName] = new DataLoader(
                 $this->makeInstanceOfDataLoaderExecutor($classNameOrLoaderName)
             );
         }
 
-        return $this->dataLoaders[$classNameOrLoaderName];
+        return $this->dataLoaderInstances[$classNameOrLoaderName];
     }
 }

@@ -12,7 +12,7 @@ trait DefinesMetadata
         return $this;
     }
 
-    final protected function setMetadataOnce(): void {
+    final protected function initializeMetadataOnce(): void {
         if (!isset($this->metadata)) {
             $this->metadata = null;
         }

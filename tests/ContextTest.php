@@ -35,13 +35,13 @@ class ContextTest extends TestCase
         ]);
 
         self::assertSame(
-            $context->withDataLoader(ExecutableByDataLoader::class),
-            $context->withDataLoader(ExecutableByDataLoader::class),
+            $context->dataLoader(ExecutableByDataLoader::class),
+            $context->dataLoader(ExecutableByDataLoader::class),
         );
 
         self::assertSame(
-            $context->withDataLoader('test'),
-            $context->withDataLoader('test'),
+            $context->dataLoader('test'),
+            $context->dataLoader('test'),
         );
     }
 }

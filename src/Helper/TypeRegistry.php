@@ -97,10 +97,9 @@ class TypeRegistry {
      * hide the field. Additionally, you can use field Metadata to further add context.
      *
      * @param Field $field
-     * @param mixed $schemaVariant
      * @return bool
      */
-    public function shouldHideField(Field $field, mixed $schemaVariant): bool {
+    public function shouldHideField(Field $field): bool {
         return false;
     }
 
@@ -113,10 +112,9 @@ class TypeRegistry {
      * hide the field. Additionally, you can use field Metadata to further add context.
      *
      * @param mixed $inputField
-     * @param mixed $schemaVariant
      * @return bool
      */
-    public function shouldHideInputField(InputField $inputField, mixed $schemaVariant): bool {
+    public function shouldHideInputField(InputField $inputField): bool {
         return false;
     }
 

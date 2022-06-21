@@ -180,7 +180,7 @@ Full example of Type definition:
                     )
                     ->resolvedBy(function ($data, $arguments, Context $context, $resolveInfo) {
                         $context
-                            ->withDataLoader(MyDataLoaderExecutor::class)
+                            ->dataLoader(MyDataLoaderExecutor::class)
                             // ->loadMany(...$data->tagIds)
                             ->load($data->id)
                     })

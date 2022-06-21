@@ -28,12 +28,14 @@ class Field
     }
 
     private function isHidden(TypeRegistry $repository): bool {
-        return $this->hideFieldBecauseDeprecationDateIsPassed() || $repository->shouldHideField($this, $this->getSchemaVariant());
+        return $this->hideFieldBecauseDeprecationDateIsPassed() || $repository->shouldHideField($this);
     }
 
     final public function toDefinition(TypeRegistry $registry, bool $withoutResolver = false): ?FieldDefinition
     {
-        $this->setMetadataOnce();
+        $this->initializeMetadataOnce();
+        $this->initializeSchemaVariantOnce();
+
         if ($this->isHidden($registry)) {
             return null;
         }

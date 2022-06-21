@@ -12,7 +12,6 @@ use GraphQL\Language\Parser;
 use GraphQL\Type\Schema;
 use GraphQL\Validator\DocumentValidator;
 use GraphQL\Validator\Rules\ValidationRule;
-use GraphQlTools\Helper\Context;
 use GraphQlTools\Contract\ContextualValidationRule;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Events\StartEvent;
@@ -24,7 +23,6 @@ use GraphQlTools\Utility\Arrays;
 final class QueryExecutor
 {
     public const DEFAULT_CONTEXTUAL_VALIDATION_RULE = [CollectDeprecatedFieldNotices::class];
-    public const DEFAULT_ENABLED_EXTENSIONS = [Tracing::class];
 
     /** @var ValidationRule[] */
     private readonly array $validationRules;
@@ -39,7 +37,7 @@ final class QueryExecutor
      * @param ValidationRule[] $validationRules
      */
     public function __construct(
-        private readonly array  $extensionFactories = self::DEFAULT_ENABLED_EXTENSIONS,
+        private readonly array  $extensionFactories = [],
         array                   $validationRules = [],
     )
     {

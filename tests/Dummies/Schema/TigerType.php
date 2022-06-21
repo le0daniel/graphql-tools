@@ -31,7 +31,7 @@ final class TigerType extends GraphQlType {
             Field::withName('deferred')
                 ->ofType(Type::string())
                 ->resolvedBy(function(array $data, array $arguments, Context $context, ResolveInfo $resolveInfo) {
-                    return $context->withDataLoader('test', $arguments, $resolveInfo)
+                    return $context->dataLoader('test', $arguments, $resolveInfo)
                         ->load($data['id']);
                 }),
         ];

@@ -7,7 +7,7 @@ use DateTimeInterface;
 trait DefinesField
 {
     protected readonly string $description;
-    protected readonly mixed $schemaVariant;
+    public readonly mixed $schemaVariant;
     protected bool $automaticallyRemoveIfPast = false;
     protected readonly string|bool $deprecatedReason;
     protected readonly DateTimeInterface|null $removalDate;
@@ -18,8 +18,10 @@ trait DefinesField
         return $this;
     }
 
-    final protected function getSchemaVariant(): mixed {
-        return $this->schemaVariant ?? null;
+    final protected function initializeSchemaVariantOnce(): void {
+        if (!isset($this->schemaVariant)) {
+            $this->schemaVariant = null;
+        }
     }
 
     final public function ofSchemaVariant(mixed $variant): static {
