@@ -58,6 +58,18 @@ class DataLoaderTest extends TestCase
         self::assertEquals(null, $promise2->result[1]->result);
     }
 
+    public function testLoadWithExceptions()
+    {
+        $dataLoader = new DataLoader(fn() => [1 => 'test', 2 => new RuntimeException('')]);
+
+        $promise1 = $dataLoader->loadMany(1, 2);
+        Deferred::runQueue();
+
+        self::assertEquals('test', $promise1->result[0]->result);
+        self::assertInstanceOf(RuntimeException::class, $promise1->result[1]->result);
+        self::assertTrue($promise1->result[1]->state === SyncPromise::REJECTED);
+    }
+
     public function testLoad()
     {
         $counter = new Counter();

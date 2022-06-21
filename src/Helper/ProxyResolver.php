@@ -58,7 +58,7 @@ final class ProxyResolver
      */
     public function __invoke(mixed $typeData, ?array $arguments, OperationContext $operationContext, ResolveInfo $info): mixed
     {
-        // Ensure arguments are always an array.
+        // Ensure arguments are always an array, as the framework does not guarantee that
         $arguments ??= [];
 
         $afterFieldResolution = $operationContext->extensionManager->willResolveField(

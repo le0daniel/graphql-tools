@@ -34,7 +34,7 @@ final class ProxyResolverTest extends TestCase {
     public function testWithExtensions(){
         $resolver = new ProxyResolver(fn() => 'Value');
 
-        /** @var Extension $dummyExtension */
+        /** @var Extension|ObjectProphecy $dummyExtension */
         $dummyExtension = $this->prophesize(Extension::class);
         $operationContext = new OperationContext(new Context(), new ExtensionManager($dummyExtension->reveal()));
         $resolveInfo = ResolveInfoDummy::withDefaults();
