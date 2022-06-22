@@ -32,4 +32,10 @@ final class Reflections
         return $parentClasses;
     }
 
+    public static function setProperty(object $target, string $propertyName, mixed $value): void {
+        $reflection = new ReflectionClass($target);
+        $property = $reflection->getProperty($propertyName);
+        $property->setValue($target, $value);
+    }
+
 }

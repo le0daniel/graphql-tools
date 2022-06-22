@@ -51,23 +51,14 @@ class FieldTestCase
         ], fieldDefinition: $this->fieldDefinition);
     }
 
+    /**
+     * @return array<Closure>
+     */
     private function buildDataLoaderMocks(): array
     {
         $mocks = [];
-        foreach ($this->dataLoaderMock as $key => $value) {
-            $mocks[$key] = new class ($value) implements ExecutableByDataLoader {
-
-                public function __construct(private mixed $returnValue)
-                {
-                }
-
-                public function fetchData(array $queuedItems): array|ArrayAccess
-                {
-                    return is_callable($this->returnValue)
-                        ? ($this->returnValue)($queuedItems)
-                        : $this->returnValue;
-                }
-            };
+        foreach ($this->dataLoaderMock as $key => $returnValue) {
+            $mocks[$key] = static fn(array $queuedItems) => $returnValue instanceof Closure ? ($returnValue)($queuedItems) : $returnValue;
         }
         return $mocks;
     }
@@ -76,11 +67,11 @@ class FieldTestCase
     {
         $mocks = $this->buildDataLoaderMocks();
         return new class ($mocks) extends Context {
-            public function __construct(private array $mocks)
+            public function __construct(private readonly array $mocks)
             {
             }
 
-            protected function makeInstanceOfDataLoaderExecutor(string $classNameOrLoaderName): ExecutableByDataLoader
+            protected function makeInstanceOfDataLoaderExecutor(string $classNameOrLoaderName): Closure
             {
                 $instance = $this->mocks[$classNameOrLoaderName] ?? null;
                 if (!$instance) {
@@ -99,9 +90,9 @@ class FieldTestCase
         return $throwable;
     }
 
-    public function mockedDataloader(string $className, mixed $willReturn): self
+    public function mockedDataloader(string $name, mixed $willReturn): self
     {
-        $this->dataLoaderMock[$className] = $willReturn;
+        $this->dataLoaderMock[$name] = $willReturn;
         return $this;
     }
 

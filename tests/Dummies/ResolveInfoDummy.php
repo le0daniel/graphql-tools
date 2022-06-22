@@ -7,6 +7,7 @@ namespace GraphQlTools\Test\Dummies;
 use GraphQL\Type\Definition\FieldDefinition;
 use \GraphQL\Type\Definition\ResolveInfo as BaseResolveInfo;
 use GraphQlTools\Helper\TypeRegistry;
+use GraphQlTools\Utility\Reflections;
 use ReflectionClass;
 
 final class ResolveInfoDummy
@@ -16,7 +17,6 @@ final class ResolveInfoDummy
 
     public static function withDefaults(
         ?string $deprecationReason = null,
-        ?bool   $isBeta = null,
         string  $parentTypeClass = self::DEFAULT_PARENT_TYPE_CLASS,
         array   $path = ['my-path', 'sub'],
         ?FieldDefinition $fieldDefinition = null,
@@ -26,17 +26,18 @@ final class ResolveInfoDummy
         $fieldDefinition ??= FieldDefinition::create(
             [
                 'deprecationReason' => $deprecationReason,
-                'isBeta' => $isBeta,
                 'name' => 'random',
             ]
         );
 
         /** @var BaseResolveInfo $instance */
         $instance = $reflection->newInstanceWithoutConstructor();
-        $instance->path = $path;
-        $instance->fieldName = 'TestFieldName';
-        $instance->parentType = new $parentTypeClass(new TypeRegistry([]));
-        $instance->fieldDefinition = $fieldDefinition;
+
+        // Set the properties via reflection, in case the framework changes to readonly
+        Reflections::setProperty($instance, 'path', $path);
+        Reflections::setProperty($instance, 'fieldName', 'TestFieldName');
+        Reflections::setProperty($instance, 'parentType', new $parentTypeClass(new TypeRegistry([])));
+        Reflections::setProperty($instance, 'fieldDefinition', $fieldDefinition);
 
         return $instance;
     }
