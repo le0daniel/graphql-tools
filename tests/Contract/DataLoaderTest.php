@@ -72,9 +72,9 @@ class DataLoaderTest extends TestCase
 
     public function testLoad()
     {
-        $counter = new Counter();
-        $dataLoader = new DataLoader(static function() use ($counter) {
-            $counter->increase();
+        $count = 0;
+        $dataLoader = new DataLoader(static function() use (&$count) {
+            $count++;
             return [1 => 'test', 2 => 'other'];
         });
 
@@ -83,7 +83,7 @@ class DataLoaderTest extends TestCase
         $dataLoader->load(2)->then(fn($data) => self::assertEquals(null, $data));
 
         Deferred::runQueue();
-        self::assertEquals(1, $counter->getCount());
+        self::assertEquals(1, $count);
     }
 
     public function testLoadWithError()
