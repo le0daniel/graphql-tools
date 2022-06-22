@@ -6,6 +6,7 @@ declare(strict_types=1);
 namespace GraphQlTools\Utility;
 
 
+use GraphQL\Error\SyntaxError;
 use GraphQL\Language\AST\DirectiveNode;
 use GraphQL\Language\AST\DocumentNode;
 use GraphQL\Language\AST\FieldNode;
@@ -25,6 +26,7 @@ use GraphQL\Language\AST\StringValueNode;
 use GraphQL\Language\Parser;
 use GraphQL\Language\Printer;
 use GraphQL\Language\Visitor;
+use Traversable;
 
 final class QuerySignature
 {
@@ -40,7 +42,12 @@ final class QuerySignature
         [self::class, 'sortAst'],
     ];
 
-
+    /**
+     * @param string $query
+     * @param array<callable> $pipeline
+     * @return string
+     * @throws SyntaxError
+     */
     public static function createSignatureString(string $query, array $pipeline = self::DEFAULT_PIPELINE): string
     {
         $ast = array_reduce(
@@ -52,6 +59,12 @@ final class QuerySignature
         return self::printWithReducedWhitespace($ast);
     }
 
+    /**
+     * @param string $query
+     * @param array<callable> $pipeline
+     * @return string
+     * @throws SyntaxError
+     */
     public static function createHashString(string $query, array $pipeline = self::DEFAULT_PIPELINE): string
     {
         return md5(self::createSignatureString($query, $pipeline));
@@ -59,7 +72,7 @@ final class QuerySignature
 
     /**
      * @param Node[] $nodes
-     * @return array
+     * @return array<string, array<Node>>
      */
     private static function splitByNodeKind(array $nodes): array
     {
@@ -75,7 +88,12 @@ final class QuerySignature
         return $splitNodes;
     }
 
-    private static function sortBy(array|\Traversable|null $nodes, string ...$keys): array
+    /**
+     * @param array<mixed>|Traversable<mixed>|null $nodes
+     * @param string ...$keys
+     * @return array<mixed>
+     */
+    private static function sortBy(array|Traversable|null $nodes, string ...$keys): array
     {
         if (!$nodes) {
             return [];

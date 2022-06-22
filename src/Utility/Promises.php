@@ -2,12 +2,14 @@
 
 namespace GraphQlTools\Utility;
 
+use GraphQL\Executor\Promise\Adapter\SyncPromise;
+
 class Promises
 {
 
     final public static function is(mixed $potentialPromise): bool
     {
-        return is_object($potentialPromise) && method_exists($potentialPromise, 'then') && method_exists($potentialPromise, 'catch');
+        return $potentialPromise instanceof SyncPromise;
     }
 
 }
