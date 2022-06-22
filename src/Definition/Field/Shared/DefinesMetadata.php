@@ -4,20 +4,19 @@ namespace GraphQlTools\Definition\Field\Shared;
 
 trait DefinesMetadata
 {
+    public mixed $metadata = null;
+    public mixed $schemaVariant = null;
 
-    public readonly mixed $metadata;
+    final public function ofSchemaVariant(mixed $variant): static
+    {
+        $this->schemaVariant = $variant;
+        return $this;
+    }
 
     public function withMetadata(mixed $metadata): self
     {
         $this->metadata = $metadata;
         return $this;
-    }
-
-    final protected function initializeMetadataOnce(): void
-    {
-        if (!isset($this->metadata)) {
-            $this->metadata = null;
-        }
     }
 
 }

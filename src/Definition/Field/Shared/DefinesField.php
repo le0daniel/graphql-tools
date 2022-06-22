@@ -6,28 +6,14 @@ use DateTimeInterface;
 
 trait DefinesField
 {
-    protected readonly string $description;
-    public readonly mixed $schemaVariant;
+    protected ?string $description = null;
     protected bool $automaticallyRemoveIfPast = false;
-    protected readonly string|bool $deprecatedReason;
-    protected readonly DateTimeInterface|null $removalDate;
+    protected string|null $deprecatedReason = null;
+    protected DateTimeInterface|null $removalDate = null;
 
     final public function withDescription(string $description): static
     {
         $this->description = $description;
-        return $this;
-    }
-
-    final protected function initializeSchemaVariantOnce(): void
-    {
-        if (!isset($this->schemaVariant)) {
-            $this->schemaVariant = null;
-        }
-    }
-
-    final public function ofSchemaVariant(mixed $variant): static
-    {
-        $this->schemaVariant = $variant;
         return $this;
     }
 

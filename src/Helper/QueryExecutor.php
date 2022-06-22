@@ -16,7 +16,6 @@ use GraphQlTools\Contract\ContextualValidationRule;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
-use GraphQlTools\Helper\Extension\Tracing;
 use GraphQlTools\Helper\Validation\CollectDeprecatedFieldNotices;
 use GraphQlTools\Utility\Arrays;
 

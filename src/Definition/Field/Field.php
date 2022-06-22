@@ -15,8 +15,7 @@ use GraphQlTools\Helper\TypeRegistry;
 class Field
 {
     use DefinesField, DefinesReturnType, DefinesArguments, DefinesMetadata;
-
-    protected readonly Closure $resolveFunction;
+    private ?Closure $resolveFunction = null;
 
     final protected function __construct(public readonly string $name)
     {
@@ -34,9 +33,6 @@ class Field
 
     final public function toDefinition(TypeRegistry $registry, bool $withoutResolver = false): ?FieldDefinition
     {
-        $this->initializeMetadataOnce();
-        $this->initializeSchemaVariantOnce();
-
         if ($this->isHidden($registry)) {
             return null;
         }

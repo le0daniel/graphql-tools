@@ -23,7 +23,6 @@ final class InputField
 
     final public function toDefinition(TypeRegistry $repository): ?array
     {
-        $this->initializeMetadataOnce();
         if ($this->hideFieldBecauseDeprecationDateIsPassed() || $repository->shouldHideInputField($this)) {
             return null;
         }

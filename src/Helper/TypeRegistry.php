@@ -77,7 +77,6 @@ class TypeRegistry
         $typeMap = [];
 
         foreach (Directories::fileIteratorWithRegex($directory, '/\.php$/') as $phpFile) {
-            /** @var class-string|null $className */
             $className = Classes::getDeclaredClassInFile($phpFile->getRealPath());
             if (!$className) {
                 continue;
