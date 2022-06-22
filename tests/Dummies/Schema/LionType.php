@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Test\Dummies\Schema;
 
+use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlType;
@@ -18,7 +19,9 @@ final class LionType extends GraphQlType {
 
             Field::withName('fieldWithMeta')
                 ->ofType(Type::nonNull(Type::string()))
-                ->resolvedBy(fn() => 'This is a test field')
+                ->resolvedBy(function ($value, $args, $context, ResolveInfo $resolveInfo) {
+                    return "policy is: " . $resolveInfo->fieldDefinition->config['metadata']['policy'];
+                })
                 ->withMetadata([
                     'policy' => 'This is my special policy'
                 ]),

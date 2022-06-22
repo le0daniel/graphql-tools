@@ -5,6 +5,7 @@ namespace GraphQlTools\Helper;
 use ArrayAccess;
 use Closure;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
+use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Contract\ExecutableByDataLoader;
@@ -18,9 +19,13 @@ use Throwable;
 class FieldTestCase
 {
     private array $dataLoaderMock = [];
+    private readonly FieldDefinition $fieldDefinition;
 
     public function __construct(private readonly string $className, private readonly string $fieldName)
     {
+        /** @var GraphQlType $type */
+        $type = new ($this->className)($this->mockedTypeRegistry());
+        $this->fieldDefinition = $type->findField($this->fieldName);
     }
 
     private function mockedTypeRegistry(): TypeRegistry
@@ -35,10 +40,7 @@ class FieldTestCase
 
     private function getFieldResolver(): Closure
     {
-        /** @var GraphQlType $type */
-        $type = new ($this->className)($this->mockedTypeRegistry());
-        $field = $type->findField($this->fieldName);
-        return ($field->resolveFn)(...);
+        return ($this->fieldDefinition->resolveFn)(...);
     }
 
     private function buildResolveInfo(): ResolveInfo
@@ -46,7 +48,7 @@ class FieldTestCase
         return ResolveInfoDummy::withDefaults(path: [
             bin2hex(random_bytes(12)),
             bin2hex(random_bytes(12))
-        ]);
+        ], fieldDefinition: $this->fieldDefinition);
     }
 
     private function buildDataLoaderMocks(): array
