@@ -8,7 +8,6 @@ namespace GraphQlTools\Data\Models;
 
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\Type;
-use JetBrains\PhpStorm\ArrayShape;
 use JsonSerializable;
 
 /**
@@ -44,7 +43,9 @@ final class Message implements JsonSerializable
         );
     }
 
-    #[ArrayShape(['message' => "string", 'type' => "string"])]
+    /**
+     * @return array ['message' => string, 'type' => string]
+     */
     public function jsonSerialize(): array
     {
         return [

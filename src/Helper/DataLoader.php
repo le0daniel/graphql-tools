@@ -5,6 +5,7 @@ namespace GraphQlTools\Helper;
 use Closure;
 use GraphQL\Deferred;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
+use GraphQL\Executor\Promise\Adapter\SyncPromiseAdapter;
 use GraphQlTools\Contract\ExecutableByDataLoader;
 use GraphQlTools\Utility\Time;
 use RuntimeException;
@@ -62,8 +63,8 @@ final class DataLoader
 
             $valueOrThrowable = $this->loadedData[$identifier] ?? null;
 
-            // For a throwable which is an instance
             if ($valueOrThrowable instanceof Throwable) {
+                // This will reject the promise
                 throw $valueOrThrowable;
             }
             return $valueOrThrowable;

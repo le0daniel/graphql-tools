@@ -4,14 +4,18 @@ namespace GraphQlTools\Contract;
 
 use ArrayAccess;
 
+/**
+ * @template T
+ */
 interface ExecutableByDataLoader
 {
 
     /**
      * Fetch queued items with optional arguments
      *
-     * @param array $queuedItems
-     * @return array|ArrayAccess
+     * @template R
+     * @param array<T> $queuedItems
+     * @return array<R>|ArrayAccess<R>
      */
     public function fetchData(array $queuedItems): array|ArrayAccess;
 

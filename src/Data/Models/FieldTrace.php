@@ -10,12 +10,16 @@ use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Time;
 
-/**
- * @property-read string $lastPathElement
- * @property-read string $pathKey
- */
 final class FieldTrace
 {
+    /**
+     * @param array<int|string> $path
+     * @param string $parentType
+     * @param string $fieldName
+     * @param string $returnType
+     * @param int $duration
+     * @param int $startOffset
+     */
     public function __construct(
         public readonly array  $path,
         public readonly string $parentType,

@@ -26,6 +26,7 @@ final class Directories
         $allFiles = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory));
         $phpFiles = new RegexIterator($allFiles, $regex);
 
+        /** @var SplFileInfo $file */
         foreach ($phpFiles as $file) {
             yield $file;
         }

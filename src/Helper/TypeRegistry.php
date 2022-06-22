@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GraphQlTools\Helper;
 
 use Closure;
+use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
@@ -40,7 +41,7 @@ class TypeRegistry
      * Represents the opposite of the $typeResolutionMap.
      * This is used to determine the type name, given a classname.
      *
-     * @var array
+     * @var array<class-string, string>
      */
     private readonly array $classNameToTypeNameMap;
 
@@ -50,10 +51,13 @@ class TypeRegistry
      * is passed to each type, so they can load the specific instances which are
      * required
      *
-     * @var array
+     * @var array<string, Type>
      */
     private array $typeInstances = [];
 
+    /**
+     * @param array<string, class-string> $typeResolutionMap
+     */
     public function __construct(private readonly array $typeResolutionMap)
     {
         $this->classNameToTypeNameMap = array_flip($typeResolutionMap);
@@ -65,7 +69,7 @@ class TypeRegistry
      * and cache it for production.
      *
      * @param string $directory
-     * @return array
+     * @return array<string, class-string>
      * @throws ReflectionException
      */
     final public static function createTypeMapFromDirectory(string $directory): array
@@ -73,6 +77,7 @@ class TypeRegistry
         $typeMap = [];
 
         foreach (Directories::fileIteratorWithRegex($directory, '/\.php$/') as $phpFile) {
+            /** @var class-string|null $className */
             $className = Classes::getDeclaredClassInFile($phpFile->getRealPath());
             if (!$className) {
                 continue;
@@ -81,7 +86,7 @@ class TypeRegistry
             $parentClassNames = Reflections::getAllParentClasses(new ReflectionClass($className));
             foreach ($parentClassNames as $parentClassName) {
                 if (in_array($parentClassName, self::CLASS_MAP_INSTANCES, true)) {
-                    /** @var $className GraphQlUnion|GraphQlType|GraphQlScalar|GraphQlInterface|GraphQlEnum|GraphQlInputType */
+                    /** @var class-string<GraphQlUnion|GraphQlType|GraphQlScalar|GraphQlInterface|GraphQlEnum|GraphQlInputType> $className */
                     $typeMap[$className::typeName()] = $className;
                     break;
                 }
@@ -115,7 +120,7 @@ class TypeRegistry
      * arbitrary value as schema variant. Then you can use the registry to dynamically
      * hide the field. Additionally, you can use field Metadata to further add context.
      *
-     * @param mixed $inputField
+     * @param InputField $inputField
      * @return bool
      */
     public function shouldHideInputField(InputField $inputField): bool
@@ -128,12 +133,24 @@ class TypeRegistry
         return fn() => $this->resolveTypeByName($this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName);
     }
 
+    /**
+     * @param string $classOrTypeName
+     * @return Type
+     */
     final public function eagerlyLoadType(string $classOrTypeName): Type
     {
         $typeName = $this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName;
         return $this->resolveTypeByName($typeName);
     }
 
+    /**
+     * @param string $queryClassOrTypeName
+     * @param string|null $mutationClassOrTypeName
+     * @param array<string> $eagerlyLoadTypes
+     * @param array<Directive>|null $directives
+     * @param bool $assumeValid
+     * @return Schema
+     */
     final public function toSchema(
         string  $queryClassOrTypeName,
         ?string $mutationClassOrTypeName = null,
@@ -172,6 +189,7 @@ class TypeRegistry
     private function resolveTypeByName(string $typeName): Type
     {
         if (!isset($this->typeInstances[$typeName])) {
+            /** @var class-string<Type> $className */
             $className = $this->typeResolutionMap[$typeName] ?? null;
 
             if (!$className) {

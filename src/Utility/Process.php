@@ -7,6 +7,12 @@ use RuntimeException;
 class Process
 {
 
+    /**
+     * @param string $command
+     * @param array<string|int, string> $arguments
+     * @param array<int> $allowedReturnCodes
+     * @return array<string>
+     */
     public static function mustExecute(string $command, array $arguments = [], array $allowedReturnCodes = []): array
     {
         $escapedArguments = [];
@@ -26,7 +32,7 @@ class Process
         return $output;
     }
 
-    private static function buildArgument(string|int $name, mixed $argument): string
+    private static function buildArgument(string|int $name, string $argument): string
     {
         $isPositionalArgument = is_int($name);
         if ($isPositionalArgument) {

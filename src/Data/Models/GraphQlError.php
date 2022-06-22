@@ -10,6 +10,11 @@ use Protobuf\Trace\Location;
 
 class GraphQlError
 {
+    /**
+     * @param string $message
+     * @param array<string|int>|null $path
+     * @param array<GraphQlErrorLocation> $locations
+     */
     public function __construct(
         public readonly string $message,
         public readonly ?array $path,

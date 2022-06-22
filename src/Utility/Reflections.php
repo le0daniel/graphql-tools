@@ -2,19 +2,17 @@
 
 namespace GraphQlTools\Utility;
 
-use Closure;
-use JetBrains\PhpStorm\Pure;
 use ReflectionClass;
-use ReflectionFunction;
-use ReflectionMethod;
-use ReflectionObject;
-use RuntimeException;
 
 final class Reflections
 {
     private const PARENT_CLASSES_MAX_DEPTH = 5;
 
-    #[Pure]
+    /**
+     * @param ReflectionClass $class
+     * @return array<class-string>
+     * @throws \Exception
+     */
     public static function getAllParentClasses(ReflectionClass $class): array
     {
         $parentClasses = [];

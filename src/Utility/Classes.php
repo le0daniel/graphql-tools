@@ -18,10 +18,20 @@ final class Classes
         return end($parts);
     }
 
+    /**
+     * @param string $file
+     * @return class-string|null
+     */
     public static function getDeclaredClassInFile(string $file): ?string
     {
+        /** @var class-string[] $classes */
         $classes = [];
-        $tokens = token_get_all(file_get_contents($file));
+        $content = file_get_contents($file);
+        if (!$content) {
+            throw new \RuntimeException("Failed to read file: '{$file}'");
+        }
+
+        $tokens = token_get_all($content);
         $namespace = '';
 
         for ($index = 0; isset($tokens[$index]); $index++) {
@@ -37,7 +47,10 @@ final class Classes
             }
             if (T_CLASS === $tokens[$index][0] && T_WHITESPACE === $tokens[$index + 1][0] && T_STRING === $tokens[$index + 2][0]) {
                 $index += 2; // Skip class keyword and whitespace
-                $classes[] = $namespace . '\\' . $tokens[$index][1];
+
+                /** @var class-string $classString */
+                $classString = $namespace . '\\' . $tokens[$index][1];
+                $classes[] = $classString;
 
                 # break if you have one class per file (psr-4 compliant)
                 # otherwise you'll need to handle class constants (Foo::class)
@@ -48,6 +61,10 @@ final class Classes
         return $classes[0] ?? null;
     }
 
+    /**
+     * @param string $fullyQualifiedClassName
+     * @return array<string>
+     */
     public static function classNameAsArray(string $fullyQualifiedClassName): array
     {
         return array_values(array_filter(explode('\\', $fullyQualifiedClassName)));

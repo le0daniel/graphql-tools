@@ -14,7 +14,7 @@ class GraphQlErrorLocation
     {
     }
 
-    public static function from(SourceLocation $sourceLocation)
+    public static function from(SourceLocation $sourceLocation): self
     {
         return new self(
             $sourceLocation->line,

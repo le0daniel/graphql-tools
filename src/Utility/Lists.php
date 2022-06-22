@@ -7,7 +7,12 @@ use RuntimeException;
 
 class Lists
 {
-
+    /**
+     * @template T
+     * @param class-string<T> $className
+     * @param array<mixed> $list
+     * @return void
+     */
     public static function verifyOfType(string $className, array $list): void
     {
         if (!array_is_list($list)) {

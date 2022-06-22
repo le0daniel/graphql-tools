@@ -20,13 +20,14 @@ final class ProxyResolver
     /**
      * Overwrite this method to define your own resolver.
      *
-     * @param $typeData
-     * @param array $arguments
+     * @template T
+     * @param T $typeData
+     * @param array<string, mixed> $arguments
      * @param Context $context
      * @param ResolveInfo $info
      * @return mixed
      */
-    private function resolveToValue($typeData, array $arguments, Context $context, ResolveInfo $info): mixed
+    private function resolveToValue(mixed $typeData, array $arguments, Context $context, ResolveInfo $info): mixed
     {
         if ($this->resolveFunction) {
             return ($this->resolveFunction)($typeData, $arguments, $context, $info);
@@ -49,8 +50,9 @@ final class ProxyResolver
      * This method is invoked when a field gets resolved. It is responsible to delegate the resolution and
      * call the necessary extensions.
      *
-     * @param mixed $typeData
-     * @param array|null $arguments
+     * @template T
+     * @param T $typeData
+     * @param array<string, mixed>|null $arguments
      * @param OperationContext $operationContext
      * @param ResolveInfo $info
      * @return mixed

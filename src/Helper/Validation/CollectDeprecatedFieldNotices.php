@@ -13,19 +13,22 @@ use GraphQL\Type\Definition\FieldArgument;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\Type;
+use GraphQL\Type\Definition\UnionType;
 use GraphQL\Validator\ValidationContext;
 use GraphQlTools\Contract\ContextualValidationRule;
 use GraphQlTools\Data\Models\Message;
 
 class CollectDeprecatedFieldNotices extends ContextualValidationRule
 {
+    /** @var array<Message>  */
     private array $messages = [];
 
     public function __construct()
     {
     }
 
-    private static function getParentName(CompositeType|null $parent): string
+    private static function getParentName(Type|null $parent): string
     {
         return $parent ? $parent->name : '';
     }
@@ -66,16 +69,14 @@ class CollectDeprecatedFieldNotices extends ContextualValidationRule
                 }
             },
             NodeKind::ARGUMENT => function (ArgumentNode $node) use ($context) {
-                /** @var FieldArgument $argument */
                 $argument = $context->getArgument();
                 if (!$argument) {
                     return;
                 }
 
-                $deprecationReason = $argument->config['deprecatedReason'] ?? false;
-                $isDeprecated = !!$deprecationReason;
-
-                if (!$isDeprecated) {
+                /** @var string|null $deprecationReason */
+                $deprecationReason = $argument->config['deprecatedReason'] ?? null;
+                if (!$deprecationReason) {
                     return;
                 }
 
@@ -101,6 +102,9 @@ class CollectDeprecatedFieldNotices extends ContextualValidationRule
         return true;
     }
 
+    /**
+     * @return Message[]
+     */
     public function jsonSerialize(): array
     {
         return $this->messages;
