@@ -1,11 +1,10 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Test;
+namespace GraphQlTools\Test\Helper;
 
 use Closure;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Contract\ExecutableByDataLoader;
-use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 

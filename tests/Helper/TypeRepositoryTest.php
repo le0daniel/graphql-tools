@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GraphQlTools\Test;
+namespace GraphQlTools\Test\Helper;
 
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Test\Dummies\Schema\QueryType;

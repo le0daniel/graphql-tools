@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GraphQlTools\Test\Resolver;
+namespace GraphQlTools\Test\Helper;
 
 use GraphQL\Deferred;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
