@@ -38,7 +38,7 @@ abstract class GraphQlEnum extends EnumType
         }
 
         if (!enum_exists($valuesOrEnumClassName)) {
-            throw DefinitionException::from($valuesOrEnumClassName, 'array<key: string, value: mixed>', 'enum::class');
+            throw DefinitionException::from($valuesOrEnumClassName, 'array<key: string, value: mixed>', 'enum');
         }
 
         return Arrays::mapWithKeys(

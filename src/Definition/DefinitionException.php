@@ -14,11 +14,13 @@ final class DefinitionException extends \Exception
 
     private static function serializeGivenType(mixed $givenType): string {
         if (is_string($givenType)) {
-            return "string<'{$givenType}'>";
+            $length = strlen($givenType);
+            return class_exists($givenType)
+                ? "class-string({$givenType})"
+                : "string({$length} '{$givenType}')";
         }
 
-        $className = is_object($givenType) ? get_class($givenType) : gettype($givenType);
-        return $className;
+        return is_object($givenType) ? get_class($givenType) : gettype($givenType);
     }
 
     public static function fromMissingFieldDeclaration(string $methodName, string $fieldName, ?string $message = null)
