@@ -8,6 +8,7 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlType;
+use GraphQlTools\Test\Dummies\Enum\Eating;
 
 final class LionType extends GraphQlType {
 
@@ -25,6 +26,10 @@ final class LionType extends GraphQlType {
                 ->withMetadata([
                     'policy' => 'This is my special policy'
                 ]),
+
+            Field::withName('myEnum')
+                ->ofType($this->typeRegistry->type(EatingEnum::class))
+                ->resolvedBy(fn() => Eating::MEAT),
         ];
     }
 
