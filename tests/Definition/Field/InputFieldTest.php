@@ -22,11 +22,11 @@ class InputFieldTest extends TestCase
 
     public function testToInputFieldDefinitionForDeprecatedItem()
     {
-        self::assertNull(
+        self::assertTrue(
             InputField::withName('test')
                 ->ofType(Type::id())
                 ->deprecated('', new DateTime('2020-10-10'), true)
-                ->toDefinition(new TypeRegistry([]))
+                ->isHidden(new TypeRegistry([]))
         );
     }
 }

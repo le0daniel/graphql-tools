@@ -27,7 +27,6 @@ use RuntimeException;
 
 class TypeRegistry
 {
-
     private const CLASS_MAP_INSTANCES = [
         GraphQlType::class,
         GraphQlEnum::class,
@@ -58,7 +57,10 @@ class TypeRegistry
     /**
      * @param array<string, class-string> $typeResolutionMap
      */
-    public function __construct(private readonly array $typeResolutionMap)
+    public function __construct(
+        private readonly array $typeResolutionMap,
+        public readonly bool   $lazyResolveFields = false
+    )
     {
         $this->classNameToTypeNameMap = array_flip($typeResolutionMap);
     }
@@ -127,6 +129,10 @@ class TypeRegistry
         return false;
     }
 
+    /**
+     * @param string $classOrTypeName
+     * @return Closure(): Type
+     */
     final public function type(string $classOrTypeName): Closure
     {
         return fn() => $this->resolveTypeByName($this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName);

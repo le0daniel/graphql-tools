@@ -24,12 +24,11 @@ trait DefinesFields
                 throw DefinitionException::from($inputField, InputField::class);
             }
 
-            $definition = $inputField->toDefinition($this->typeRegistry);
-            if (!$definition) {
+            if ($inputField->isHidden($this->typeRegistry)) {
                 continue;
             }
 
-            $initializedInputFields[] = $definition;
+            $initializedInputFields[] = $inputField->toDefinition($this->typeRegistry);
         }
 
         return $initializedInputFields;
@@ -44,12 +43,16 @@ trait DefinesFields
                 throw DefinitionException::from($fieldDeclaration, Field::class);
             }
 
-            $fieldDefinition = $fieldDeclaration->toDefinition($this->typeRegistry, $fieldsWithoutResolver);
-            if (!$fieldDefinition) {
+            if ($fieldDeclaration->isHidden($this->typeRegistry)) {
                 continue;
             }
 
-            $initializedFields[] = $fieldDefinition;
+            if ($this->typeRegistry->lazyResolveFields) {
+                $initializedFields[$fieldDeclaration->name] = fn() => $fieldDeclaration->toDefinition($this->typeRegistry, $fieldsWithoutResolver);
+                continue;
+            }
+
+            $initializedFields[] = $fieldDeclaration->toDefinition($this->typeRegistry, $fieldsWithoutResolver);
         }
 
         return $initializedFields;

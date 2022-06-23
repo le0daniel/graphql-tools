@@ -21,12 +21,12 @@ final class InputField
         return new self($name);
     }
 
-    final public function toDefinition(TypeRegistry $typeRegistry): ?array
-    {
-        if ($this->hideFieldBecauseDeprecationDateIsPassed() || $typeRegistry->shouldHideInputField($this)) {
-            return null;
-        }
+    final public function isHidden(TypeRegistry $typeRegistry): bool {
+        return $this->hideFieldBecauseDeprecationDateIsPassed() || $typeRegistry->shouldHideInputField($this);
+    }
 
+    final public function toDefinition(TypeRegistry $typeRegistry): array
+    {
         return [
             'name' => $this->name,
             'description' => $this->computeDescription(),

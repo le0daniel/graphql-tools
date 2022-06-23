@@ -24,11 +24,11 @@ trait DefinesArguments
 
         $arguments = [];
         foreach ($this->inputFields as $inputField) {
-            if (!$definition = $inputField->toDefinition($registry)) {
+            if ($inputField->isHidden($registry)) {
                 continue;
             }
 
-            $arguments[] = $definition;
+            $arguments[] = $inputField->toDefinition($registry);
         }
 
         return $arguments;

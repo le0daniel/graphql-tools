@@ -26,17 +26,13 @@ class Field
         return new self($name);
     }
 
-    private function isHidden(TypeRegistry $repository): bool
+    final public function isHidden(TypeRegistry $repository): bool
     {
         return $this->hideFieldBecauseDeprecationDateIsPassed() || $repository->shouldHideField($this);
     }
 
-    final public function toDefinition(TypeRegistry $registry, bool $withoutResolver = false): ?FieldDefinition
+    final public function toDefinition(TypeRegistry $registry, bool $withoutResolver = false): FieldDefinition
     {
-        if ($this->isHidden($registry)) {
-            return null;
-        }
-
         if (!isset($this->ofType)) {
             throw DefinitionException::fromMissingFieldDeclaration('ofType', $this->name, 'Every field must have a type defined.');
         }
