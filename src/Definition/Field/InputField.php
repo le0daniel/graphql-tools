@@ -7,6 +7,7 @@ use GraphQlTools\Definition\Field\Shared\DefinesField;
 use GraphQlTools\Definition\Field\Shared\DefinesMetadata;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
 use GraphQlTools\Helper\TypeRegistry;
+use GraphQlTools\Utility\Fields;
 
 final class InputField
 {
@@ -33,6 +34,7 @@ final class InputField
             'type' => $this->resolveReturnType($typeRegistry),
             'defaultValue' => $this->defaultValue,
             'deprecatedReason' => $this->computeDeprecationReason(),
+            Fields::METADATA_CONFIG_KEY => $this->metadata,
         ];
     }
 }

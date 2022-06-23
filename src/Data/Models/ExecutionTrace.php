@@ -2,10 +2,12 @@
 
 namespace GraphQlTools\Data\Models;
 
+use DateTime;
 use DateTimeImmutable;
 use GraphQlTools\Utility\Lists;
+use JetBrains\PhpStorm\Internal\TentativeType;
 
-final class ExecutionTrace
+final class ExecutionTrace implements \JsonSerializable
 {
     public function __construct(
         public readonly string            $query,
@@ -44,4 +46,16 @@ final class ExecutionTrace
         return $this->endTimeInNanoSeconds - $this->startTimeInNanoSeconds;
     }
 
+    public function jsonSerialize(): array
+    {
+        return [
+            'version' => 1,
+            'startTime' => $this->startDateTime->format(DateTime::RFC3339_EXTENDED),
+            'endTime' => '',
+            'duration' => $this->durationNs(),
+            'execution' => [
+                'resolvers' => $this->fieldTraces,
+            ]
+        ];
+    }
 }

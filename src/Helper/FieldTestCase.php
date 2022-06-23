@@ -2,16 +2,12 @@
 
 namespace GraphQlTools\Helper;
 
-use ArrayAccess;
 use Closure;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ResolveInfo;
-use GraphQlTools\Helper\Context;
-use GraphQlTools\Contract\ExecutableByDataLoader;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
-use GraphQlTools\Helper\TypeRegistry;
 use GraphQlTools\Utility\Promises;
 use RuntimeException;
 use Throwable;

@@ -6,6 +6,11 @@ use RuntimeException;
 
 class Instances
 {
+    /**
+     * @param class-string $className
+     * @param mixed $object
+     * @return void
+     */
     public static function verifyOfType(string $className, mixed $object): void
     {
         if (!$object instanceof $className) {

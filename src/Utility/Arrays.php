@@ -17,7 +17,14 @@ final class Arrays
         return count($requiredKeys) === count($keyIntersection);
     }
 
-    public static function mapWithKeys(array $array, Closure $closure): array
+    /**
+     * @template K of string|int
+     * @template V
+     * @param iterable<mixed, mixed> $array
+     * @param Closure(mixed $key, mixed $value) $closure
+     * @return array<K, V>
+     */
+    public static function mapWithKeys(iterable $array, Closure $closure): array
     {
         $items = [];
         foreach ($array as $key => $value) {
@@ -139,21 +146,14 @@ final class Arrays
         return array_values($array);
     }
 
-    public static function last(array $array): mixed
+    public static function last(array &$array): mixed
     {
-        return array_pop($array);
+        return $array[count($array) - 1];
     }
 
     public static function removeNullValues(array $array): array
     {
-        $result = [];
-        foreach ($array as $key => $value) {
-            if ($value !== null) {
-                $result[$key] = $value;
-            }
-        }
-
-        return $result;
+        return array_filter($array, static fn(mixed $value): bool => $value !== null);
     }
 
 }

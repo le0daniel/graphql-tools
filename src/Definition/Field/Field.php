@@ -11,6 +11,7 @@ use GraphQlTools\Definition\Field\Shared\DefinesMetadata;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
 use GraphQlTools\Helper\ProxyResolver;
 use GraphQlTools\Helper\TypeRegistry;
+use GraphQlTools\Utility\Fields;
 
 class Field
 {
@@ -44,7 +45,7 @@ class Field
             'deprecationReason' => $this->computeDeprecationReason(),
             'description' => $this->computeDescription(),
             'args' => $this->buildArguments($registry),
-            'metadata' => $this->metadata
+            Fields::METADATA_CONFIG_KEY => $this->metadata
         ]);
     }
 

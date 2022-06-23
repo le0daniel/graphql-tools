@@ -3,6 +3,7 @@
 namespace GraphQlTools\Utility;
 
 use ReflectionClass;
+use RuntimeException;
 
 final class Reflections
 {
@@ -11,7 +12,7 @@ final class Reflections
     /**
      * @param ReflectionClass $class
      * @return array<class-string>
-     * @throws \Exception
+     * @throws RuntimeException
      */
     public static function getAllParentClasses(ReflectionClass $class): array
     {
@@ -25,7 +26,7 @@ final class Reflections
 
             if ($currentDepth > self::PARENT_CLASSES_MAX_DEPTH) {
                 $maxDepth = self::PARENT_CLASSES_MAX_DEPTH;
-                throw new \Exception("Reached max depth of {$maxDepth} while getting all parent classes of `{$initialClassName}`");
+                throw new RuntimeException("Reached max depth of {$maxDepth} while getting all parent classes of `{$initialClassName}`");
             }
         }
 

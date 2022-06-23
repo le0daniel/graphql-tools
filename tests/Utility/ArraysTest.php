@@ -84,7 +84,7 @@ final class ArraysTest extends TestCase
     }
 
     public function testRemoveNullValues() {
-        self::assertEquals(['key' => 0], Arrays::removeNullValues(['key' => 0, 0 => null, 'value' => null]));
+        self::assertEquals(['key' => 0, 3 => 'test'], Arrays::removeNullValues(['key' => 0, 0 => null, 'value' => null, 3 => 'test']));
     }
 
     public function testOneKeyExists(): void
