@@ -86,4 +86,15 @@ class SchemaWithDataLoaderTest extends TestCase
         self::assertEquals('Not Found', $result->errors[0]->getMessage());
     }
 
+    public function testWithLoadWithoutError(): void {
+        $result = $this->loadByIds(2, 4);
+
+        self::assertEquals([
+            'ingredients' => [
+                ['id' => 2, 'name' => 'my-name-2'],
+                null
+            ]
+        ], $result->data);
+    }
+
 }
