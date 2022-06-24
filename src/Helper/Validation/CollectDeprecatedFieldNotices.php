@@ -99,7 +99,7 @@ class CollectDeprecatedFieldNotices extends ContextualValidationRule
 
     public function isVisibleInResult(): bool
     {
-        return true;
+        return empty($this->messages);
     }
 
     /**
