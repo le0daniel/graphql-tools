@@ -15,7 +15,7 @@ trait DefinesTypes
         return array_map([$this, 'declarationToType'], $typeDeclarations);
     }
 
-    protected function declarationToType(mixed $declaration): mixed
+    protected function declarationToType(Type|Closure|string $declaration): Type|Closure
     {
         if ($declaration instanceof Type || $declaration instanceof Closure) {
             return $declaration;

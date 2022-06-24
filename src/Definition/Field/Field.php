@@ -32,15 +32,23 @@ class Field
         return $this->hideFieldBecauseDeprecationDateIsPassed() || $repository->shouldHideField($this);
     }
 
-    final public function toDefinition(TypeRegistry $registry, bool $withoutResolver = false): FieldDefinition
-    {
-        if (!isset($this->ofType)) {
-            throw DefinitionException::fromMissingFieldDeclaration('ofType', $this->name, 'Every field must have a type defined.');
-        }
-
+    final public function toInterfaceDefinition(TypeRegistry $registry): FieldDefinition {
+        $this->verifyTypeIsSet();
         return FieldDefinition::create([
             'name' => $this->name,
-            'resolve' => $withoutResolver ? null : new ProxyResolver($this->resolveFunction ?? null),
+            'type' => $this->resolveReturnType($registry),
+            'deprecationReason' => $this->computeDeprecationReason(),
+            'description' => $this->computeDescription(),
+            'args' => $this->buildArguments($registry),
+        ]);
+    }
+
+    final public function toDefinition(TypeRegistry $registry): FieldDefinition
+    {
+        $this->verifyTypeIsSet();
+        return FieldDefinition::create([
+            'name' => $this->name,
+            'resolve' => new ProxyResolver($this->resolveFunction ?? null),
             'type' => $this->resolveReturnType($registry),
             'deprecationReason' => $this->computeDeprecationReason(),
             'description' => $this->computeDescription(),

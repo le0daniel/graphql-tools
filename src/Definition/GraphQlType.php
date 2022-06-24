@@ -32,10 +32,28 @@ abstract class GraphQlType extends ObjectType
             [
                 'name' => static::typeName(),
                 'description' => $this->description(),
-                'fields' => fn() => $this->initFields($this->fields(), lazy: $this->typeRegistry->lazyResolveFields),
+                'fields' => fn() => $this->initFields(),
                 'interfaces' => fn() => $this->initTypes($this->interfaces()),
             ]
         );
+    }
+
+    private function initFields(): array
+    {
+        $initializedFields = [];
+        foreach ($this->fields() as $fieldDeclaration) {
+            if (!$fieldDeclaration instanceof Field) {
+                throw DefinitionException::from($fieldDeclaration, Field::class);
+            }
+
+            if ($fieldDeclaration->isHidden($this->typeRegistry)) {
+                continue;
+            }
+
+            $initializedFields[] = $fieldDeclaration->toDefinition($this->typeRegistry);
+        }
+
+        return $initializedFields;
     }
 
     /**

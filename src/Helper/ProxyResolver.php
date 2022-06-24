@@ -9,7 +9,6 @@ use Closure;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Events\VisitFieldEvent;
-use GraphQlTools\Utility\Promises;
 use Throwable;
 
 final class ProxyResolver

@@ -5,10 +5,7 @@ declare(strict_types=1);
 namespace GraphQlTools\Definition\Shared;
 
 use GraphQlTools\Definition\DefinitionException;
-use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Field\InputField;
-use GraphQlTools\Definition\GraphQlInterface;
-use GraphQlTools\Definition\GraphQlType;
 
 trait DefinesFields
 {
@@ -32,29 +29,5 @@ trait DefinesFields
         }
 
         return $initializedInputFields;
-    }
-
-    private function initFields(array $fieldDeclarations, bool $fieldsWithoutResolver = false, bool $lazy = false): array
-    {
-        /** @var GraphQlType|GraphQlInterface $this */
-        $initializedFields = [];
-        foreach ($fieldDeclarations as $fieldDeclaration) {
-            if (!$fieldDeclaration instanceof Field) {
-                throw DefinitionException::from($fieldDeclaration, Field::class);
-            }
-
-            if ($fieldDeclaration->isHidden($this->typeRegistry)) {
-                continue;
-            }
-
-            if ($lazy) {
-                $initializedFields[$fieldDeclaration->name] = fn() => $fieldDeclaration->toDefinition($this->typeRegistry, $fieldsWithoutResolver);
-                continue;
-            }
-
-            $initializedFields[] = $fieldDeclaration->toDefinition($this->typeRegistry, $fieldsWithoutResolver);
-        }
-
-        return $initializedFields;
     }
 }

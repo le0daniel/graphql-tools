@@ -17,6 +17,12 @@ trait DefinesReturnType
         return $this;
     }
 
+    private function verifyTypeIsSet(): void {
+        if (!isset($this->ofType)) {
+            throw DefinitionException::fromMissingFieldDeclaration('ofType', $this->name, 'Every field must have a type defined.');
+        }
+    }
+
     final protected function resolveReturnType(TypeRegistry $repository): Closure|Type
     {
         if ($this->ofType instanceof Type || $this->ofType instanceof Closure) {
