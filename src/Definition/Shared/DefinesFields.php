@@ -34,7 +34,7 @@ trait DefinesFields
         return $initializedInputFields;
     }
 
-    private function initFields(array $fieldDeclarations, bool $fieldsWithoutResolver = false): array
+    private function initFields(array $fieldDeclarations, bool $fieldsWithoutResolver = false, bool $lazy = false): array
     {
         /** @var GraphQlType|GraphQlInterface $this */
         $initializedFields = [];
@@ -47,7 +47,7 @@ trait DefinesFields
                 continue;
             }
 
-            if ($this->typeRegistry->lazyResolveFields) {
+            if ($lazy) {
                 $initializedFields[$fieldDeclaration->name] = fn() => $fieldDeclaration->toDefinition($this->typeRegistry, $fieldsWithoutResolver);
                 continue;
             }

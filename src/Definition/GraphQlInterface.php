@@ -32,7 +32,7 @@ abstract class GraphQlInterface extends InterfaceType
             [
                 'name' => static::typeName(),
                 'description' => $this->description(),
-                'fields' => fn() => $this->initFields($this->fields(), true),
+                'fields' => fn() => $this->initFields($this->fields(), true, $this->typeRegistry->lazyResolveFields),
             ]
         );
     }

@@ -29,9 +29,9 @@ trait DefinesReturnType
 
         throw DefinitionException::from(
             $this->ofType,
-            'string (TypeName or TypeClassName)',
             Type::class,
-            'fn(TypeRepository $typeRegistry)'
+            Closure::class,
+            'string'
         );
     }
 

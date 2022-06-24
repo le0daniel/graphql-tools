@@ -32,7 +32,7 @@ abstract class GraphQlType extends ObjectType
             [
                 'name' => static::typeName(),
                 'description' => $this->description(),
-                'fields' => fn() => $this->initFields($this->fields()),
+                'fields' => fn() => $this->initFields($this->fields(), lazy: $this->typeRegistry->lazyResolveFields),
                 'interfaces' => fn() => $this->initTypes($this->interfaces()),
             ]
         );

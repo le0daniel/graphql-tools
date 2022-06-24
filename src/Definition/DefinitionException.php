@@ -14,10 +14,9 @@ final class DefinitionException extends \Exception
 
     private static function serializeGivenType(mixed $givenType): string {
         if (is_string($givenType)) {
-            $length = strlen($givenType);
             return class_exists($givenType)
-                ? "class-string({$givenType})"
-                : "string({$length} '{$givenType}')";
+                ? "object ({$givenType})"
+                : "{$givenType}";
         }
 
         return is_object($givenType) ? get_class($givenType) : gettype($givenType);
