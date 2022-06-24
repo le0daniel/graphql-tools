@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\EnumType;
-use GraphQlTools\Data\Enums\MyEnum;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Classes;
-use ReflectionEnum;
 
 abstract class GraphQlEnum extends EnumType
 {

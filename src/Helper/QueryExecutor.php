@@ -32,7 +32,7 @@ final class QueryExecutor
      * and destroyed afterwards. They should be used to collect data and add them to
      * result as an array.
      *
-     * @param string[]|callable[] $extensionFactories
+     * @param class-string[]|Closure[] $extensionFactories
      * @param ValidationRule[] $validationRules
      */
     public function __construct(

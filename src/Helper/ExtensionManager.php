@@ -36,7 +36,7 @@ final class ExtensionManager
         $instances = [];
         $columnToSort = [];
 
-        /** @var Extension|callable(): Extension $instance */
+        /** @var Extension|Closure(): Extension $instance */
         foreach ($extensionFactories as $classNameOrCallable) {
             $instance = $classNameOrCallable instanceof Closure ? $classNameOrCallable() : new $classNameOrCallable;
             $columnToSort[] = $instance->priority();

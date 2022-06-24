@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition;
 
+use Closure;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\UnionType;
 use GraphQlTools\Definition\Shared\DefinesTypes;
@@ -40,7 +41,7 @@ abstract class GraphQlUnion extends UnionType
      *     fn(TypeRepository $typeRegistry) => $typeRegistry->type(MyType::class)
      * ];
      *
-     * @return array<callable|Type|string>
+     * @return array<Closure|Type|string>
      */
     abstract protected function possibleTypes(): array;
 

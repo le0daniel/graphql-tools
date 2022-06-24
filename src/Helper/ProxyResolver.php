@@ -77,7 +77,7 @@ final class ProxyResolver
                 $info
             );
 
-            return Promises::is($promiseOrValue)
+            return $promiseOrValue instanceof SyncPromise
                 ? $promiseOrValue
                     ->then(static fn(mixed $resolvedValue): mixed => $afterFieldResolution($resolvedValue))
                     ->catch(static fn(Throwable $error): Throwable => $afterFieldResolution($error))
