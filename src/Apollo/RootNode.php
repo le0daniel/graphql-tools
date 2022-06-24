@@ -2,7 +2,7 @@
 
 namespace GraphQlTools\Apollo;
 
-use GraphQlTools\Data\Models\FieldTrace;
+use GraphQlTools\Data\Models\ResolverTrace;
 use GraphQlTools\Data\Models\GraphQlError;
 use GraphQlTools\Data\Models\Holder;
 use GraphQlTools\Utility\Arrays;
@@ -31,18 +31,18 @@ final class RootNode
 
     public static function createFromFieldTraces(array $fieldTraces, array $errors): self
     {
-        Lists::verifyOfType(FieldTrace::class, $fieldTraces);
+        Lists::verifyOfType(ResolverTrace::class, $fieldTraces);
         Lists::verifyOfType(GraphQlError::class, $errors);
         $instance = new self($errors);
 
-        /** @var FieldTrace $resolver */
+        /** @var ResolverTrace $resolver */
         foreach ($fieldTraces as $resolver) {
             $instance->addFromTrace($resolver);
         }
         return $instance;
     }
 
-    private function addFromTrace(FieldTrace $trace): void
+    private function addFromTrace(ResolverTrace $trace): void
     {
         $tree = &$this->rootChildren;
         foreach (Arrays::splice($trace->path, 0, -1) as $currentPath) {
@@ -109,7 +109,7 @@ final class RootNode
         ];
     }
 
-    private function createNodeData(FieldTrace $trace): array
+    private function createNodeData(ResolverTrace $trace): array
     {
         return [
             self::RESPONSE_NAME => $trace->lastPathElement,
@@ -132,9 +132,9 @@ final class RootNode
             return $node;
         }
 
-        /** @var FieldTrace $fieldTrace */
+        /** @var ResolverTrace $fieldTrace */
         $fieldTrace = $data['resolverTrace'];
-        Instances::verifyOfType(FieldTrace::class, $fieldTrace);
+        Instances::verifyOfType(ResolverTrace::class, $fieldTrace);
 
         $node->setType($fieldTrace->returnType);
         $node->setStartTime((string)$fieldTrace->startOffset);

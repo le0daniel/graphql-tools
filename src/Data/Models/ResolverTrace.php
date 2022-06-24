@@ -10,7 +10,7 @@ use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Time;
 
-final class FieldTrace
+final class ResolverTrace
 {
     /**
      * @param array<int|string> $path
@@ -41,7 +41,7 @@ final class FieldTrace
         return implode('.', $this->path);
     }
 
-    public static function fromEvent(VisitFieldEvent $event, int $preciseExecutionStart): FieldTrace
+    public static function fromEvent(VisitFieldEvent $event, int $preciseExecutionStart): ResolverTrace
     {
         $endTimeInNanoseconds = Time::nanoSeconds();
         $durationInNanoseconds = $endTimeInNanoseconds - $event->eventTimeInNanoSeconds;

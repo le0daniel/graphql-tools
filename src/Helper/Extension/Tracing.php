@@ -11,7 +11,7 @@ use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Data\Models\ExecutionTrace;
-use GraphQlTools\Data\Models\FieldTrace;
+use GraphQlTools\Data\Models\ResolverTrace;
 use Closure;
 
 final class Tracing extends Extension
@@ -23,7 +23,7 @@ final class Tracing extends Extension
     private int $startTimeInNanoseconds;
     private int $endTimeInNanoseconds;
 
-    /** @var FieldTrace[] */
+    /** @var ResolverTrace[] */
     private array $fieldTraces = [];
 
     /** @var GraphQlError[] */
@@ -92,7 +92,7 @@ final class Tracing extends Extension
     public function visitField(VisitFieldEvent $event): Closure
     {
         return function () use ($event) {
-            $this->fieldTraces[] = FieldTrace::fromEvent(
+            $this->fieldTraces[] = ResolverTrace::fromEvent(
                 $event,
                 $this->startTimeInNanoseconds
             );

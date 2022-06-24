@@ -18,7 +18,7 @@ final class ExecutionTrace implements \JsonSerializable
         public readonly DateTimeImmutable $startDateTime,
     )
     {
-        Lists::verifyOfType(FieldTrace::class, $this->fieldTraces);
+        Lists::verifyOfType(ResolverTrace::class, $this->fieldTraces);
         Lists::verifyOfType(GraphQlError::class, $this->errors);
     }
 
