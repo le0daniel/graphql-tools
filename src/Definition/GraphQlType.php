@@ -11,6 +11,7 @@ use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\DefinesFields;
 use GraphQlTools\Helper\TypeRegistry;
 use GraphQlTools\Utility\Classes;
+use GraphQlTools\Utility\Typing;
 
 abstract class GraphQlType extends ObjectType
 {
@@ -42,11 +43,8 @@ abstract class GraphQlType extends ObjectType
     {
         $initializedFields = [];
         foreach ($this->fields() as $fieldDeclaration) {
-            if (!$fieldDeclaration instanceof Field) {
-                throw DefinitionException::from($fieldDeclaration, Field::class);
-            }
-
-            if ($fieldDeclaration->isHidden($this->typeRegistry)) {
+            Typing::verifyOfType(Field::class, $fieldDeclaration);
+            if ($fieldDeclaration->isHidden() || $this->typeRegistry->shouldHideField($fieldDeclaration)) {
                 continue;
             }
 

@@ -9,6 +9,7 @@ use GraphQlTools\Contract\Extension;
 use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
+use Throwable;
 
 final class ExtensionManager
 {
@@ -89,7 +90,11 @@ final class ExtensionManager
 
         foreach ($this->extensions as $extension) {
             if ($extension->isVisibleInResult()) {
-                $extensionData[$extension->key()] = $extension->jsonSerialize();
+                try {
+                    $extensionData[$extension->key()] = $extension->jsonSerialize();
+                } catch (Throwable) {
+                    $extensionData[$extension->key()] = 'Failed to collect data.';
+                }
             }
         }
 

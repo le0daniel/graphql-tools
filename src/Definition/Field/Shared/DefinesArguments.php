@@ -24,7 +24,7 @@ trait DefinesArguments
 
         $arguments = [];
         foreach ($this->inputFields as $inputField) {
-            if ($inputField->isHidden($registry)) {
+            if ($inputField->isHidden() || $registry->shouldHideInputField($inputField)) {
                 continue;
             }
 

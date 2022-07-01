@@ -101,7 +101,7 @@ class FieldTestCase
 
         $result = $resolver($rootData, $arguments, $operationContext, $resolveInfo);
 
-        if (!Promises::is($result)) {
+        if (!$result instanceof SyncPromise) {
             return self::rethrowThrowable($result);
         }
 

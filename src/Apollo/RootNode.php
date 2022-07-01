@@ -6,7 +6,7 @@ use GraphQlTools\Data\Models\ResolverTrace;
 use GraphQlTools\Data\Models\GraphQlError;
 use GraphQlTools\Data\Models\Holder;
 use GraphQlTools\Utility\Arrays;
-use GraphQlTools\Utility\Instances;
+use GraphQlTools\Utility\Typing;
 use GraphQlTools\Utility\Lists;
 use Protobuf\Trace\Error;
 use Protobuf\Trace\Node;
@@ -31,8 +31,8 @@ final class RootNode
 
     public static function createFromFieldTraces(array $fieldTraces, array $errors): self
     {
-        Lists::verifyOfType(ResolverTrace::class, $fieldTraces);
-        Lists::verifyOfType(GraphQlError::class, $errors);
+        Typing::verifyListOfType(ResolverTrace::class, $fieldTraces);
+        Typing::verifyListOfType(GraphQlError::class, $errors);
         $instance = new self($errors);
 
         /** @var ResolverTrace $resolver */
@@ -134,7 +134,7 @@ final class RootNode
 
         /** @var ResolverTrace $fieldTrace */
         $fieldTrace = $data['resolverTrace'];
-        Instances::verifyOfType(ResolverTrace::class, $fieldTrace);
+        Typing::verifyOfType(ResolverTrace::class, $fieldTrace);
 
         $node->setType($fieldTrace->returnType);
         $node->setStartTime((string)$fieldTrace->startOffset);

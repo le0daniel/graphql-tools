@@ -22,8 +22,8 @@ final class InputField
         return new self($name);
     }
 
-    final public function isHidden(TypeRegistry $typeRegistry): bool {
-        return $this->hideFieldBecauseDeprecationDateIsPassed() || $typeRegistry->shouldHideInputField($this);
+    final public function isHidden(): bool {
+        return $this->hideFieldBecauseDeprecationDateIsPassed();
     }
 
     final public function toDefinition(TypeRegistry $typeRegistry): array

@@ -4,24 +4,23 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition\Shared;
 
-use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Field\InputField;
+use GraphQlTools\Utility\Typing;
 
 trait DefinesFields
 {
     private function initInputFields(array $inputFields): array
     {
         $initializedInputFields = [];
+
+        /** @var InputField $inputField */
         foreach ($inputFields as $inputField) {
             if (!$inputField) {
                 continue;
             }
 
-            if (!$inputField instanceof InputField) {
-                throw DefinitionException::from($inputField, InputField::class);
-            }
-
-            if ($inputField->isHidden($this->typeRegistry)) {
+            Typing::verifyOfType(InputField::class, $inputField);
+            if ($inputField->isHidden() || $this->typeRegistry->shouldHideInputField($inputField)) {
                 continue;
             }
 

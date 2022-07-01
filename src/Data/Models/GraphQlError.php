@@ -4,6 +4,7 @@ namespace GraphQlTools\Data\Models;
 
 use GraphQL\Error\Error;
 use GraphQlTools\Utility\Lists;
+use GraphQlTools\Utility\Typing;
 use \Protobuf\Trace\Error as ProtobufError;
 use GraphQL\Language\SourceLocation;
 use Protobuf\Trace\Location;
@@ -21,7 +22,7 @@ class GraphQlError
         public readonly array  $locations,
     )
     {
-        Lists::verifyOfType(GraphQlErrorLocation::class, $this->locations);
+        Typing::verifyListOfType(GraphQlErrorLocation::class, $this->locations);
     }
 
     public static function fromGraphQlError(Error $error)

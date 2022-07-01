@@ -5,6 +5,7 @@ namespace GraphQlTools\Data\Models;
 use DateTime;
 use DateTimeImmutable;
 use GraphQlTools\Utility\Lists;
+use GraphQlTools\Utility\Typing;
 use JetBrains\PhpStorm\Internal\TentativeType;
 
 final class ExecutionTrace implements \JsonSerializable
@@ -18,8 +19,8 @@ final class ExecutionTrace implements \JsonSerializable
         public readonly DateTimeImmutable $startDateTime,
     )
     {
-        Lists::verifyOfType(ResolverTrace::class, $this->fieldTraces);
-        Lists::verifyOfType(GraphQlError::class, $this->errors);
+        Typing::verifyListOfType(ResolverTrace::class, $this->fieldTraces);
+        Typing::verifyListOfType(GraphQlError::class, $this->errors);
     }
 
     public static function from(
