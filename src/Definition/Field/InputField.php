@@ -28,13 +28,16 @@ final class InputField
 
     final public function toDefinition(TypeRegistry $typeRegistry): array
     {
+        $defaultValue = isset($this->defaultValue)
+            ? ['defaultValue' => $this->defaultValue]
+            : [];
+
         return [
             'name' => $this->name,
             'description' => $this->computeDescription(),
             'type' => $this->resolveReturnType($typeRegistry),
-            'defaultValue' => $this->defaultValue,
             'deprecatedReason' => $this->computeDeprecationReason(),
             Fields::METADATA_CONFIG_KEY => $this->metadata,
-        ];
+        ] + $defaultValue;
     }
 }
