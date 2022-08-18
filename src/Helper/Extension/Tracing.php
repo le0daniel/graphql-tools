@@ -13,11 +13,12 @@ use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Data\Models\ExecutionTrace;
 use GraphQlTools\Data\Models\ResolverTrace;
 use Closure;
+use GraphQlTools\Utility\Query;
 
 final class Tracing extends Extension
 {
+    private bool $isIntrospectionQuery = false;
     private string $query;
-
     private DateTimeImmutable $startDateTime;
 
     private int $startTimeInNanoseconds;
@@ -41,7 +42,7 @@ final class Tracing extends Extension
 
     public function isVisibleInResult(): bool
     {
-        return $this->addTraceToResult;
+        return $this->addTraceToResult && !$this->isIntrospectionQuery;
     }
 
     /**
@@ -77,6 +78,7 @@ final class Tracing extends Extension
     public function start(StartEvent $startEvent): void
     {
         $this->query = $startEvent->query;
+        $this->isIntrospectionQuery = Query::isIntrospection($startEvent->query);
         $this->startTimeInNanoseconds = $startEvent->eventTimeInNanoSeconds;
         $this->startDateTime = new DateTimeImmutable();
     }
@@ -89,8 +91,12 @@ final class Tracing extends Extension
         }
     }
 
-    public function visitField(VisitFieldEvent $event): Closure
+    public function visitField(VisitFieldEvent $event): ?Closure
     {
+        if ($this->isIntrospectionQuery) {
+            return null;
+        }
+
         return function () use ($event) {
             $this->fieldTraces[] = ResolverTrace::fromEvent(
                 $event,
@@ -101,7 +107,7 @@ final class Tracing extends Extension
 
     public function __destruct()
     {
-        if (!isset($this->startTimeInNanoseconds)) {
+        if (!isset($this->startTimeInNanoseconds) || $this->isIntrospectionQuery) {
             return;
         }
 

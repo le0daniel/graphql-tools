@@ -28,8 +28,9 @@ use GraphQL\Language\Printer;
 use GraphQL\Language\Visitor;
 use Traversable;
 
-final class QuerySignature
+final class Query
 {
+    private const QUERY_NAME_REGEX = '/(?:query|mutation)\s+(?<queryName>[a-zA-Z\d]+)\s*(?:{|\()/m';
     private const INT_LITERAL_VALUE = '0';
     private const FLOAT_LITERAL_VALUE = '0';
     private const STRING_LITERAL_VALUE = '';
@@ -59,15 +60,16 @@ final class QuerySignature
         return self::printWithReducedWhitespace($ast);
     }
 
-    /**
-     * @param string $query
-     * @param array<callable> $pipeline
-     * @return string
-     * @throws SyntaxError
-     */
-    public static function createHashString(string $query, array $pipeline = self::DEFAULT_PIPELINE): string
-    {
-        return md5(self::createSignatureString($query, $pipeline));
+    public static function getQueryName(string $query): ?string {
+        if (!preg_match(self::QUERY_NAME_REGEX, $query, $matches)) {
+            return null;
+        }
+
+        return $matches['queryName'] ?? null;
+    }
+
+    public static function isIntrospection(string $query): bool {
+        return str_contains($query, '__schema') || str_contains('__type', $query);
     }
 
     /**

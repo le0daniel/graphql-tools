@@ -2,17 +2,17 @@
 
 namespace GraphQlTools\Test\Utility;
 
-use GraphQlTools\Utility\QuerySignature;
+use GraphQlTools\Utility\Query;
 use JetBrains\PhpStorm\ArrayShape;
 use PHPUnit\Framework\TestCase;
 
-class QuerySignatureTest extends TestCase
+class QueryTest extends TestCase
 {
 
     /** @dataProvider createSignatureProvider */
     public function testCreateSignatureString(string $query, string $expected): void
     {
-        self::assertEquals($expected, QuerySignature::createSignatureString($query));
+        self::assertEquals($expected, Query::createSignatureString($query));
     }
 
     public function createSignatureProvider(): array {
@@ -77,7 +77,7 @@ class QuerySignatureTest extends TestCase
 
     /** @dataProvider sameSignatureDataProvider */
     public function testSameSignature(string ... $queries): void {
-        $signatures = array_map(fn(string $query): string => QuerySignature::createSignatureString($query), $queries);
+        $signatures = array_map(fn(string $query): string => Query::createSignatureString($query), $queries);
         self::assertCount(1, array_unique($signatures));
     }
 
@@ -95,6 +95,19 @@ class QuerySignatureTest extends TestCase
                   }
                 }'
             ]
+        ];
+    }
+
+    /** @dataProvider getQueryNameDataProvider */
+    public function testGetQueryName(?string $expectedName, string $query): void {
+        self::assertEquals($expectedName, Query::getQueryName($query));
+    }
+
+    public function getQueryNameDataProvider(): array {
+        return [
+            'query without name' => [
+                null, 'query { currentName { id } }'
+            ],
         ];
     }
 }

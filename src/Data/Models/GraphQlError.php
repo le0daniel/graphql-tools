@@ -41,17 +41,15 @@ class GraphQlError
 
     public function toProtobufError(): ProtobufError
     {
-        $error = new ProtobufError();
         $locations = array_map(static function (GraphQlErrorLocation $errorLocation): Location {
-            $protoBufLocation = new Location();
-            $protoBufLocation->setColumn($errorLocation->column);
-            $protoBufLocation->setLine($errorLocation->line);
-            return $protoBufLocation;
+            return (new Location())
+                ->setColumn($errorLocation->column)
+                ->setLine($errorLocation->line);
         }, $this->locations);
 
-        $error->setLocation($locations);
-        $error->setMessage($this->message);
-        return $error;
+        return (new ProtobufError())
+            ->setLocation($locations)
+            ->setMessage($this->message);
     }
 
 }

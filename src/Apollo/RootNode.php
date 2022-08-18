@@ -4,10 +4,8 @@ namespace GraphQlTools\Apollo;
 
 use GraphQlTools\Data\Models\ResolverTrace;
 use GraphQlTools\Data\Models\GraphQlError;
-use GraphQlTools\Data\Models\Holder;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Typing;
-use GraphQlTools\Utility\Lists;
 use Protobuf\Trace\Error;
 use Protobuf\Trace\Node;
 
@@ -17,29 +15,23 @@ final class RootNode
     private const INDEX = 'index';
     private const CHILD = 'child';
     private array $rootChildren = [];
+
+    /** @var array<string, GraphQlError> */
     private readonly array $errorMap;
 
-    private function __construct(array $errors)
+    public function __construct(array $resolverTraces, array $errors)
     {
-        $errorMap = [];
-        /** @var GraphQlError $error */
-        foreach ($errors as $error) {
-            $errorMap[$error->pathKey][] = $error;
-        }
-        $this->errorMap = $errorMap;
-    }
-
-    public static function createFromFieldTraces(array $fieldTraces, array $errors): self
-    {
-        Typing::verifyListOfType(ResolverTrace::class, $fieldTraces);
+        Typing::verifyListOfType(ResolverTrace::class, $resolverTraces);
         Typing::verifyListOfType(GraphQlError::class, $errors);
-        $instance = new self($errors);
+
+        $this->errorMap = Arrays::mapWithKeys($errors, static function($index, GraphQlError $error): array {
+            return [$error->pathKey(), $error];
+        });
 
         /** @var ResolverTrace $resolver */
-        foreach ($fieldTraces as $resolver) {
-            $instance->addFromTrace($resolver);
+        foreach ($resolverTraces as $resolver) {
+            $this->addFromTrace($resolver);
         }
-        return $instance;
     }
 
     private function addFromTrace(ResolverTrace $trace): void
@@ -112,7 +104,7 @@ final class RootNode
     private function createNodeData(ResolverTrace $trace): array
     {
         return [
-            self::RESPONSE_NAME => $trace->lastPathElement,
+            self::RESPONSE_NAME => $trace->lastPathElement(),
             'resolverTrace' => $trace,
         ];
     }
@@ -140,10 +132,10 @@ final class RootNode
         $node->setStartTime((string)$fieldTrace->startOffset);
         $node->setEndTime((string)($fieldTrace->startOffset + $fieldTrace->duration));
         $node->setParentType($fieldTrace->parentType);
-        $node->setResponseName($fieldTrace->lastPathElement);
+        $node->setResponseName($fieldTrace->lastPathElement());
 
         /** @var GraphQlError[] $errors */
-        $errors = $this->errorMap[$fieldTrace->pathKey] ?? [];
+        $errors = $this->errorMap[$fieldTrace->pathKey()] ?? [];
         if (!empty($errors)) {
             $node->setError(array_map(fn(GraphQlError $error): Error => $error->toProtobufError(), $errors));
         }

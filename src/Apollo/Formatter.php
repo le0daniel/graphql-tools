@@ -6,11 +6,9 @@ use DateTime;
 use DateTimeImmutable;
 use Exception;
 use Google\Protobuf\Timestamp;
-use GraphQlTools\Data\Models\AdditionalExecutionInformation;
 use GraphQlTools\Data\Models\ExecutionTrace;
-use GraphQlTools\Data\Models\SchemaInformation;
 use GraphQlTools\Utility\Arrays;
-use GraphQlTools\Utility\Http;
+use GraphQlTools\Utility\Query;
 use Protobuf\Trace;
 
 final class Formatter
@@ -18,25 +16,30 @@ final class Formatter
     public const BLACKLISTED_HEADERS = ['authorization', 'cookie', 'set-cookie'];
     public const BLACKLISTED_VARIABLE_VALUES = ['secret', 'token'];
 
-    public static function singleTraceToProtobuf(ExecutionTrace $executionTrace, ?AdditionalExecutionInformation $information = null): array
+    public static function singleTraceToProtobuf(ExecutionTrace $executionTrace): array
     {
-        $trace = new Trace();
-        $trace->setDurationNs($executionTrace->durationNs);
-        $trace->setStartTime(self::toTimestamp($executionTrace->startTime));
-        $trace->setEndTime(self::toTimestamp($executionTrace->endTime));
+        $querySignature = Query::createSignatureString($executionTrace->query);
+        $queryName = Query::getQueryName($executionTrace->query) ?? 'Unnamed';
+        $apolloQueryName = "{$queryName}-" . substr(md5($querySignature), 0, 12);
 
-        if ($information) {
-            self::setClientInformation($trace, $information);
-            self::setDetails($trace, $information);
-        }
+        $fullApolloSignature = "#{$apolloQueryName}\n{$querySignature}";
 
-        self::setHttp($trace, $information);
+        $trace = (new Trace())
+            ->setDurationNs($executionTrace->durationNs())
+            ->setStartTime(self::toTimestamp($executionTrace->startDateTime))
+            ->setEndTime(self::toTimestamp($executionTrace->endTime))
+            ->setRoot((new RootNode($executionTrace->fieldTraces, $executionTrace->errors))->toProtobuf())
+        ;
 
-        // Create the Protobuf tree
-        $trace->setRoot(RootNode::createFromFieldTraces($executionTrace->executionResolvers)->toProtobuf());
+        // if ($information) {
+        //     self::setClientInformation($trace, $information);
+        //     self::setDetails($trace, $information);
+        // }
+
+        // self::setHttp($trace, $information);
 
         return [
-            $executionTrace->queryId, $trace
+            $fullApolloSignature, $trace
         ];
     }
 
