@@ -4,29 +4,44 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition\Shared;
 
-use GraphQlTools\Definition\Field\InputField;
-use GraphQlTools\Utility\Typing;
+use GraphQL\Type\Definition\FieldDefinition;
+use RuntimeException;
 
 trait DefinesFields
 {
-    private function initInputFields(array $inputFields): array
+    private function initFields(bool $supportsLazyFields): array
     {
-        $initializedInputFields = [];
+        $initializedFields = [];
+        foreach ($this->fields() as $key => $fieldDeclaration) {
+            // Support lazy initialized fields
+            if ($supportsLazyFields && is_string($key)) {
+                $initializedFields[$key] = function() use ($key, $fieldDeclaration): FieldDefinition|array {
+                    /** @var FieldDefinition|array|null $fieldOrInputField */
+                    $fieldOrInputField = $this->initField($fieldDeclaration($key));
 
-        /** @var InputField $inputField */
-        foreach ($inputFields as $inputField) {
-            if (!$inputField) {
+                    if (!$fieldOrInputField) {
+                        throw new RuntimeException("Hidden fields are not supported with lazy loading, as the definition is only executed if loaded.");
+                    }
+
+                    $name = $fieldOrInputField instanceof FieldDefinition
+                        ? $fieldOrInputField->name
+                        : $fieldOrInputField['name'];
+
+                    // Ensure a dynamic field does correctly have the right name. This should be checked at Build time with the validation of the schema.
+                    if ($name !== $key) {
+                        throw new RuntimeException("A lazy loaded field MUST have the same name as given in the array. Expected `{$key}`, got {$name}");
+                    }
+
+                    return $fieldOrInputField;
+                };
                 continue;
             }
 
-            Typing::verifyOfType(InputField::class, $inputField);
-            if ($inputField->isHidden() || $this->typeRegistry->shouldHideInputField($inputField)) {
-                continue;
+            if ($declaration = $this->initField($fieldDeclaration)) {
+                $initializedFields[] = $declaration;
             }
-
-            $initializedInputFields[] = $inputField->toDefinition($this->typeRegistry);
         }
 
-        return $initializedInputFields;
+        return $initializedFields;
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\InputObjectType;
+use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\Shared\DefinesFields;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Helper\TypeRegistry;
@@ -22,9 +23,16 @@ abstract class GraphQlInputType extends InputObjectType
             [
                 'name' => static::typeName(),
                 'description' => $this->description(),
-                'fields' => fn() => $this->initInputFields($this->fields()),
+                'fields' => fn() => $this->initFields(false),
             ]
         );
+    }
+
+    private function initField(InputField $fieldDeclaration): ?array {
+        $isHidden = $fieldDeclaration->isHidden() || $this->typeRegistry->shouldHideInputField($fieldDeclaration);
+        return $isHidden
+            ? null
+            : $fieldDeclaration->toDefinition($this->typeRegistry);
     }
 
     abstract protected function fields(): array;

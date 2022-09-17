@@ -59,7 +59,7 @@ class TypeRegistry
      */
     public function __construct(
         private readonly array $typeResolutionMap,
-        public readonly bool   $lazyResolveFields = false
+        public readonly bool   $lazyResolveFields = true
     )
     {
         $this->classNameToTypeNameMap = array_flip($typeResolutionMap);

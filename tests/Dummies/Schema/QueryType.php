@@ -25,7 +25,7 @@ final class QueryType extends GraphQlType {
 
     protected function fields(): array {
         return [
-            Field::withName('currentUser')
+            'currentUser' => static fn(string $name) => Field::withName($name)
                 ->ofType(Type::string())
                 ->ofSchemaVariant('MySchemaVariant::hides it on other schemas')
                 ->withArguments(

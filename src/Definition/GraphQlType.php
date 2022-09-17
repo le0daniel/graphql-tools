@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition;
 
+use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Shared\DefinesTypes;
@@ -11,7 +12,6 @@ use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\DefinesFields;
 use GraphQlTools\Helper\TypeRegistry;
 use GraphQlTools\Utility\Classes;
-use GraphQlTools\Utility\Typing;
 
 abstract class GraphQlType extends ObjectType
 {
@@ -23,7 +23,7 @@ abstract class GraphQlType extends ObjectType
      * Return an array of fields of that specific type. The fields
      * are then initialized correctly and a proxy attached to them.
      *
-     * @return Field[]
+     * @return Field[]|callable[]
      */
     abstract protected function fields(): array;
 
@@ -33,25 +33,17 @@ abstract class GraphQlType extends ObjectType
             [
                 'name' => static::typeName(),
                 'description' => $this->description(),
-                'fields' => fn() => $this->initFields(),
+                'fields' => fn() => $this->initFields(true),
                 'interfaces' => fn() => $this->initTypes($this->interfaces()),
             ]
         );
     }
 
-    private function initFields(): array
-    {
-        $initializedFields = [];
-        foreach ($this->fields() as $fieldDeclaration) {
-            Typing::verifyOfType(Field::class, $fieldDeclaration);
-            if ($fieldDeclaration->isHidden() || $this->typeRegistry->shouldHideField($fieldDeclaration)) {
-                continue;
-            }
-
-            $initializedFields[] = $fieldDeclaration->toDefinition($this->typeRegistry);
-        }
-
-        return $initializedFields;
+    private function initField(Field $fieldDeclaration): ?FieldDefinition {
+        $isHidden = $fieldDeclaration->isHidden() || $this->typeRegistry->shouldHideField($fieldDeclaration);
+        return $isHidden
+            ? null
+            : $fieldDeclaration->toDefinition($this->typeRegistry);
     }
 
     /**

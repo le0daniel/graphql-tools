@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition;
 
+use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Shared\HasDescription;
@@ -11,7 +12,7 @@ use GraphQlTools\Definition\Shared\DefinesFields;
 use GraphQlTools\Definition\Shared\ResolvesType;
 use GraphQlTools\Helper\TypeRegistry;
 use GraphQlTools\Utility\Classes;
-use GraphQlTools\Utility\Typing;
+use RuntimeException;
 
 abstract class GraphQlInterface extends InterfaceType
 {
@@ -33,24 +34,16 @@ abstract class GraphQlInterface extends InterfaceType
             [
                 'name' => static::typeName(),
                 'description' => $this->description(),
-                'fields' => fn() => $this->initFields()
+                'fields' => fn() => $this->initFields(true)
             ]
         );
     }
 
-    private function initFields(): array
-    {
-        $initializedFields = [];
-        foreach ($this->fields() as $fieldDeclaration) {
-            Typing::verifyOfType(Field::class, $fieldDeclaration);
-            if ($fieldDeclaration->isHidden() || $this->typeRegistry->shouldHideField($fieldDeclaration)) {
-                continue;
-            }
-
-            $initializedFields[] = $fieldDeclaration->toInterfaceDefinition($this->typeRegistry);
-        }
-
-        return $initializedFields;
+    private function initField(Field $fieldDeclaration): ?FieldDefinition {
+        $isHidden = $fieldDeclaration->isHidden() || $this->typeRegistry->shouldHideField($fieldDeclaration);
+        return $isHidden
+            ? null
+            : $fieldDeclaration->toInterfaceDefinition($this->typeRegistry);
     }
 
     public static function typeName(): string

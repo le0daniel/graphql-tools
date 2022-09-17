@@ -19,10 +19,9 @@ final class Formatter
     public static function singleTraceToProtobuf(ExecutionTrace $executionTrace): array
     {
         $querySignature = Query::createSignatureString($executionTrace->query);
-        $queryName = Query::getQueryName($executionTrace->query) ?? 'Unnamed';
+        $queryName = Query::getQueryName($executionTrace->query) ?? 'No-Name';
         $apolloQueryName = "{$queryName}-" . substr(md5($querySignature), 0, 12);
-
-        $fullApolloSignature = "#{$apolloQueryName}\n{$querySignature}";
+        $fullApolloSignature = "#{$apolloQueryName}" . PHP_EOL . $querySignature;
 
         $trace = (new Trace())
             ->setDurationNs($executionTrace->durationNs())
@@ -100,8 +99,7 @@ final class Formatter
         $tracesAndStats = [];
         foreach ($tracesWithAdditionalInformation as $traceData) {
             [$id, $trace] = self::singleTraceToProtobuf(
-                $traceData instanceof ExecutionTrace ? $traceData : $traceData[0],
-                $traceData instanceof ExecutionTrace ? null : ($traceData[1] ?? null),
+                $traceData
             );
             $tracesAndStats[$id][] = $trace;
         }
