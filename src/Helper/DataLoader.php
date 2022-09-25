@@ -6,6 +6,7 @@ use Closure;
 use GraphQL\Deferred;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Executor\Promise\Adapter\SyncPromiseAdapter;
+use GraphQlTools\Contract\DataLoaderIdentifiable;
 use GraphQlTools\Contract\ExecutableByDataLoader;
 use GraphQlTools\Utility\Time;
 use RuntimeException;
@@ -55,7 +56,7 @@ final class DataLoader
 
         // If an array is given, an identifier is required to map to the correct data. This is due
         // to arrays being passed as values and not as references.
-        $identifier = is_array($item) ? $item[self::IDENTIFIER_KEY] : $item;
+        $identifier = $this->identifier($item);
 
         return new Deferred(function () use (&$identifier) {
             $this->loadDataOnce();
@@ -69,6 +70,16 @@ final class DataLoader
             }
             return $valueOrThrowable;
         });
+    }
+
+    private function identifier(mixed &$item): mixed {
+        if (is_array($item)) {
+            return $item[self::IDENTIFIER_KEY];
+        }
+
+        return $item instanceof DataLoaderIdentifiable
+            ? $item->dataLoaderIdentifier()
+            : $item;
     }
 
     public function loadMany(mixed ...$items): SyncPromise

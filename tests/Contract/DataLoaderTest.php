@@ -4,7 +4,7 @@ namespace GraphQlTools\Test\Contract;
 
 use GraphQL\Deferred;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
-use GraphQlTools\Helper\Counter;
+use GraphQlTools\Contract\DataLoaderIdentifiable;
 use GraphQlTools\Helper\DataLoader;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -127,5 +127,31 @@ class DataLoaderTest extends TestCase
         Deferred::runQueue();
         self::assertEquals('object1', $promise1->result);
         self::assertEquals('object2', $promise2->result);
+    }
+
+    public function testWithObjectsIdentifer(): void {
+        $object1 = new class () implements DataLoaderIdentifiable {
+            public function dataLoaderIdentifier(): int|string
+            {
+                return 1;
+            }
+        };
+
+        $object2 = new class () implements DataLoaderIdentifiable {
+            public function dataLoaderIdentifier(): int|string
+            {
+                return 2;
+            }
+        };
+
+        $storage = [1 => 'I am object 1', 2 => 'I am object 2'];
+
+        $dataLoader = new DataLoader(fn() => $storage);
+        $promise1 = $dataLoader->load($object1);
+        $promise2 = $dataLoader->load($object2);
+
+        Deferred::runQueue();
+        self::assertEquals('I am object 1', $promise1->result);
+        self::assertEquals('I am object 2', $promise2->result);
     }
 }
