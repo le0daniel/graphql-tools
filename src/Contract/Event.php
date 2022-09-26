@@ -4,6 +4,9 @@ namespace GraphQlTools\Contract;
 
 use GraphQlTools\Utility\Time;
 
+/**
+ * @internal
+ */
 abstract class Event
 {
     public readonly int $eventTimeInNanoSeconds;

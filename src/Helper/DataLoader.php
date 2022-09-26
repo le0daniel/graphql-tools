@@ -5,14 +5,17 @@ namespace GraphQlTools\Helper;
 use Closure;
 use GraphQL\Deferred;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
-use GraphQL\Executor\Promise\Adapter\SyncPromiseAdapter;
 use GraphQlTools\Contract\DataLoaderIdentifiable;
 use GraphQlTools\Contract\ExecutableByDataLoader;
 use GraphQlTools\Utility\Time;
 use RuntimeException;
 use Throwable;
+use GraphQlTools\Contract\DataLoader as DataLoaderContract;
 
-final class DataLoader
+/**
+ * @implements DataLoaderContract<SyncPromise>
+ */
+final class DataLoader implements DataLoaderContract
 {
     public const IDENTIFIER_KEY = 'itemId';
     private array $loadingTraces = [];

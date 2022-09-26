@@ -2,8 +2,6 @@
 
 namespace GraphQlTools\Contract;
 
-use GraphQlTools\Helper\DataLoader;
-
 interface GraphQlContext
 {
     /**
