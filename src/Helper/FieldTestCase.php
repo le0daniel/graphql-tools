@@ -8,9 +8,9 @@ use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
-use GraphQlTools\Utility\Promises;
 use RuntimeException;
 use Throwable;
+use GraphQlTools\Contract\GraphQlContext;
 
 class FieldTestCase
 {
@@ -59,7 +59,7 @@ class FieldTestCase
         return $mocks;
     }
 
-    private function buildDefaultContext(): Context
+    private function buildDefaultContext(): GraphQlContext
     {
         $mocks = $this->buildDataLoaderMocks();
         return new class ($mocks) extends Context {

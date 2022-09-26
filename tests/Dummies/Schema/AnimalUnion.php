@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace GraphQlTools\Test\Dummies\Schema;
 
 use GraphQL\Type\Definition\ResolveInfo;
-use GraphQL\Type\Definition\Type;
-use GraphQlTools\Helper\Context;
+use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Definition\GraphQlUnion;
 
 final class AnimalUnion extends GraphQlUnion {
@@ -22,7 +21,7 @@ final class AnimalUnion extends GraphQlUnion {
         return 'Animals';
     }
 
-    protected function resolveToType(mixed $typeValue, Context $context, ResolveInfo $info): string {
+    protected function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string {
         switch ($typeValue['type']) {
             case 'lion':
                 return LionType::class;

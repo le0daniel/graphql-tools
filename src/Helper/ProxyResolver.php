@@ -8,6 +8,7 @@ use ArrayAccess;
 use Closure;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Type\Definition\ResolveInfo;
+use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Events\VisitFieldEvent;
 use Throwable;
 
@@ -27,7 +28,7 @@ final class ProxyResolver
      * @param ResolveInfo $info
      * @return mixed
      */
-    private function resolveToValue(mixed $typeData, array $arguments, Context $context, ResolveInfo $info): mixed
+    private function resolveToValue(mixed $typeData, array $arguments, GraphQlContext $context, ResolveInfo $info): mixed
     {
         if ($this->resolveFunction) {
             return ($this->resolveFunction)($typeData, $arguments, $context, $info);

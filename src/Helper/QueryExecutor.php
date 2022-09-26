@@ -16,6 +16,7 @@ use GraphQL\Validator\DocumentValidator;
 use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Contract\ContextualValidationRule;
 use GraphQlTools\Contract\ExceptionWithExtensions;
+use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Helper\Validation\CollectDeprecatedFieldNotices;
@@ -83,7 +84,7 @@ final class QueryExecutor
     public function execute(
         Schema  $schema,
         string  $query,
-        Context $context,
+        GraphQlContext $context,
         ?array  $variables = null,
         mixed   $rootValue = null,
         ?string $operationName = null,

@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace GraphQlTools\Helper;
 
 use Closure;
-use GraphQlTools\Helper\DataLoader;
+use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Contract\ExecutableByDataLoader;
 
-class Context
+class Context implements GraphQlContext
 {
-    private array $dataLoaderInstances = [];
+    /**
+     * All instances of Data loaders created.
+     *
+     * @var array
+     */
+    protected array $dataLoaderInstances = [];
 
     /**
      * Create an instance of a DataLoader executor, Must either be a Closue or

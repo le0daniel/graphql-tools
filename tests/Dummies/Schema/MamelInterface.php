@@ -6,6 +6,7 @@ namespace GraphQlTools\Test\Dummies\Schema;
 
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
+use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlInterface;
@@ -22,7 +23,7 @@ final class MamelInterface extends GraphQlInterface {
         return '';
     }
 
-    protected function resolveToType(mixed $typeValue, Context $context, ResolveInfo $info): string {
+    protected function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string {
         switch ($typeValue['type']) {
             case 'lion':
                 return LionType::class;
