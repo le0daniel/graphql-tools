@@ -5,7 +5,7 @@ namespace GraphQlTools\Definition\Shared;
 use Closure;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\DefinitionException;
-use GraphQlTools\Helper\TypeRegistry;
+use GraphQlTools\Contract\TypeRegistry;
 
 /** @property-read TypeRegistry $typeRegistry */
 trait DefinesTypes

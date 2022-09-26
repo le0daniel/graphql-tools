@@ -6,7 +6,7 @@ use GraphQlTools\Definition\Field\Shared\DefinesDefaultValue;
 use GraphQlTools\Definition\Field\Shared\DefinesField;
 use GraphQlTools\Definition\Field\Shared\DefinesMetadata;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
-use GraphQlTools\Helper\TypeRegistry;
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Utility\Fields;
 
 final class InputField

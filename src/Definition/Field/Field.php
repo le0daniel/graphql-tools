@@ -4,14 +4,14 @@ namespace GraphQlTools\Definition\Field;
 
 use Closure;
 use GraphQL\Type\Definition\FieldDefinition;
-use GraphQlTools\Definition\DefinitionException;
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Shared\DefinesArguments;
 use GraphQlTools\Definition\Field\Shared\DefinesField;
 use GraphQlTools\Definition\Field\Shared\DefinesMetadata;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
 use GraphQlTools\Helper\ProxyResolver;
-use GraphQlTools\Helper\TypeRegistry;
 use GraphQlTools\Utility\Fields;
+
 
 class Field
 {

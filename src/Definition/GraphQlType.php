@@ -10,7 +10,7 @@ use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Shared\DefinesTypes;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\DefinesFields;
-use GraphQlTools\Helper\TypeRegistry;
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Utility\Classes;
 
 abstract class GraphQlType extends ObjectType

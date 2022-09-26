@@ -24,8 +24,9 @@ use GraphQlTools\Utility\Reflections;
 use ReflectionClass;
 use ReflectionException;
 use RuntimeException;
+use GraphQlTools\Contract\TypeRegistry as TypeRegistryContract;
 
-class TypeRegistry
+class TypeRegistry implements TypeRegistryContract
 {
     private const CLASS_MAP_INSTANCES = [
         GraphQlType::class,
@@ -130,19 +131,19 @@ class TypeRegistry
     }
 
     /**
-     * @param string $classOrTypeName
+     * @param string|class-string<Type> $classOrTypeName
      * @return Closure(): Type
      */
-    final public function type(string $classOrTypeName): Closure
+    public function type(string $classOrTypeName): Closure
     {
         return fn() => $this->resolveTypeByName($this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName);
     }
 
     /**
-     * @param string $classOrTypeName
+     * @param string|class-string<Type> $classOrTypeName
      * @return Type
      */
-    final public function eagerlyLoadType(string $classOrTypeName): Type
+    public function eagerlyLoadType(string $classOrTypeName): Type
     {
         $typeName = $this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName;
         return $this->resolveTypeByName($typeName);
@@ -156,7 +157,7 @@ class TypeRegistry
      * @param bool $assumeValid
      * @return Schema
      */
-    final public function toSchema(
+    public function toSchema(
         string  $queryClassOrTypeName,
         ?string $mutationClassOrTypeName = null,
         array   $eagerlyLoadTypes = [],
@@ -191,7 +192,13 @@ class TypeRegistry
         return SchemaPrinter::doPrint($schema);
     }
 
-    private function resolveTypeByName(string $typeName): Type
+    /**
+     * Resolves a type name to an instance of a type.
+     *
+     * @param string $typeName
+     * @return Type
+     */
+    protected function resolveTypeByName(string $typeName): Type
     {
         if (!isset($this->typeInstances[$typeName])) {
             /** @var class-string<Type> $className */

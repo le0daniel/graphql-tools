@@ -8,7 +8,7 @@ use GraphQL\Type\Definition\InputObjectType;
 use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\Shared\DefinesFields;
 use GraphQlTools\Definition\Shared\HasDescription;
-use GraphQlTools\Helper\TypeRegistry;
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Utility\Classes;
 
 abstract class GraphQlInputType extends InputObjectType
