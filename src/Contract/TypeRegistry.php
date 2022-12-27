@@ -44,4 +44,5 @@ interface TypeRegistry
      */
     public function eagerlyLoadType(string $classOrTypeName): Type;
 
+    public function extend(string $classOrTypeName, Field ... $fields): void;
 }

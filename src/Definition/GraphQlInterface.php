@@ -28,7 +28,12 @@ abstract class GraphQlInterface extends InterfaceType
      */
     abstract protected function fields(): array;
 
-    final public function __construct(protected readonly TypeRegistry $typeRegistry)
+    final function allFields(): array
+    {
+        return array_merge($this->fields(), $this->extendedFields);
+    }
+
+    final public function __construct(protected readonly TypeRegistry $typeRegistry, private readonly array $extendedFields = [])
     {
         parent::__construct(
             [

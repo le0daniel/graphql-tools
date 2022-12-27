@@ -54,7 +54,6 @@ final class DataLoader implements DataLoaderContract
     public function load(mixed $item): SyncPromise
     {
         $this->clearLoadedDataIfNeeded();
-        $this->verifyArrayItemsContainIdentifier($item);
         $this->queuedItems[] = &$item;
 
         // If an array is given, an identifier is required to map to the correct data. This is due
@@ -77,6 +76,7 @@ final class DataLoader implements DataLoaderContract
 
     private function identifier(mixed &$item): mixed {
         if (is_array($item)) {
+            $this->verifyArrayItemsContainIdentifier($item);
             return $item[self::IDENTIFIER_KEY];
         }
 
@@ -154,9 +154,9 @@ final class DataLoader implements DataLoaderContract
         }
     }
 
-    private function verifyArrayItemsContainIdentifier(mixed &$item): void
+    private function verifyArrayItemsContainIdentifier(array &$item): void
     {
-        if (is_array($item) && !array_key_exists(self::IDENTIFIER_KEY, $item)) {
+        if (!array_key_exists(self::IDENTIFIER_KEY, $item)) {
             $keyName = 'DataLoader::IDENTIFIER_KEY';
             throw new RuntimeException(
                 "An item enqueued in a dataloader is required to have a property called '{$keyName}' for mapping." . PHP_EOL .

@@ -56,6 +56,11 @@ class TypeRegistry implements TypeRegistryContract
     private array $typeInstances = [];
 
     /**
+     * @var array<string, array<Field>>
+     */
+    private array $typeExtensions = [];
+
+    /**
      * @param array<string, class-string> $typeResolutionMap
      */
     public function __construct(
@@ -165,13 +170,10 @@ class TypeRegistry implements TypeRegistryContract
         bool    $assumeValid = true,
     ): Schema
     {
-        /** @var GraphQlType $rootQueryType */
-        $rootQueryType = $this->eagerlyLoadType($queryClassOrTypeName);
-
         return new Schema(
             SchemaConfig::create(
                 [
-                    'query' => $rootQueryType,
+                    'query' => $this->eagerlyLoadType($queryClassOrTypeName),
                     'mutation' => $mutationClassOrTypeName
                         ? $this->eagerlyLoadType($mutationClassOrTypeName)
                         : null,
@@ -201,18 +203,40 @@ class TypeRegistry implements TypeRegistryContract
     protected function resolveTypeByName(string $typeName): Type
     {
         if (!isset($this->typeInstances[$typeName])) {
-            /** @var class-string<Type> $className */
-            $className = $this->typeResolutionMap[$typeName] ?? null;
-
-            if (!$className) {
-                throw new RuntimeException("Could not resolve type with name `{$typeName}`. Is it in the type-map?");
-            }
-
-            $this->typeInstances[$typeName] = new $className($this);
+            $this->typeInstances[$typeName] = $this->createTypeByTypeName($typeName);
         }
 
         return $this->typeInstances[$typeName];
     }
 
+    private function createTypeByTypeName(string $typeName): Type {
+        /** @var class-string<Type> $className */
+        $className = $this->typeResolutionMap[$typeName] ?? null;
 
+        if (!$className) {
+            throw new RuntimeException("Could not resolve type with name `{$typeName}`. Is it in the type-map?");
+        }
+
+        // Append Extensions to the type
+        if (isset($this->typeExtensions[$typeName])) {
+            $fields = array_map(function(Field|Closure $field): Field {
+                return $field instanceof Closure
+                    ? $field($this)
+                    : $field;
+            },$this->typeExtensions[$typeName]);
+            return new $className($this, $fields);
+        }
+
+        return new $className($this);
+    }
+
+    public function extend(string $classOrTypeName, Field|Closure ...$fields): void
+    {
+        $typeName = $this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName;
+        if (!isset($this->typeExtensions[$typeName])) {
+            $this->typeExtensions[$typeName] = [];
+        }
+
+        array_push($this->typeExtensions[$typeName], ...$fields);
+    }
 }

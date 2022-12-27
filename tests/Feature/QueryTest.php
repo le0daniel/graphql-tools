@@ -4,18 +4,37 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Test\Feature;
 
-use GraphQlTools\Helper\Context;
+use GraphQL\Type\Definition\Type;
+use GraphQlTools\Definition\Field\Field;
+use GraphQlTools\Test\Dummies\Schema\JsonScalar;
 use GraphQlTools\Test\Dummies\Schema\QueryType;
 use GraphQlTools\Helper\TypeRegistry;
+use GraphQlTools\Test\Dummies\Schema\UserType;
 
 class QueryTest extends ExecutionTestCase
 {
 
-    protected function typeRepository(bool $withMetadataIntrospection = true): TypeRegistry
+    protected function typeRepository(): TypeRegistry
     {
-        return new TypeRegistry(
+        $registry = new TypeRegistry(
             TypeRegistry::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema')
         );
+
+        $registry->extend(
+            UserType::class,
+            Field::withName('extended')
+                ->ofType(Type::string())
+                ->resolvedBy(fn() => 'extended'),
+            fn(TypeRegistry $registry) => Field::withName('closure')
+                ->ofType($registry->type(JsonScalar::class))
+                ->resolvedBy(fn() => 'closure')
+        );
+
+        $registry->extend('User',Field::withName('byName')
+            ->ofType(Type::string())
+            ->resolvedBy(fn() => 'byName'));
+
+        return $registry;
     }
 
     protected function queryType(): string
@@ -93,5 +112,29 @@ class QueryTest extends ExecutionTestCase
         self::assertCount(3, $result->data['mamels']);
         self::assertCount(3, $result->data['mamels']);
         $this->assertColumnCount(3, $result->data['mamels'], 'sound');
+    }
+
+    public function testQueryWithExtendedUserType(): void
+    {
+        $result = $this->execute('query { user { extended } }');
+        $this->assertNoErrors($result);
+        self::assertIsArray($result->data['user']);
+        self::assertEquals('extended', $result->data['user']['extended']);
+    }
+
+    public function testQueryWithExtendedUserTypeAsClosure(): void
+    {
+        $result = $this->execute('query { user { closure } }');
+        $this->assertNoErrors($result);
+        self::assertIsArray($result->data['user']);
+        self::assertEquals('closure', $result->data['user']['closure']);
+    }
+
+    public function testQueryWithExtendedUserTypeByName(): void
+    {
+        $result = $this->execute('query { user { byName } }');
+        $this->assertNoErrors($result);
+        self::assertIsArray($result->data['user']);
+        self::assertEquals('byName', $result->data['user']['byName']);
     }
 }

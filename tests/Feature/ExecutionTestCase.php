@@ -17,7 +17,7 @@ abstract class ExecutionTestCase extends TestCase {
      *
      * @return TypeRegistry
      */
-    abstract protected function typeRepository(bool $withMetadataIntrospection = true): TypeRegistry;
+    abstract protected function typeRepository(): TypeRegistry;
 
     /**
      * Defines the root query type
@@ -78,8 +78,8 @@ abstract class ExecutionTestCase extends TestCase {
         self::assertEquals($expectedCount, $count);
     }
 
-    protected function execute(string $query, bool $withMetadataIntrospection = true) {
-        $repository = $this->typeRepository($withMetadataIntrospection);
+    protected function execute(string $query) {
+        $repository = $this->typeRepository();
         $schema = $repository->toSchema(
             $this->queryType(),
             $this->mutationType(),

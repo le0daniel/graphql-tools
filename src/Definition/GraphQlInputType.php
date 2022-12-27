@@ -37,6 +37,11 @@ abstract class GraphQlInputType extends InputObjectType
 
     abstract protected function fields(): array;
 
+    final function allFields(): array
+    {
+        return $this->fields();
+    }
+
     public static function typeName(): string
     {
         $typeName = Classes::baseName(static::class);

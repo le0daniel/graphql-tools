@@ -9,10 +9,12 @@ use RuntimeException;
 
 trait DefinesFields
 {
+    abstract protected function allFields(): array;
+
     private function initFields(bool $supportsLazyFields): array
     {
         $initializedFields = [];
-        foreach ($this->fields() as $key => $fieldDeclaration) {
+        foreach ($this->allFields() as $key => $fieldDeclaration) {
             // Support lazy initialized fields
             if ($supportsLazyFields && is_string($key)) {
                 $initializedFields[$key] = function() use ($key, $fieldDeclaration): FieldDefinition|array {
