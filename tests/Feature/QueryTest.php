@@ -10,6 +10,7 @@ use GraphQlTools\Test\Dummies\Schema\JsonScalar;
 use GraphQlTools\Test\Dummies\Schema\QueryType;
 use GraphQlTools\Helper\TypeRegistry;
 use GraphQlTools\Test\Dummies\Schema\UserType;
+use GraphQlTools\Utility\TypeMap;
 
 class QueryTest extends ExecutionTestCase
 {
@@ -17,10 +18,10 @@ class QueryTest extends ExecutionTestCase
     protected function typeRepository(): TypeRegistry
     {
         $registry = new TypeRegistry(
-            TypeRegistry::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema')
+            TypeMap::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema')
         );
 
-        $registry->extend(
+        $registry->extendTypeFields(
             UserType::class,
             Field::withName('extended')
                 ->ofType(Type::string())
@@ -30,7 +31,7 @@ class QueryTest extends ExecutionTestCase
                 ->resolvedBy(fn() => 'closure')
         );
 
-        $registry->extend('User',Field::withName('byName')
+        $registry->extendTypeFields('User',Field::withName('byName')
             ->ofType(Type::string())
             ->resolvedBy(fn() => 'byName'));
 

@@ -26,13 +26,13 @@ Everything begins by defining a new Type Repository. The Type Repository makes s
 
 ```php
 <?php
-    use GraphQlTools\Helper\Context;use GraphQlTools\Helper\QueryExecutor;use GraphQlTools\Helper\TypeRegistry;
+    use GraphQlTools\Helper\Context;use GraphQlTools\Helper\QueryExecutor;use GraphQlTools\Helper\TypeRegistry; use GraphQlTools\Utility\TypeMap;
     require_once __DIR__ . '/vendor/autoload.php';   
 
     // Extend this class to implement specific methods
     $typeRegistry = new TypeRegistry(
         // This should be cached for production, usually in build process
-        TypeRegistry::createTypeMapFromDirectory(__DIR__ . '/YOUR_DIRECTORY_WITH_ALL_TYPE_DECLARATIONS')
+        TypeMap::createTypeMapFromDirectory(__DIR__ . '/YOUR_DIRECTORY_WITH_ALL_TYPE_DECLARATIONS')
     );
 
     $schema = $typeRegistry->toSchema(
@@ -64,9 +64,9 @@ The Type Repository's job is to ensure that types are only created once.
 When defining fields with custom types, you must use the TypeRepository.
 
 ```php
-    use GraphQlTools\Helper\TypeRegistry;
+    use GraphQlTools\Helper\TypeRegistry;use GraphQlTools\Utility\TypeMap;
     $typeRegistry = new TypeRegistry(
-        TypeRegistry::createTypeMapFromDirectory(__DIR__ . '/YOUR_DIRECTORY_WITH_ALL_TYPE_DECLARATIONS')
+        TypeMap::createTypeMapFromDirectory(__DIR__ . '/YOUR_DIRECTORY_WITH_ALL_TYPE_DECLARATIONS')
     );
 
     // This will return the instance of the Root Query Type

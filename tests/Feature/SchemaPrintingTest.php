@@ -4,6 +4,7 @@ namespace GraphQlTools\Test\Feature;
 
 use GraphQlTools\Test\Dummies\Schema\QueryType;
 use GraphQlTools\Helper\TypeRegistry;
+use GraphQlTools\Utility\TypeMap;
 use PHPUnit\Framework\TestCase;
 
 final class SchemaPrintingTest extends TestCase
@@ -11,7 +12,7 @@ final class SchemaPrintingTest extends TestCase
 
     public function testPrintingWithoutMetadata(): void {
         $schema = (new TypeRegistry(
-            TypeRegistry::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema', false)
+            TypeMap::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema', false)
         ))->toSchema(QueryType::class);
 
         $schemaContent = TypeRegistry::print($schema);

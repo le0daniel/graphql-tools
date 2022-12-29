@@ -9,6 +9,7 @@ use GraphQlTools\Helper\Context;
 use GraphQlTools\Helper\QueryExecutor;
 use GraphQlTools\Helper\TypeRegistry;
 use GraphQlTools\Test\Dummies\SchemaForDataLoader\QueryType;
+use GraphQlTools\Utility\TypeMap;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -28,7 +29,7 @@ class SchemaWithDataLoaderTest extends TestCase
     protected function setUp(): void
     {
         $this->typeRegistry = new TypeRegistry(
-            TypeRegistry::createTypeMapFromDirectory(__DIR__ . '/../Dummies/SchemaForDataLoader'),
+            TypeMap::createTypeMapFromDirectory(__DIR__ . '/../Dummies/SchemaForDataLoader'),
         );
         $this->executor = new QueryExecutor();
     }

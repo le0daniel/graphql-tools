@@ -12,38 +12,20 @@ use GraphQL\Type\SchemaConfig;
 use GraphQL\Utils\SchemaPrinter;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Field\InputField;
-use GraphQlTools\Definition\GraphQlEnum;
-use GraphQlTools\Definition\GraphQlInputType;
-use GraphQlTools\Definition\GraphQlInterface;
-use GraphQlTools\Definition\GraphQlScalar;
-use GraphQlTools\Definition\GraphQlType;
-use GraphQlTools\Definition\GraphQlUnion;
-use GraphQlTools\Utility\Classes;
-use GraphQlTools\Utility\Directories;
-use GraphQlTools\Utility\Reflections;
-use ReflectionClass;
+use GraphQlTools\Utility\TypeMap;
 use ReflectionException;
 use RuntimeException;
 use GraphQlTools\Contract\TypeRegistry as TypeRegistryContract;
 
 class TypeRegistry implements TypeRegistryContract
 {
-    private const CLASS_MAP_INSTANCES = [
-        GraphQlType::class,
-        GraphQlEnum::class,
-        GraphQlInputType::class,
-        GraphQlInterface::class,
-        GraphQlScalar::class,
-        GraphQlUnion::class,
-    ];
-
     /**
      * Represents the opposite of the $typeResolutionMap.
      * This is used to determine the type name, given a classname.
      *
      * @var array<class-string, string>
      */
-    private readonly array $classNameToTypeNameMap;
+    private array $classNameToTypeNameMap;
 
     /**
      * Array containing already initialized types. This ensures the
@@ -60,47 +42,25 @@ class TypeRegistry implements TypeRegistryContract
      */
     private array $typeExtensions = [];
 
+    private array $eagerlyLoadTypes = [];
+
     /**
      * @param array<string, class-string> $typeResolutionMap
      */
-    public function __construct(
-        private readonly array $typeResolutionMap,
-        public readonly bool   $lazyResolveFields = true
-    )
+    public function __construct(private array $typeResolutionMap)
     {
         $this->classNameToTypeNameMap = array_flip($typeResolutionMap);
     }
 
     /**
-     * This is expensive and should only be used during development. We suggest
-     * that you build the TypeMap during the build process of your application
-     * and cache it for production.
-     *
      * @param string $directory
      * @return array<string, class-string>
      * @throws ReflectionException
+     * @deprecated Use TypeMap::createTypeMapFromDirectory instead
      */
     final public static function createTypeMapFromDirectory(string $directory): array
     {
-        $typeMap = [];
-
-        foreach (Directories::fileIteratorWithRegex($directory, '/\.php$/') as $phpFile) {
-            $className = Classes::getDeclaredClassInFile($phpFile->getRealPath());
-            if (!$className) {
-                continue;
-            }
-
-            $parentClassNames = Reflections::getAllParentClasses(new ReflectionClass($className));
-            foreach ($parentClassNames as $parentClassName) {
-                if (in_array($parentClassName, self::CLASS_MAP_INSTANCES, true)) {
-                    /** @var class-string<GraphQlUnion|GraphQlType|GraphQlScalar|GraphQlInterface|GraphQlEnum|GraphQlInputType> $className */
-                    $typeMap[$className::typeName()] = $className;
-                    break;
-                }
-            }
-        }
-
-        return $typeMap;
+        return TypeMap::createTypeMapFromDirectory($directory);
     }
 
     /**
@@ -179,7 +139,7 @@ class TypeRegistry implements TypeRegistryContract
                         : null,
                     'types' => array_map(
                         fn(string $typeName) => $this->eagerlyLoadType($typeName),
-                        $eagerlyLoadTypes
+                        array_merge($eagerlyLoadTypes, $this->eagerlyLoadTypes)
                     ),
                     'typeLoader' => $this->resolveTypeByName(...),
                     'directives' => $directives,
@@ -200,7 +160,7 @@ class TypeRegistry implements TypeRegistryContract
      * @param string $typeName
      * @return Type
      */
-    protected function resolveTypeByName(string $typeName): Type
+    private function resolveTypeByName(string $typeName): Type
     {
         if (!isset($this->typeInstances[$typeName])) {
             $this->typeInstances[$typeName] = $this->createTypeByTypeName($typeName);
@@ -209,7 +169,15 @@ class TypeRegistry implements TypeRegistryContract
         return $this->typeInstances[$typeName];
     }
 
-    private function createTypeByTypeName(string $typeName): Type {
+    private function verifyCanStillMutateSchema(): void
+    {
+        if (count($this->typeInstances) !== 0) {
+            throw new RuntimeException("Tried to extend the schema after a schema was built.");
+        }
+    }
+
+    private function createTypeByTypeName(string $typeName): Type
+    {
         /** @var class-string<Type> $className */
         $className = $this->typeResolutionMap[$typeName] ?? null;
 
@@ -219,23 +187,44 @@ class TypeRegistry implements TypeRegistryContract
 
         // Append Extensions to the type
         if (isset($this->typeExtensions[$typeName])) {
-            $fields = array_map(function(Field|Closure $field): Field {
+            $fields = array_map(function (Field|Closure $field): Field {
                 return $field instanceof Closure
                     ? $field($this)
                     : $field;
-            },$this->typeExtensions[$typeName]);
+            }, $this->typeExtensions[$typeName]);
             return new $className($this, $fields);
         }
 
         return new $className($this);
     }
 
-    public function extend(string $classOrTypeName, Field|Closure ...$fields): void
+    private function initializeExtensionsForType(string $typeName): void
     {
-        $typeName = $this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName;
         if (!isset($this->typeExtensions[$typeName])) {
             $this->typeExtensions[$typeName] = [];
         }
+    }
+
+    public function registerEagerlyLoadedType(string $classOrTypeName): void
+    {
+        $this->verifyCanStillMutateSchema();
+        $this->eagerlyLoadTypes[] = $classOrTypeName;
+    }
+
+    public function registerTypes(array $typeMap): void
+    {
+        $this->verifyCanStillMutateSchema();
+        foreach ($typeMap as $typeName => $className) {
+            $this->classNameToTypeNameMap[$className] = $typeName;
+            $this->typeResolutionMap[$typeName] = $className;
+        }
+    }
+
+    public function extendTypeFields(string $classOrTypeName, Field|Closure ...$fields): void
+    {
+        $this->verifyCanStillMutateSchema();
+        $typeName = $this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName;
+        $this->initializeExtensionsForType($typeName);
 
         array_push($this->typeExtensions[$typeName], ...$fields);
     }
