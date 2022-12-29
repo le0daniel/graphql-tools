@@ -34,10 +34,15 @@ abstract class GraphQlType extends ObjectType
             return $this->fields();
         }
 
-        return array_merge($this->fields(), ($this->extendedFields)($this->typeRegistry));
+        $fields = $this->fields();
+        foreach ($this->extendedFields as $factory) {
+            array_push($fields, ...$factory($this->typeRegistry));
+        }
+
+        return $fields;
     }
 
-    final public function __construct(protected readonly TypeRegistry $typeRegistry, private readonly ?Closure $extendedFields = null)
+    final public function __construct(protected readonly TypeRegistry $typeRegistry, private readonly ?array $extendedFields = null)
     {
         parent::__construct(
             [

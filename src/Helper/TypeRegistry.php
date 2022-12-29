@@ -39,7 +39,7 @@ class TypeRegistry implements TypeRegistryContract
     private array $typeInstances = [];
 
     /**
-     * @var array<string, array<Closure(TypeRegistry):array<Field>|Field>>
+     * @var array<string, array<Closure(TypeRegistry):array<Field>>
      */
     private array $typeExtensions = [];
 
@@ -193,22 +193,10 @@ class TypeRegistry implements TypeRegistryContract
         // Append Extensions to the type
         if (isset($this->typeExtensions[$typeName])) {
 
-            return new $className($this, $this->initializeExtendedFieldsForType($typeName));
+            return new $className($this, $this->typeExtensions[$typeName]);
         }
 
         return new $className($this);
-    }
-
-    private function initializeExtendedFieldsForType(string $typeName): Closure {
-        $fieldsResolvers = $this->typeExtensions[$typeName];
-        return static function(TypeRegistry $registry) use ($fieldsResolvers): array {
-            $fields = [];
-            foreach ($fieldsResolvers as $fieldsResolver) {
-                $additionalFields = Arrays::wrap($fieldsResolver($registry));
-                array_push($fields, ...$additionalFields);
-            }
-            return $fields;
-        };
     }
 
     public function registerEagerlyLoadedType(string $classOrTypeName): void
