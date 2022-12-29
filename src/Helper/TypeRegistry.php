@@ -63,6 +63,10 @@ class TypeRegistry implements TypeRegistryContract
         return TypeMap::createTypeMapFromDirectory($directory);
     }
 
+    public function getTypeMap(): array {
+        return [];
+    }
+
     /**
      * This method can be used to completely hide fields depending on a configuration
      *
