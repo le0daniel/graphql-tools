@@ -12,6 +12,7 @@ use GraphQL\Type\SchemaConfig;
 use GraphQL\Utils\SchemaPrinter;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Field\InputField;
+use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\TypeMap;
 use ReflectionException;
 use RuntimeException;
@@ -38,7 +39,7 @@ class TypeRegistry implements TypeRegistryContract
     private array $typeInstances = [];
 
     /**
-     * @var array<string, array<Field>>
+     * @var array<string, array<Closure(TypeRegistry):array<Field>|Field>>
      */
     private array $typeExtensions = [];
 
@@ -191,22 +192,23 @@ class TypeRegistry implements TypeRegistryContract
 
         // Append Extensions to the type
         if (isset($this->typeExtensions[$typeName])) {
-            $fields = array_map(function (Field|Closure $field): Field {
-                return $field instanceof Closure
-                    ? $field($this)
-                    : $field;
-            }, $this->typeExtensions[$typeName]);
-            return new $className($this, $fields);
+
+            return new $className($this, $this->initializeExtendedFieldsForType($typeName));
         }
 
         return new $className($this);
     }
 
-    private function initializeExtensionsForType(string $typeName): void
-    {
-        if (!isset($this->typeExtensions[$typeName])) {
-            $this->typeExtensions[$typeName] = [];
-        }
+    private function initializeExtendedFieldsForType(string $typeName): Closure {
+        $fieldsResolvers = $this->typeExtensions[$typeName];
+        return static function(TypeRegistry $registry) use ($fieldsResolvers): array {
+            $fields = [];
+            foreach ($fieldsResolvers as $fieldsResolver) {
+                $additionalFields = Arrays::wrap($fieldsResolver($registry));
+                array_push($fields, ...$additionalFields);
+            }
+            return $fields;
+        };
     }
 
     public function registerEagerlyLoadedType(string $classOrTypeName): void
@@ -224,12 +226,18 @@ class TypeRegistry implements TypeRegistryContract
         }
     }
 
-    public function extendTypeFields(string $classOrTypeName, Field|Closure ...$fields): void
+    /**
+     * @param string $classOrTypeName
+     * @param Closure(TypeRegistry):array<Field> $registerFields
+     * @return void
+     */
+    public function extendTypeFields(string $classOrTypeName, Closure $registerFields): void
     {
         $this->verifyCanStillMutateSchema();
         $typeName = $this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName;
-        $this->initializeExtensionsForType($typeName);
-
-        array_push($this->typeExtensions[$typeName], ...$fields);
+        if (!isset($this->typeExtensions[$typeName])) {
+            $this->typeExtensions[$typeName] = [];
+        }
+        $this->typeExtensions[$typeName][] = $registerFields;
     }
 }

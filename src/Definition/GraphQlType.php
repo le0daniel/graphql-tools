@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition;
 
+use Closure;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQlTools\Definition\Field\Field;
@@ -29,10 +30,14 @@ abstract class GraphQlType extends ObjectType
 
     final function allFields(): array
     {
-        return array_merge($this->fields(), $this->extendedFields);
+        if (!$this->extendedFields) {
+            return $this->fields();
+        }
+
+        return array_merge($this->fields(), ($this->extendedFields)($this->typeRegistry));
     }
 
-    final public function __construct(protected readonly TypeRegistry $typeRegistry, private readonly array $extendedFields = [])
+    final public function __construct(protected readonly TypeRegistry $typeRegistry, private readonly ?Closure $extendedFields = null)
     {
         parent::__construct(
             [

@@ -23,17 +23,25 @@ class QueryTest extends ExecutionTestCase
 
         $registry->extendTypeFields(
             UserType::class,
-            Field::withName('extended')
-                ->ofType(Type::string())
-                ->resolvedBy(fn() => 'extended'),
-            fn(TypeRegistry $registry) => Field::withName('closure')
-                ->ofType($registry->type(JsonScalar::class))
-                ->resolvedBy(fn() => 'closure')
+            fn(TypeRegistry $registry) => [
+                Field::withName('extended')
+                    ->ofType(Type::string())
+                    ->resolvedBy(fn() => 'extended'),
+                Field::withName('closure')
+                    ->ofType($registry->type(JsonScalar::class))
+                    ->resolvedBy(fn() => 'closure')
+            ],
         );
 
-        $registry->extendTypeFields('User',Field::withName('byName')
-            ->ofType(Type::string())
-            ->resolvedBy(fn() => 'byName'));
+        $registry->extendTypeFields('User',fn(TypeRegistry $registry) => [
+            Field::withName('byName')
+                ->ofType(Type::string())
+                ->resolvedBy(fn() => 'byName'),
+
+            // Ensure circular dependencies work fine
+            Field::withName('testCircular')
+                ->ofType($registry->eagerlyLoadType('User'))
+        ]);
 
         return $registry;
     }

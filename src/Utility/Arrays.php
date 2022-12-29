@@ -10,6 +10,9 @@ use RuntimeException;
 
 final class Arrays
 {
+    public static function wrap(mixed $value): array {
+        return is_array($value) ? $value : [$value];
+    }
 
     public static function allKeysExist(array $array, array $requiredKeys): bool
     {
