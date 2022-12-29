@@ -12,7 +12,6 @@ use GraphQL\Type\SchemaConfig;
 use GraphQL\Utils\SchemaPrinter;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Field\InputField;
-use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\TypeMap;
 use ReflectionException;
 use RuntimeException;
@@ -26,7 +25,7 @@ class TypeRegistry implements TypeRegistryContract
      *
      * @var array<class-string, string>
      */
-    private array $classNameToTypeNameMap;
+    protected array $classNameToTypeNameMap;
 
     /**
      * Array containing already initialized types. This ensures the
@@ -36,14 +35,14 @@ class TypeRegistry implements TypeRegistryContract
      *
      * @var array<string, Type>
      */
-    private array $typeInstances = [];
+    protected array $typeInstances = [];
 
     /**
      * @var array<string, array<Closure(TypeRegistry):array<Field>>
      */
-    private array $typeExtensions = [];
+    protected array $typeExtensions = [];
 
-    private array $eagerlyLoadTypes = [];
+    protected array $eagerlyLoadedTypes = [];
 
     /**
      * @param array<string, class-string> $typeResolutionMap
@@ -62,10 +61,6 @@ class TypeRegistry implements TypeRegistryContract
     final public static function createTypeMapFromDirectory(string $directory): array
     {
         return TypeMap::createTypeMapFromDirectory($directory);
-    }
-
-    public function getTypeMap(): array {
-        return [];
     }
 
     /**
@@ -119,6 +114,36 @@ class TypeRegistry implements TypeRegistryContract
         return $this->resolveTypeByName($typeName);
     }
 
+    public function registerEagerlyLoadedType(string $classOrTypeName): void
+    {
+        $this->verifyCanStillMutateSchema();
+        $this->eagerlyLoadedTypes[] = $classOrTypeName;
+    }
+
+    public function registerTypes(array $typeMap): void
+    {
+        $this->verifyCanStillMutateSchema();
+        foreach ($typeMap as $typeName => $className) {
+            $this->classNameToTypeNameMap[$className] = $typeName;
+            $this->typeResolutionMap[$typeName] = $className;
+        }
+    }
+
+    /**
+     * @param string $classOrTypeName
+     * @param Closure(TypeRegistry):array<Field> $registerFields
+     * @return void
+     */
+    public function extendTypeFields(string $classOrTypeName, Closure $registerFields): void
+    {
+        $this->verifyCanStillMutateSchema();
+        $typeName = $this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName;
+        if (!isset($this->typeExtensions[$typeName])) {
+            $this->typeExtensions[$typeName] = [];
+        }
+        $this->typeExtensions[$typeName][] = $registerFields;
+    }
+
     /**
      * @param string $queryClassOrTypeName
      * @param string|null $mutationClassOrTypeName
@@ -144,7 +169,7 @@ class TypeRegistry implements TypeRegistryContract
                         : null,
                     'types' => array_map(
                         fn(string $typeName) => $this->eagerlyLoadType($typeName),
-                        array_merge($eagerlyLoadTypes, $this->eagerlyLoadTypes)
+                        array_merge($eagerlyLoadTypes, $this->eagerlyLoadedTypes)
                     ),
                     'typeLoader' => $this->resolveTypeByName(...),
                     'directives' => $directives,
@@ -168,10 +193,23 @@ class TypeRegistry implements TypeRegistryContract
     private function resolveTypeByName(string $typeName): Type
     {
         if (!isset($this->typeInstances[$typeName])) {
-            $this->typeInstances[$typeName] = $this->createTypeByTypeName($typeName);
+            $this->typeInstances[$typeName] = $this->createInstanceOfType($typeName);
         }
 
         return $this->typeInstances[$typeName];
+    }
+
+    /**
+     * @param string $typeName
+     * @return class-string<Type>
+     */
+    final protected function resolveTypeClassName(string $typeName): string
+    {
+        if (!isset($this->typeResolutionMap[$typeName])) {
+            throw new RuntimeException("Could not resolve type with name `{$typeName}`. Is it in the type-map?");
+        }
+
+        return $this->typeResolutionMap[$typeName];
     }
 
     private function verifyCanStillMutateSchema(): void
@@ -181,51 +219,18 @@ class TypeRegistry implements TypeRegistryContract
         }
     }
 
-    private function createTypeByTypeName(string $typeName): Type
+    /**
+     * @param string $typeName
+     * @return Type
+     */
+    protected function createInstanceOfType(string $typeName): Type
     {
-        /** @var class-string<Type> $className */
-        $className = $this->typeResolutionMap[$typeName] ?? null;
+        $className = $this->resolveTypeClassName($typeName);
 
-        if (!$className) {
-            throw new RuntimeException("Could not resolve type with name `{$typeName}`. Is it in the type-map?");
-        }
-
-        // Append Extensions to the type
         if (isset($this->typeExtensions[$typeName])) {
-
             return new $className($this, $this->typeExtensions[$typeName]);
         }
 
         return new $className($this);
-    }
-
-    public function registerEagerlyLoadedType(string $classOrTypeName): void
-    {
-        $this->verifyCanStillMutateSchema();
-        $this->eagerlyLoadTypes[] = $classOrTypeName;
-    }
-
-    public function registerTypes(array $typeMap): void
-    {
-        $this->verifyCanStillMutateSchema();
-        foreach ($typeMap as $typeName => $className) {
-            $this->classNameToTypeNameMap[$className] = $typeName;
-            $this->typeResolutionMap[$typeName] = $className;
-        }
-    }
-
-    /**
-     * @param string $classOrTypeName
-     * @param Closure(TypeRegistry):array<Field> $registerFields
-     * @return void
-     */
-    public function extendTypeFields(string $classOrTypeName, Closure $registerFields): void
-    {
-        $this->verifyCanStillMutateSchema();
-        $typeName = $this->classNameToTypeNameMap[$classOrTypeName] ?? $classOrTypeName;
-        if (!isset($this->typeExtensions[$typeName])) {
-            $this->typeExtensions[$typeName] = [];
-        }
-        $this->typeExtensions[$typeName][] = $registerFields;
     }
 }
