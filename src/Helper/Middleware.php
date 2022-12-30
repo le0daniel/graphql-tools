@@ -3,8 +3,10 @@
 namespace GraphQlTools\Helper;
 
 use Closure;
+use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\GraphQlContext;
+use Throwable;
 
 class Middleware
 {
@@ -45,7 +47,12 @@ class Middleware
         return function ($stack, $pipe) {
             return function (... $args) use ($stack, $pipe) {
                 $args[] = $stack;
-                return $pipe(...$args);
+
+                try {
+                    return $pipe(...$args);
+                } catch (Throwable $error) {
+                    return $error;
+                }
             };
         };
     }

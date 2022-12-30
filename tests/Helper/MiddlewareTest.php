@@ -3,6 +3,7 @@
 namespace GraphQlTools\Test\Helper;
 
 use Closure;
+use Exception;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Helper\Middleware;
@@ -66,5 +67,20 @@ class MiddlewareTest extends TestCase
         $executor = $pipeLine->then(fn(string $middle): string => 'data = ' . $middle);
 
         self::assertEquals('First: Second Blocked', $executor('middle', [], $this->context->reveal(), $this->resolveInfo->reveal()));
+    }
+
+    public function testWithSyncPromise() {
+        $pipeLine = Middleware::create([
+            function($data, array $arguments, GraphQlContext $context, ResolveInfo $info, Closure $next) {
+                return $next($data, $arguments, $context, $info);
+            },
+            function($data, array $arguments, GraphQlContext $context, ResolveInfo $info, Closure $next) {
+                return $next($data, $arguments, $context, $info);
+            },
+        ]);
+
+        $executor = $pipeLine->then(fn() => throw new Exception('this is an error'));
+        $exception = $executor('middle', [], $this->context->reveal(), $this->resolveInfo->reveal());
+        self::assertInstanceOf(Exception::class, $exception);
     }
 }
