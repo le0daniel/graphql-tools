@@ -40,6 +40,7 @@ class Field
             'deprecationReason' => $this->computeDeprecationReason(),
             'description' => $this->computeDescription(),
             'args' => $this->buildArguments($registry),
+            Fields::METADATA_CONFIG_KEY => $this->metadata
         ]);
     }
 

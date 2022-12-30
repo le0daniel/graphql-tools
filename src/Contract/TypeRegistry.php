@@ -13,6 +13,7 @@ interface TypeRegistry
      * Given a Field, return a boolean to determine if this field should be visible or not
      * **Important**: does not work with lazy fields.
      *
+     * @deprecated
      * @param Field $field
      * @return bool
      */
@@ -21,6 +22,7 @@ interface TypeRegistry
     /**
      * Given an InputField, return a boolean to determine if this field should be visible or not
      *
+     * @deprecated
      * @param InputField $inputField
      * @return bool
      */

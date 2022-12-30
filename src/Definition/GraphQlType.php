@@ -4,18 +4,17 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition;
 
-use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ObjectType;
-use GraphQlTools\Definition\Field\Field;
-use GraphQlTools\Definition\Shared\DefinesTypes;
-use GraphQlTools\Definition\Shared\HasDescription;
-use GraphQlTools\Definition\Shared\DefinesFields;
 use GraphQlTools\Contract\TypeRegistry;
+use GraphQlTools\Definition\Field\Field;
+use GraphQlTools\Definition\Shared\CanBeDeprecated;
+use GraphQlTools\Definition\Shared\HasDescription;
+use GraphQlTools\Definition\Shared\InitializesFields;
 use GraphQlTools\Utility\Classes;
 
-abstract class GraphQlType extends ObjectType
+abstract class GraphQlType
 {
-    use DefinesFields, HasDescription, DefinesTypes;
+    use HasDescription, CanBeDeprecated, InitializesFields;
 
     private const CLASS_POSTFIX = 'Type';
 
@@ -25,39 +24,22 @@ abstract class GraphQlType extends ObjectType
      *
      * @return Field[]|callable[]
      */
-    abstract protected function fields(): array;
+    abstract protected function fields(TypeRegistry $registry): array;
 
-    final function allFields(): array
-    {
-        if (!$this->extendedFields) {
-            return $this->fields();
-        }
-
-        $fields = $this->fields();
-        foreach ($this->extendedFields as $factory) {
-            $fields = array_merge($fields, $factory($this->typeRegistry));
-        }
-
-        return $fields;
-    }
-
-    final public function __construct(protected readonly TypeRegistry $typeRegistry, private readonly ?array $extendedFields = null)
-    {
-        parent::__construct(
+    public function toDefinition(TypeRegistry $registry): ObjectType {
+        return new ObjectType(
             [
                 'name' => static::typeName(),
-                'description' => $this->description(),
-                'fields' => fn() => $this->initFields(true),
-                'interfaces' => fn() => $this->initTypes($this->interfaces()),
+                'description' => $this->addDeprecationToDescription($this->description()),
+                'fields' => fn() => $this->initializeFields($registry, $this->fields($registry), true),
+                'interfaces' => fn() => array_map(
+                    fn(string $interfaceName) => $registry->type($interfaceName),
+                    $this->interfaces()
+                ),
+                'deprecationReason' => $this->deprecationReason,
+                'removalDate' => $this->removalDate,
             ]
         );
-    }
-
-    private function initField(Field $fieldDeclaration): ?FieldDefinition {
-        $isHidden = $fieldDeclaration->isHidden() || $this->typeRegistry->shouldHideField($fieldDeclaration);
-        return $isHidden
-            ? null
-            : $fieldDeclaration->toDefinition($this->typeRegistry);
     }
 
     /**

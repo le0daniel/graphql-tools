@@ -4,25 +4,28 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition;
 
+use BackedEnum;
 use GraphQL\Type\Definition\EnumType;
+use GraphQlTools\Definition\Shared\CanBeDeprecated;
 use GraphQlTools\Definition\Shared\HasDescription;
+use GraphQlTools\Test\Dummies\Enum\Eating;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Classes;
+use ReflectionEnum;
 
-abstract class GraphQlEnum extends EnumType
+abstract class GraphQlEnum
 {
     private const CLASS_POSTFIX = 'Enum';
-    use HasDescription;
+    use HasDescription, CanBeDeprecated;
 
-    final public function __construct()
-    {
-        parent::__construct(
-            [
-                'name' => static::typeName(),
-                'description' => $this->description(),
-                'values' => $this->initValues(),
-            ]
-        );
+    public function toDefinition(): EnumType {
+        return new EnumType([
+            'name' => static::typeName(),
+            'description' => $this->addDeprecationToDescription($this->description()),
+            'values' => $this->initValues(),
+            'deprecationReason' => $this->deprecationReason,
+            'removalDate' => $this->removalDate,
+        ]);
     }
 
     /**
@@ -49,7 +52,7 @@ abstract class GraphQlEnum extends EnumType
      * Return a key value array or a serial array containing
      * either the key and the internal value or the keys only.
      *
-     * @return array<string,mixed>|class-string
+     * @return array<string,mixed>|class-string<BackedEnum>
      */
     abstract protected function values(): array|string;
 
