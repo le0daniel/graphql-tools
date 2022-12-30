@@ -40,7 +40,11 @@ class QueryTest extends ExecutionTestCase
 
             // Ensure circular dependencies work fine
             Field::withName('testCircular')
-                ->ofType($registry->eagerlyLoadType('User'))
+                ->ofType($registry->eagerlyLoadType('User')),
+
+            'lazy' => fn() => Field::withName('lazy')
+                ->ofType(Type::string())
+                ->resolvedBy(fn() => 'lazy-field')
         ]);
 
         return $registry;
@@ -145,5 +149,13 @@ class QueryTest extends ExecutionTestCase
         $this->assertNoErrors($result);
         self::assertIsArray($result->data['user']);
         self::assertEquals('byName', $result->data['user']['byName']);
+    }
+
+    public function testQueryWithLazyExtendedUserType(): void
+    {
+        $result = $this->execute('query { user { lazy } }');
+        $this->assertNoErrors($result);
+        self::assertIsArray($result->data['user']);
+        self::assertEquals('lazy-field', $result->data['user']['lazy']);
     }
 }

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition;
 
-use Closure;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQlTools\Definition\Field\Field;
@@ -13,7 +12,6 @@ use GraphQlTools\Definition\Shared\DefinesFields;
 use GraphQlTools\Definition\Shared\ResolvesType;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Utility\Classes;
-use RuntimeException;
 
 abstract class GraphQlInterface extends InterfaceType
 {
@@ -37,7 +35,7 @@ abstract class GraphQlInterface extends InterfaceType
 
         $fields = $this->fields();
         foreach ($this->extendedFields as $factory) {
-            array_push($fields, ...$factory($this->typeRegistry));
+            $fields = array_merge($fields, $factory($this->typeRegistry));
         }
 
         return $fields;

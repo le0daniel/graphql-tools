@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition;
 
-use Closure;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQlTools\Definition\Field\Field;
@@ -36,7 +35,7 @@ abstract class GraphQlType extends ObjectType
 
         $fields = $this->fields();
         foreach ($this->extendedFields as $factory) {
-            array_push($fields, ...$factory($this->typeRegistry));
+            $fields = array_merge($fields, $factory($this->typeRegistry));
         }
 
         return $fields;
