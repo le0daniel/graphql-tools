@@ -4,6 +4,7 @@ namespace GraphQlTools\Test\Dummies\SchemaForDataLoader;
 
 use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\Type;
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlType;
@@ -12,11 +13,11 @@ use GraphQlTools\Helper\Context;
 class QueryType extends GraphQlType
 {
 
-    protected function fields(): array
+    protected function fields(TypeRegistry $registry): array
     {
         return [
             Field::withName('loadByIds')
-                ->ofType(new ListOfType($this->typeRegistry->type(IngredientType::class)))
+                ->ofType(new ListOfType($registry->type(IngredientType::class)))
                 ->withArguments(
                     InputField::withName('ids')
                         ->ofType(Type::nonNull(Type::listOf(Type::nonNull(Type::id()))))

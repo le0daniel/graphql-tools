@@ -4,60 +4,39 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition;
 
-use GraphQL\Type\Definition\FieldDefinition;
+use GraphQL\Executor\ExecutionContext;
 use GraphQL\Type\Definition\InterfaceType;
-use GraphQlTools\Definition\Field\Field;
+use GraphQL\Type\Definition\ResolveInfo;
+use GraphQlTools\Contract\GraphQlContext;
+use GraphQlTools\Definition\Shared\CanBeDeprecated;
 use GraphQlTools\Definition\Shared\HasDescription;
-use GraphQlTools\Definition\Shared\DefinesFields;
-use GraphQlTools\Definition\Shared\ResolvesType;
+use GraphQlTools\Definition\Shared\InitializesFields;
 use GraphQlTools\Contract\TypeRegistry;
+use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Utility\Classes;
 
-abstract class GraphQlInterface extends InterfaceType
+abstract class GraphQlInterface
 {
-    use DefinesFields, HasDescription, ResolvesType;
+    use InitializesFields, HasDescription, CanBeDeprecated;
 
     private const CLASS_POSTFIX = 'Interface';
 
-    /**
-     * Return an array of fields of that specific type. The fields
-     * are then initialized correctly and a proxy attached to them.
-     *
-     * @return Field[]
-     */
-    abstract protected function fields(): array;
+    abstract protected function fields(TypeRegistry $registry): array;
 
-    final function allFields(): array
-    {
-        if (!$this->extendedFields) {
-            return $this->fields();
-        }
-
-        $fields = $this->fields();
-        foreach ($this->extendedFields as $factory) {
-            $fields = array_merge($fields, $factory($this->typeRegistry));
-        }
-
-        return $fields;
+    public function toDefinition(TypeRegistry $registry): InterfaceType {
+        return new InterfaceType([
+            'name' => static::typeName(),
+            'description' => $this->addDeprecationToDescription($this->description()),
+            'deprecationReason' => $this->deprecationReason,
+            'removalDate' => $this->removalDate,
+            'fields' => fn() => $this->initializeFields($registry, $this->fields($registry), true),
+            'resolveType' => fn($_, OperationContext $context, $info) => $registry->eagerlyLoadType(
+                $this->resolveToType($_, $context->context, $info)
+            ),
+        ]);
     }
 
-    final public function __construct(protected readonly TypeRegistry $typeRegistry, private readonly ?array $extendedFields = null)
-    {
-        parent::__construct(
-            [
-                'name' => static::typeName(),
-                'description' => $this->description(),
-                'fields' => fn() => $this->initFields(true)
-            ]
-        );
-    }
-
-    private function initField(Field $fieldDeclaration): ?FieldDefinition {
-        $isHidden = $fieldDeclaration->isHidden() || $this->typeRegistry->shouldHideField($fieldDeclaration);
-        return $isHidden
-            ? null
-            : $fieldDeclaration->toInterfaceDefinition($this->typeRegistry);
-    }
+    abstract protected function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string;
 
     public static function typeName(): string
     {

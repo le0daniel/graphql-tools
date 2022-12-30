@@ -7,6 +7,11 @@ use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Contract\TypeRegistry as TypeRegistryContract;
+use GraphQlTools\Definition\GraphQlInputType;
+use GraphQlTools\Definition\GraphQlInterface;
+use GraphQlTools\Definition\GraphQlScalar;
+use GraphQlTools\Definition\GraphQlType;
+use GraphQlTools\Definition\GraphQlUnion;
 use RuntimeException;
 
 class TypeRegistry implements TypeRegistryContract
@@ -69,6 +74,12 @@ class TypeRegistry implements TypeRegistryContract
             return $typeFactory($this);
         }
 
-        return (new $typeFactory)->toType($this);
+        /** @var GraphQlType|GraphQlScalar|GraphQlInputType|GraphQlInterface|GraphQlUnion $instance */
+        $instance = new $typeFactory;
+        if ($instance instanceof GraphQlScalar) {
+            return $instance;
+        }
+
+        return $instance->toDefinition($this);
     }
 }

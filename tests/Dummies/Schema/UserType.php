@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace GraphQlTools\Test\Dummies\Schema;
 
 use GraphQL\Type\Definition\Type;
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlType;
-use GraphQlTools\Helper\TypeRegistry;
 
 final class UserType extends GraphQlType {
 
-    protected function fields(): array {
+    protected function fields(TypeRegistry $registry): array {
         return [
             Field::withName('id')
                 ->ofType(Type::id())
@@ -26,7 +26,7 @@ final class UserType extends GraphQlType {
                 ->resolvedBy(fn($data, array $arguments) => $arguments['name'] ?? 'no name given'),
 
             Field::withName('data')
-                ->ofType($this->typeRegistry->type(JsonScalar::class))
+                ->ofType($registry->type(JsonScalar::class))
                 ->resolvedBy(fn() => ['test' => ['json' => [1, 2, 3, 4]]])
             ,
         ];

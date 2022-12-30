@@ -7,13 +7,15 @@ namespace GraphQlTools\Test\Dummies\Schema;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Contract\GraphQlContext;
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlInterface;
+use RuntimeException;
 
 final class MamelInterface extends GraphQlInterface {
 
-    protected function fields(): array {
+    protected function fields(TypeRegistry $registry): array {
         return [
             'sound' => static fn($name) => Field::withName($name)->ofType(Type::nonNull(Type::string())),
         ];
@@ -31,6 +33,6 @@ final class MamelInterface extends GraphQlInterface {
                 return TigerType::class;
         }
 
-        throw new \RuntimeException('Could not match type: ' . $typeValue['type']);
+        throw new RuntimeException('Could not match type: ' . $typeValue['type']);
     }
 }

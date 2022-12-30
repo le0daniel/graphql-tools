@@ -7,6 +7,7 @@ namespace GraphQlTools\Test\Dummies\Schema;
 use Exception;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Field\InputField;
@@ -14,7 +15,7 @@ use GraphQlTools\Definition\GraphQlType;
 
 final class TigerType extends GraphQlType {
 
-    protected function fields(): array {
+    protected function fields(TypeRegistry $registry): array {
         return [
             Field::withName('sound')
                 ->ofType(Type::nonNull(Type::string()))

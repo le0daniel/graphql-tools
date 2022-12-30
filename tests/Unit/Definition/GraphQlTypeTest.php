@@ -78,6 +78,19 @@ class GraphQlTypeTest extends TestCase
         $this->fail('Should fail.');
     }
 
+    public function testFailureOnInvalidLazyField()
+    {
+        $definition = $this->instance(fn(TypeRegistry $registry) => [
+            'invalid' => Field::withName('else')
+                ->ofType(Type::id()),
+        ])->toDefinition($this->registry->reveal());
+
+        $this->expectException(DefinitionException::class);
+        $this->expectExceptionMessage('Expected type of Closure, got GraphQlTools\Definition\Field\Field');
+        $definition->assertValid();
+        $this->fail('Should fail.');
+    }
+
     public function testTypeName()
     {
         self::assertEquals(

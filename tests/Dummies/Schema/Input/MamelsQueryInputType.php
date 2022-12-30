@@ -3,6 +3,7 @@
 namespace GraphQlTools\Test\Dummies\Schema\Input;
 
 use GraphQL\Type\Definition\Type;
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlInputType;
 
@@ -14,7 +15,7 @@ class MamelsQueryInputType extends GraphQlInputType
         return 'My description';
     }
 
-    protected function fields(): array
+    protected function fields(TypeRegistry $registry): array
     {
         return [
             InputField::withName('name')

@@ -7,6 +7,7 @@ namespace GraphQlTools\Test\Dummies\Schema;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Definition\GraphQlUnion;
+use RuntimeException;
 
 final class AnimalUnion extends GraphQlUnion {
 
@@ -29,6 +30,6 @@ final class AnimalUnion extends GraphQlUnion {
                 return TigerType::class;
         }
 
-        throw new \RuntimeException('Could not match type: ' . $typeValue['type']);
+        throw new RuntimeException('Could not match type: ' . $typeValue['type']);
     }
 }

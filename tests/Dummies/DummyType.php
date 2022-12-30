@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace GraphQlTools\Test\Dummies;
 
 use GraphQL\Type\Definition\Type;
+use GraphQlTools\Contract\TypeRegistry;
+use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlType;
 
 final class DummyType extends GraphQlType {
 
-    protected function fields(): array{
+    protected function fields(TypeRegistry $registry): array{
         return [
-            'id' => Type::id()
+            Field::withName('id')->ofType(Type::id())
         ];
     }
 

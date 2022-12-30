@@ -6,12 +6,12 @@ namespace GraphQlTools\Test\Dummies\Schema;
 
 use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\Type;
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Test\Dummies\Schema\Input\MamelsQueryInputType;
-use GraphQlTools\Helper\TypeRegistry;
 
 final class QueryType extends GraphQlType {
 
@@ -23,11 +23,10 @@ final class QueryType extends GraphQlType {
         ['id' => 3, 'type' => 'tiger', 'sound' => 'Raaggghhh'],
     ];
 
-    protected function fields(): array {
+    protected function fields(TypeRegistry $registry): array {
         return [
             'currentUser' => static fn(string $name) => Field::withName($name)
                 ->ofType(Type::string())
-                ->ofSchemaVariant('MySchemaVariant::hides it on other schemas')
                 ->withArguments(
                     InputField::withName('name')
                         ->ofType(Type::string())
@@ -53,7 +52,7 @@ final class QueryType extends GraphQlType {
 
             Field::withName('mamels')
                 ->ofType(
-                    Type::nonNull(Type::listOf(Type::nonNull($this->typeRegistry->type(MamelInterface::class))))
+                    Type::nonNull(Type::listOf(Type::nonNull($registry->type(MamelInterface::class))))
                 )
                 ->resolvedBy(function ($item, array $arguments, Context $context) {
                     return self::ANIMALS;
@@ -73,14 +72,14 @@ final class QueryType extends GraphQlType {
                 ),
 
             Field::withName('user')
-                ->ofType(new NonNull($this->typeRegistry->type(UserType::class)))
+                ->ofType(new NonNull($registry->type(UserType::class)))
                 ->resolvedBy(fn() => ['id' => self::USER_ID]),
 
             Field::withName('jsonInput')
                 ->ofType(JsonScalar::class)
                 ->withArguments(
                     InputField::withName('json')
-                        ->ofType(new NonNull($this->typeRegistry->type(JsonScalar::class)))
+                        ->ofType(new NonNull($registry->type(JsonScalar::class)))
                 )
                 ->resolvedBy(
                     function ($r, array $arguments) {
@@ -91,7 +90,7 @@ final class QueryType extends GraphQlType {
 
             Field::withName('animals')
                 ->ofType(
-                    Type::nonNull(Type::listOf(Type::nonNull($this->typeRegistry->type(AnimalUnion::class))))
+                    Type::nonNull(Type::listOf(Type::nonNull($registry->type(AnimalUnion::class))))
                 )
                 ->resolvedBy(fn() => self::ANIMALS)
             ,

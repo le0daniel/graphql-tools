@@ -12,8 +12,6 @@ use RuntimeException;
 
 trait InitializesFields
 {
-    // abstract function initializeField(Field|InputField $declaration, TypeRegistry $registry): array|FieldDefinition;
-
     private static function createLazyField(string $fieldName, Closure $factory, TypeRegistry $registry): Closure {
         return function() use ($fieldName, $factory, $registry): FieldDefinition|array {
             /** @var Field|InputField $fieldOrInputField */
@@ -35,18 +33,22 @@ trait InitializesFields
          * @var <Closure(string, TypeRegistry):Field|InputField>|Field|InputField $fieldDeclaration
          */
         foreach ($fields as $key => $fieldDeclaration) {
-            // Support lazy initialized fields
-            if (is_string($key) && $fieldDeclaration instanceof Closure) {
-                if (!$supportsLazyFields) {
-                    $typeName = static::typeName();
-                    throw new DefinitionException("Lazy fields are not supported for type {$typeName}.");
-                }
-
-                $initializedFields[$key] = self::createLazyField($key, $fieldDeclaration, $registry);
+            if (!is_string($key)) {
+                $initializedFields[] = $fieldDeclaration->toDefinition($registry);
                 continue;
             }
 
-            $initializedFields[] = $fieldDeclaration->toDefinition($registry);
+            if (!$supportsLazyFields) {
+                $typeName = static::typeName();
+                throw new DefinitionException("Lazy fields are not supported for type {$typeName}.");
+            }
+
+            // Support lazy initialized fields
+            if (!$fieldDeclaration instanceof Closure) {
+                throw DefinitionException::from($fieldDeclaration, 'Closure');
+            }
+
+            $initializedFields[$key] = self::createLazyField($key, $fieldDeclaration, $registry);
         }
 
         return $initializedFields;

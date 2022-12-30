@@ -5,41 +5,30 @@ declare(strict_types=1);
 namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\InputObjectType;
+use GraphQL\Type\Definition\InterfaceType;
 use GraphQlTools\Definition\Field\InputField;
-use GraphQlTools\Definition\Shared\DefinesFields;
+use GraphQlTools\Definition\Shared\CanBeDeprecated;
+use GraphQlTools\Definition\Shared\InitializesFields;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Utility\Classes;
 
-abstract class GraphQlInputType extends InputObjectType
+abstract class GraphQlInputType
 {
-    use DefinesFields, HasDescription;
+    use InitializesFields, HasDescription, CanBeDeprecated;
 
     private const CLASS_POSTFIX = 'Type';
 
-    final public function __construct(protected readonly TypeRegistry $typeRegistry)
-    {
-        parent::__construct(
-            [
-                'name' => static::typeName(),
-                'description' => $this->description(),
-                'fields' => fn() => $this->initFields(false),
-            ]
-        );
-    }
+    abstract protected function fields(TypeRegistry $registry): array;
 
-    private function initField(InputField $fieldDeclaration): ?array {
-        $isHidden = $fieldDeclaration->isHidden() || $this->typeRegistry->shouldHideInputField($fieldDeclaration);
-        return $isHidden
-            ? null
-            : $fieldDeclaration->toDefinition($this->typeRegistry);
-    }
-
-    abstract protected function fields(): array;
-
-    final function allFields(): array
-    {
-        return $this->fields();
+    public function toDefinition(TypeRegistry $registry): InputObjectType {
+        return new InputObjectType([
+            'name' => static::typeName(),
+            'description' => $this->addDeprecationToDescription($this->description()),
+            'fields' => fn() => $this->initializeFields($registry, $this->fields($registry), false),
+            'deprecationReason' => $this->deprecationReason,
+            'removalDate' => $this->removalDate,
+        ]);
     }
 
     public static function typeName(): string

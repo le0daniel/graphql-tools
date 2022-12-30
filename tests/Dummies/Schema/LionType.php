@@ -6,13 +6,14 @@ namespace GraphQlTools\Test\Dummies\Schema;
 
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Test\Dummies\Enum\Eating;
 
 final class LionType extends GraphQlType {
 
-    protected function fields(): array {
+    protected function fields(TypeRegistry $registry): array {
         return [
             Field::withName('sound')
                 ->ofType(Type::nonNull(Type::string()))
@@ -28,7 +29,7 @@ final class LionType extends GraphQlType {
                 ]),
 
             Field::withName('myEnum')
-                ->ofType($this->typeRegistry->type(EatingEnum::class))
+                ->ofType($registry->type(EatingEnum::class))
                 ->resolvedBy(fn() => Eating::MEAT),
         ];
     }

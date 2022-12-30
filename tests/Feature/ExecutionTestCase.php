@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GraphQlTools\Test\Feature;
 
 use GraphQL\Executor\ExecutionResult;
+use GraphQL\Type\Schema;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Helper\Extension\Tracing;
 use GraphQlTools\Helper\QueryExecutor;
@@ -12,12 +13,8 @@ use GraphQlTools\Helper\TypeRegistry;
 use PHPUnit\Framework\TestCase;
 
 abstract class ExecutionTestCase extends TestCase {
-    /**
-     * Must return an instance of a repository
-     *
-     * @return TypeRegistry
-     */
-    abstract protected function typeRepository(): TypeRegistry;
+
+    abstract protected function schema(): Schema;
 
     /**
      * Defines the root query type
@@ -79,18 +76,11 @@ abstract class ExecutionTestCase extends TestCase {
     }
 
     protected function execute(string $query) {
-        $repository = $this->typeRepository();
-        $schema = $repository->toSchema(
-            $this->queryType(),
-            $this->mutationType(),
-            $this->eagerlyLoadedTypes(),
-        );
-
         $executor = new QueryExecutor(
             $this->extensions()
         );
 
-        return $executor->execute($schema, $query, new Context());
+        return $executor->execute($this->schema(), $query, new Context());
     }
 
     protected function tearDown(): void {}

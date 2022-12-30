@@ -4,45 +4,37 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition;
 
-use Closure;
-use GraphQL\Type\Definition\Type;
+use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\UnionType;
+use GraphQlTools\Contract\GraphQlContext;
+use GraphQlTools\Definition\Shared\CanBeDeprecated;
 use GraphQlTools\Definition\Shared\DefinesTypes;
 use GraphQlTools\Definition\Shared\HasDescription;
-use GraphQlTools\Definition\Shared\ResolvesType;
 use GraphQlTools\Contract\TypeRegistry;
+use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Utility\Classes;
 
-abstract class GraphQlUnion extends UnionType
+abstract class GraphQlUnion
 {
-    use HasDescription, ResolvesType, DefinesTypes;
+    use HasDescription, DefinesTypes, CanBeDeprecated;
 
     private const CLASS_POSTFIX = 'Union';
 
-    final public function __construct(
-        protected readonly TypeRegistry $typeRegistry
-    )
-    {
-        parent::__construct(
-            [
-                'name' => static::typeName(),
-                'description' => $this->description(),
-                'types' => fn() => $this->initTypes($this->possibleTypes()),
-            ]
-        );
+    public function toDefinition(TypeRegistry $registry): UnionType {
+        return new UnionType([
+            'name' => static::typeName(),
+            'description' => $this->addDeprecationToDescription($this->description()),
+            'deprecationReason' => $this->deprecationReason,
+            'removalDate' => $this->removalDate,
+            'types' => fn() => array_map(fn(string $typeName) => $registry->type($typeName), $this->possibleTypes()),
+            'resolveType' => fn($_, OperationContext $context, $info) => $registry->eagerlyLoadType(
+                $this->resolveToType($_, $context->context, $info)
+            ),
+        ]);
     }
 
-    /**
-     * Return an array of all possible types for this union.
-     *
-     * Ex:
-     * return [
-     *     MyType::class,
-     *     fn(TypeRepository $typeRegistry) => $typeRegistry->type(MyType::class)
-     * ];
-     *
-     * @return array<Closure|Type|string>
-     */
+    abstract protected function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string;
+
     abstract protected function possibleTypes(): array;
 
     public static function typeName(): string
