@@ -6,16 +6,17 @@ namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\InterfaceType;
+use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Definition\Field\InputField;
-use GraphQlTools\Definition\Shared\CanBeDeprecated;
+use GraphQlTools\Definition\Shared\Deprecatable;
 use GraphQlTools\Definition\Shared\InitializesFields;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Utility\Classes;
 
-abstract class GraphQlInputType
+abstract class GraphQlInputType implements DefinesGraphQlType
 {
-    use InitializesFields, HasDescription, CanBeDeprecated;
+    use InitializesFields, HasDescription, Deprecatable;
 
     private const CLASS_POSTFIX = 'Type';
 
@@ -25,7 +26,7 @@ abstract class GraphQlInputType
         return new InputObjectType([
             'name' => static::typeName(),
             'description' => $this->addDeprecationToDescription($this->description()),
-            'fields' => fn() => $this->initializeFields($registry, $this->fields($registry), false),
+            'fields' => fn() => $this->initializeFields($registry, [$this->fields(...)], false),
             'deprecationReason' => $this->deprecationReason,
             'removalDate' => $this->removalDate,
         ]);

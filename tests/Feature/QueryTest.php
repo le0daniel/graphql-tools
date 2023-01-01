@@ -6,11 +6,11 @@ namespace GraphQlTools\Test\Feature;
 
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Helper\Registry\FederatedSchema;
 use GraphQlTools\Test\Dummies\Schema\JsonScalar;
 use GraphQlTools\Test\Dummies\Schema\QueryType;
-use GraphQlTools\Helper\TypeRegistry;
 use GraphQlTools\Test\Dummies\Schema\UserType;
 use GraphQlTools\Utility\TypeMap;
 
@@ -24,14 +24,7 @@ class QueryTest extends ExecutionTestCase
             $federatedSchema->registerType($key, $value);
         }
 
-        return $federatedSchema->createSchema(QueryType::class, null);
-
-        // $registry = new TypeRegistry(
-        //     TypeMap::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema')
-        // );
-
-        /**
-        $registry->extendTypeFields(
+        $federatedSchema->extendType(
             UserType::class,
             fn(TypeRegistry $registry) => [
                 Field::withName('extended')
@@ -43,7 +36,7 @@ class QueryTest extends ExecutionTestCase
             ],
         );
 
-        $registry->extendTypeFields('User',fn(TypeRegistry $registry) => [
+        $federatedSchema->extendType('User',fn(TypeRegistry $registry) => [
             Field::withName('byName')
                 ->ofType(Type::string())
                 ->resolvedBy(fn() => 'byName'),
@@ -55,9 +48,9 @@ class QueryTest extends ExecutionTestCase
             'lazy' => fn() => Field::withName('lazy')
                 ->ofType(Type::string())
                 ->resolvedBy(fn() => 'lazy-field')
-        ]);**/
+        ]);
 
-        return $registry;
+        return $federatedSchema->createSchema(QueryType::class, null);
     }
 
     protected function queryType(): string
@@ -137,7 +130,7 @@ class QueryTest extends ExecutionTestCase
         $this->assertColumnCount(3, $result->data['mamels'], 'sound');
     }
 
-    /*
+
     public function testQueryWithExtendedUserType(): void
     {
         $result = $this->execute('query { user { extended } }');
@@ -169,5 +162,5 @@ class QueryTest extends ExecutionTestCase
         self::assertIsArray($result->data['user']);
         self::assertEquals('lazy-field', $result->data['user']['lazy']);
     }
-    */
+
 }

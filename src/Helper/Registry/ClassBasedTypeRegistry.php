@@ -14,25 +14,21 @@ use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Definition\GraphQlUnion;
 use RuntimeException;
 
-class TypeRegistry implements TypeRegistryContract
+class ClassBasedTypeRegistry implements TypeRegistryContract
 {
     private array $typeInstances = [];
 
+    /**
+     *
+     *
+     * @param array $typeNameResolution
+     * @param array $reverseTypeNameResolution
+     */
     public function __construct(
         private readonly array $typeNameResolution,
         private readonly array $reverseTypeNameResolution
     )
     {
-    }
-
-    public function shouldHideField(Field $field): bool
-    {
-        return false;
-    }
-
-    public function shouldHideInputField(InputField $inputField): bool
-    {
-        return false;
     }
 
     public function type(string $classOrTypeName): Closure|Type
@@ -75,11 +71,7 @@ class TypeRegistry implements TypeRegistryContract
         }
 
         /** @var GraphQlType|GraphQlScalar|GraphQlInputType|GraphQlInterface|GraphQlUnion $instance */
-        $instance = new $typeFactory;
-        if ($instance instanceof GraphQlScalar) {
-            return $instance;
-        }
-
+        $instance = (new $typeFactory);
         return $instance->toDefinition($this);
     }
 }

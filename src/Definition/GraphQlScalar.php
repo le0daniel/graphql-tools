@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\ScalarType;
+use GraphQlTools\Contract\DefinesGraphQlType;
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Utility\Classes;
 
-abstract class GraphQlScalar extends ScalarType
+abstract class GraphQlScalar extends ScalarType implements DefinesGraphQlType
 {
     use HasDescription;
 
@@ -30,5 +32,9 @@ abstract class GraphQlScalar extends ScalarType
         return str_ends_with($typeName, self::CLASS_POSTFIX)
             ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))
             : $typeName;
+    }
+
+    public function toDefinition(TypeRegistry $registry): static {
+        return $this;
     }
 }

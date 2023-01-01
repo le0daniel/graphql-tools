@@ -10,25 +10,6 @@ use GraphQlTools\Definition\Field\InputField;
 interface TypeRegistry
 {
     /**
-     * Given a Field, return a boolean to determine if this field should be visible or not
-     * **Important**: does not work with lazy fields.
-     *
-     * @deprecated
-     * @param Field $field
-     * @return bool
-     */
-    public function shouldHideField(Field $field): bool;
-
-    /**
-     * Given an InputField, return a boolean to determine if this field should be visible or not
-     *
-     * @deprecated
-     * @param InputField $inputField
-     * @return bool
-     */
-    public function shouldHideInputField(InputField $inputField): bool;
-
-    /**
      * Given a type name or class name, return an instance of the Type or a Closure which resolves
      * to a type
      *

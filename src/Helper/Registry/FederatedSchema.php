@@ -5,6 +5,9 @@ namespace GraphQlTools\Helper\Registry;
 use Closure;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
+use GraphQlTools\Definition\GraphQlInputType;
+use GraphQlTools\Definition\GraphQlInterface;
+use GraphQlTools\Definition\GraphQlType;
 use RuntimeException;
 use GraphQlTools\Contract\TypeRegistry as TypeRegistryContract;
 
@@ -31,6 +34,11 @@ class FederatedSchema
         }
     }
 
+    /**
+     * @param string $typeOrClassName
+     * @param Closure(TypeRegistryContract): array $fieldFactory
+     * @return void
+     */
     public function extendType(string $typeOrClassName, Closure $fieldFactory): void
     {
         if (!isset($this->typeFieldExtensions[$typeOrClassName])) {
@@ -39,12 +47,44 @@ class FederatedSchema
         $this->typeFieldExtensions[$typeOrClassName][] = $fieldFactory;
     }
 
-    protected function createInstanceOfTypeRegistry(array $typeResolutionMap): TypeRegistryContract
+    protected function createInstanceOfTypeRegistry(): TypeRegistryContract
     {
-        return new TypeRegistry(
-            $typeResolutionMap,
-            array_flip($typeResolutionMap)
+        $typeMap = $this->typeResolutionMap;
+        $reverseResolutionMap = array_flip($this->typeResolutionMap);
+
+        // Normalize Type Extensions to type Name
+        foreach ($this->createFieldExtensionList($reverseResolutionMap) as $typeName => $fieldExtensions) {
+            if (!isset($typeMap[$typeName])) {
+                throw new RuntimeException("Tried to extend type '{$typeName}' which has not been registered.");
+            }
+
+            $typeClassName = $typeMap[$typeName];
+            $typeMap[$typeName] = static function (TypeRegistryContract $registry) use ($typeClassName, $fieldExtensions) {
+                /** @var GraphQlType|GraphQlInterface $instance */
+                $instance = new $typeClassName;
+                return $instance->toDefinition($registry, $fieldExtensions);
+            };
+        }
+
+        return new ClassBasedTypeRegistry(
+            $typeMap,
+            $reverseResolutionMap
         );
+    }
+
+    private function createFieldExtensionList(array $reverseResolutionMap): array {
+        $extensions = [];
+        foreach ($this->typeFieldExtensions as $typeNameOfClassName => $fieldExtensions) {
+            $typeName = $reverseResolutionMap[$typeNameOfClassName] ?? $typeNameOfClassName;
+
+            if (!isset($extensions[$typeName])) {
+                $extensions[$typeName] = $fieldExtensions;
+            }
+            else {
+                array_push($extensions[$typeName], ...$fieldExtensions);
+            }
+        }
+        return $extensions;
     }
 
     public function createSchema(
@@ -52,7 +92,7 @@ class FederatedSchema
         ?string $mutationTypeName,
         bool $assumeValid = true,
     ): Schema {
-        $typeRegistry = $this->createInstanceOfTypeRegistry($this->typeResolutionMap);
+        $typeRegistry = $this->createInstanceOfTypeRegistry();
 
         return new Schema(
             SchemaConfig::create(

@@ -6,19 +6,19 @@ namespace GraphQlTools\Definition;
 
 use BackedEnum;
 use GraphQL\Type\Definition\EnumType;
-use GraphQlTools\Definition\Shared\CanBeDeprecated;
+use GraphQlTools\Contract\DefinesGraphQlType;
+use GraphQlTools\Contract\TypeRegistry;
+use GraphQlTools\Definition\Shared\Deprecatable;
 use GraphQlTools\Definition\Shared\HasDescription;
-use GraphQlTools\Test\Dummies\Enum\Eating;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Classes;
-use ReflectionEnum;
 
-abstract class GraphQlEnum
+abstract class GraphQlEnum implements DefinesGraphQlType
 {
     private const CLASS_POSTFIX = 'Enum';
-    use HasDescription, CanBeDeprecated;
+    use HasDescription, Deprecatable;
 
-    public function toDefinition(): EnumType {
+    public function toDefinition(TypeRegistry $registry): EnumType {
         return new EnumType([
             'name' => static::typeName(),
             'description' => $this->addDeprecationToDescription($this->description()),

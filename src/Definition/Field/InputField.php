@@ -2,16 +2,18 @@
 
 namespace GraphQlTools\Definition\Field;
 
+use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Definition\Field\Shared\DefinesDefaultValue;
 use GraphQlTools\Definition\Field\Shared\DefinesField;
 use GraphQlTools\Definition\Field\Shared\DefinesMetadata;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
 use GraphQlTools\Contract\TypeRegistry;
+use GraphQlTools\Definition\Shared\Deprecatable;
 use GraphQlTools\Utility\Fields;
 
-final class InputField
+final class InputField implements DefinesGraphQlType
 {
-    use DefinesField, DefinesReturnType, DefinesDefaultValue, DefinesMetadata;
+    use DefinesField, Deprecatable, DefinesReturnType, DefinesDefaultValue, DefinesMetadata;
 
     final public function __construct(public readonly string $name)
     {
@@ -22,10 +24,6 @@ final class InputField
         return new self($name);
     }
 
-    final public function isHidden(): bool {
-        return $this->hideFieldBecauseDeprecationDateIsPassed();
-    }
-
     final public function toDefinition(TypeRegistry $typeRegistry): array
     {
         $defaultValue = isset($this->defaultValue)
@@ -34,9 +32,10 @@ final class InputField
 
         return [
             'name' => $this->name,
-            'description' => $this->computeDescription(),
+            'description' => $this->addDeprecationToDescription($this->description ?? ''),
             'type' => $this->resolveReturnType($typeRegistry),
-            'deprecatedReason' => $this->computeDeprecationReason(),
+            'deprecatedReason' => $this->deprecationReason,
+            'removalDate' => $this->removalDate,
             Fields::METADATA_CONFIG_KEY => $this->metadata,
         ] + $defaultValue;
     }

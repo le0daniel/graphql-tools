@@ -6,7 +6,12 @@ use Closure;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\ResolveInfo;
+use GraphQlTools\Definition\GraphQlEnum;
+use GraphQlTools\Definition\GraphQlInputType;
+use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
+use GraphQlTools\Definition\GraphQlUnion;
+use GraphQlTools\Helper\Registry\ClassBasedTypeRegistry;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use RuntimeException;
 use Throwable;
@@ -19,17 +24,18 @@ class FieldTestCase
 
     public function __construct(private readonly string $className, private readonly string $fieldName)
     {
-        /** @var GraphQlType $type */
-        $type = new ($this->className)($this->mockedTypeRegistry());
-        $this->fieldDefinition = $type->findField($this->fieldName);
+        /** @var GraphQlType|GraphQlInputType|GraphQlInterface|GraphQlUnion|GraphQlEnum $type */
+        $type = new ($this->className);
+        $definition = $type->toDefinition($this->mockedTypeRegistry());
+        $this->fieldDefinition = $definition->findField($this->fieldName);
     }
 
-    private function mockedTypeRegistry(): TypeRegistry
+    private function mockedTypeRegistry(): ClassBasedTypeRegistry
     {
-        return new class () extends TypeRegistry {
+        return new class () extends ClassBasedTypeRegistry {
             public function __construct()
             {
-                parent::__construct([]);
+                parent::__construct([], []);
             }
         };
     }

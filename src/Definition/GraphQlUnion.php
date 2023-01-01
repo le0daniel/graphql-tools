@@ -6,17 +6,17 @@ namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\UnionType;
+use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\GraphQlContext;
-use GraphQlTools\Definition\Shared\CanBeDeprecated;
-use GraphQlTools\Definition\Shared\DefinesTypes;
+use GraphQlTools\Definition\Shared\Deprecatable;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Utility\Classes;
 
-abstract class GraphQlUnion
+abstract class GraphQlUnion implements DefinesGraphQlType
 {
-    use HasDescription, DefinesTypes, CanBeDeprecated;
+    use HasDescription, Deprecatable;
 
     private const CLASS_POSTFIX = 'Union';
 

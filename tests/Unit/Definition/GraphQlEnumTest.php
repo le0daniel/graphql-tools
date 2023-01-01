@@ -2,12 +2,15 @@
 
 namespace GraphQlTools\Test\Unit\Definition;
 
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\GraphQlEnum;
 use GraphQlTools\Test\Dummies\Enum\Eating;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 
 class GraphQlEnumTest extends TestCase
 {
+    use ProphecyTrait;
 
     private function instance(array|string $values, string $description): GraphQlEnum {
         return new class ($values, $description) extends GraphQlEnum {
@@ -40,7 +43,7 @@ class GraphQlEnumTest extends TestCase
     {
         $description ??= 'some description';
         $instance = $this->instance($values, $description);
-        $definition = $instance->toDefinition();
+        $definition = $instance->toDefinition($this->prophesize(TypeRegistry::class)->reveal());
         $definition->assertValid();
 
         self::assertEquals($description, $definition->description);

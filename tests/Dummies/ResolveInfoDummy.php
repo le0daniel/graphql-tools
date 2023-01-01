@@ -36,7 +36,6 @@ final class ResolveInfoDummy
         // Set the properties via reflection, in case the framework changes to readonly
         Reflections::setProperty($instance, 'path', $path);
         Reflections::setProperty($instance, 'fieldName', 'TestFieldName');
-        Reflections::setProperty($instance, 'parentType', new $parentTypeClass(new TypeRegistry([])));
         Reflections::setProperty($instance, 'fieldDefinition', $fieldDefinition);
 
         return $instance;

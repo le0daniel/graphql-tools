@@ -22,16 +22,7 @@ trait DefinesArguments
             return null;
         }
 
-        $arguments = [];
-        foreach ($this->inputFields as $inputField) {
-            if ($inputField->isHidden() || $registry->shouldHideInputField($inputField)) {
-                continue;
-            }
-
-            $arguments[] = $inputField->toDefinition($registry);
-        }
-
-        return $arguments;
+        return array_map(fn(InputField $inputField): array => $inputField->toDefinition($registry), $this->inputFields);
     }
 
 }

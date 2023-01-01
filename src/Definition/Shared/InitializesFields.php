@@ -26,13 +26,22 @@ trait InitializesFields
         };
     }
 
-    protected function initializeFields(TypeRegistry $registry, array $fields, bool $supportsLazyFields): array {
+    private function createFieldsFromFactories(TypeRegistry $registry, array $factories): array {
+        return array_reduce(
+            $factories,
+            fn(array $fields, Closure $factory): array => array_merge($fields, $factory($registry)),
+            []
+        );
+    }
+
+    protected function initializeFields(TypeRegistry $registry, array $factories, bool $supportsLazyFields): array {
         $initializedFields = [];
+
         /**
          * @var string|int $key
          * @var <Closure(string, TypeRegistry):Field|InputField>|Field|InputField $fieldDeclaration
          */
-        foreach ($fields as $key => $fieldDeclaration) {
+        foreach ($this->createFieldsFromFactories($registry, $factories) as $key => $fieldDeclaration) {
             if (!is_string($key)) {
                 $initializedFields[] = $fieldDeclaration->toDefinition($registry);
                 continue;

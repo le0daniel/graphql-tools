@@ -2,31 +2,22 @@
 
 namespace GraphQlTools\Test\Definition\Field;
 
-use DateTime;
 use GraphQL\Type\Definition\Type;
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\InputField;
-use GraphQlTools\Helper\TypeRegistry;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 
 class InputFieldTest extends TestCase
 {
+    use ProphecyTrait;
 
     public function testToInputFieldDefinitionArray()
     {
         self::assertIsArray(
             InputField::withName('test')
                 ->ofType(Type::id())
-                ->toDefinition(new TypeRegistry([]))
-        );
-    }
-
-    public function testToInputFieldDefinitionForDeprecatedItem()
-    {
-        self::assertTrue(
-            InputField::withName('test')
-                ->ofType(Type::id())
-                ->deprecated('', new DateTime('2020-10-10'), true)
-                ->isHidden(new TypeRegistry([]))
+                ->toDefinition($this->prophesize(TypeRegistry::class)->reveal())
         );
     }
 }
