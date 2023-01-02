@@ -3,6 +3,7 @@
 namespace GraphQlTools\Helper\Compilation;
 
 use GraphQlTools\Utility\Classes;
+use Opis\Closure\ReflectionClosure;
 use ReflectionFunction;
 use ReflectionIntersectionType;
 use ReflectionMethod;
@@ -17,6 +18,9 @@ class MethodExtractor
     private const CLOSURE_NAMESPACE = '__CompiledClosure';
     private readonly ReflectionMethod $methodReflection;
 
+    /**
+     * @throws \ReflectionException
+     */
     public function __construct(private readonly string $className, private readonly string $methodName, private readonly string $declaringCode)
     {
         $this->methodReflection = new ReflectionMethod($this->className, $this->methodName);
@@ -67,12 +71,45 @@ class MethodExtractor
         }
     }
 
-    public function toCode(): string
-    {
-        if ($this->methodReflection->isStatic() && $this->methodReflection->isPublic()) {
+    public function toCode(): string {
+        if ($this->isPublicStatic()) {
             return $this->absoluteClassName($this->methodReflection->getDeclaringClass()->getName()) . '::' . $this->methodName . '(...)';
         }
 
+        try {
+            $fileName = tempnam(sys_get_temp_dir(), 'closure');
+            file_put_contents($fileName, $this->buildNamespacedClosure());
+            $closure = require $fileName;
+            return (new ReflectionClosure($closure))->getCode();
+        } finally {
+            if (isset($fileName) && file_exists($fileName)) {
+                unlink($fileName);
+            }
+        }
+    }
+
+    private function isPublicStatic(): bool {
+        return $this->methodReflection->isStatic() && $this->methodReflection->isPublic();
+    }
+
+    private function buildNamespacedClosure(): string {
+        $functionCode = $this->buildMethodCode();
+        $usedNamespaces = $this->findUsedNamespaces();
+
+        $namespace = $this->methodReflection->getDeclaringClass()->inNamespace()
+            ? $this->methodReflection->getDeclaringClass()->getNamespaceName()
+            : self::CLOSURE_NAMESPACE;
+
+        return "<?php declare(strict_types=1);
+            namespace {$namespace} {
+                {$this->implodeUsedNamespaces($usedNamespaces)}
+                return {$functionCode};
+            }
+        ";
+    }
+
+    private function buildMethodCode(): string
+    {
         $parameters = implode(', ', array_map($this->parameterToString(...), $this->methodReflection->getParameters()));
         $returnType = $this->methodReflection->hasReturnType()
             ? ": {$this->typeToString($this->methodReflection->getReturnType())}"
@@ -93,31 +130,9 @@ class MethodExtractor
             $this->declaringCode
         );
 
-        return "static function ({$parameters}){$returnType} {" . substr($codeWithReplacedSelfAndStatic, $openBracketPosition + 1);
-    }
+        $codeFromStartingBracket = substr($codeWithReplacedSelfAndStatic, $openBracketPosition + 1);
 
-    public function toNamespacedFunction(): string {
-        $functionCode = $this->toCode();
-        $usedNamespaces = $this->findUsedNamespaces();
-
-
-        $namespace = $this->methodReflection->getDeclaringClass()->inNamespace()
-            ? $this->methodReflection->getDeclaringClass()->getNamespaceName()
-            : self::CLOSURE_NAMESPACE;
-
-        return "<?php declare(strict_types=1);
-            namespace {$namespace} {
-                {$this->implodeUsedNamespaces($usedNamespaces)}
-                return {$functionCode};
-            }
-        ";
-    }
-
-    public function toExecutableFile(): string
-    {
-        $fileName = tempnam(sys_get_temp_dir(), 'closure');
-        file_put_contents($fileName, $this->toNamespacedFunction());
-        return $fileName;
+        return "static function ({$parameters}){$returnType} {" . $codeFromStartingBracket;
     }
 
     private function implodeUsedNamespaces(array $lines): string

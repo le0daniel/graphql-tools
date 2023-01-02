@@ -12,6 +12,7 @@ class ClosureCompiler
 {
     public function __construct(private readonly bool $onlyPureClosures = false)
     {
+        error_reporting(E_ALL ^ E_DEPRECATED);
     }
 
     private function verifyBindings(ReflectionClosure $reflection): void
@@ -56,11 +57,7 @@ class ClosureCompiler
 
         if (MethodExtractor::isMethod($reflection)) {
             $methodExtractor = MethodExtractor::fromReflectionFunction($reflection);
-            $fileName = $methodExtractor->toExecutableFile();
-            $closure = require $fileName;
-            $code = (new ReflectionClosure($closure))->getCode();
-            unlink($fileName);
-            return $code;
+            return $methodExtractor->toCode();
         }
 
         $this->verifyBindings($reflection);

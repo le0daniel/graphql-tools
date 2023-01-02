@@ -41,10 +41,9 @@ class CollectDeprecatedFieldNotices extends ContextualValidationRule
                     return;
                 }
 
-                /** @var ObjectType|InterfaceType $parentType */
-                $parentType = $context->getParentType();
-
                 if ($field->isDeprecated()) {
+                    /** @var ObjectType|InterfaceType $parentType */
+                    $parentType = $context->getParentType();
                     $reason = $field->deprecationReason ?? '-- No specific Reason Provided --';
                     $this->messages[] = Message::deprecated($field->name, $parentType, $reason);
                 }
