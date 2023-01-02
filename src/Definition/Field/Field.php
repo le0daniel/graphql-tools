@@ -11,6 +11,7 @@ use GraphQlTools\Definition\Field\Shared\DefinesField;
 use GraphQlTools\Definition\Field\Shared\DefinesMetadata;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
 use GraphQlTools\Definition\Shared\Deprecatable;
+use GraphQlTools\Helper\Middleware;
 use GraphQlTools\Helper\ProxyResolver;
 use GraphQlTools\Utility\Fields;
 
@@ -18,7 +19,7 @@ use GraphQlTools\Utility\Fields;
 class Field implements DefinesGraphQlType
 {
     use DefinesField, Deprecatable, DefinesReturnType, DefinesArguments, DefinesMetadata;
-    private ?Closure $resolveFunction = null;
+    private null|Closure|Middleware $resolveFunction = null;
 
     final protected function __construct(public readonly string $name)
     {
@@ -44,7 +45,7 @@ class Field implements DefinesGraphQlType
         ]);
     }
 
-    public function resolvedBy(Closure $closure): self
+    public function resolvedBy(Closure|Middleware $closure): self
     {
         $this->resolveFunction = $closure;
         return $this;

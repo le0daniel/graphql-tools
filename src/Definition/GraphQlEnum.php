@@ -29,7 +29,7 @@ abstract class GraphQlEnum implements DefinesGraphQlType
     }
 
     /**
-     * @return array<string, mixed>
+     * @return array<string, string|array<{key: string, value: mixed}>>
      * @throws DefinitionException
      */
     private function initValues(): array {

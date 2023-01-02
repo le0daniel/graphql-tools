@@ -33,6 +33,8 @@ abstract class GraphQlType implements DefinesGraphQlType
             [
                 'name' => static::typeName(),
                 'description' => $this->addDeprecationToDescription($this->description()),
+                'deprecationReason' => $this->deprecationReason,
+                'removalDate' => $this->removalDate,
                 'fields' => fn() => $this->initializeFields(
                     $registry,
                     [$this->fields(...), ...$injectedFieldFactories],
@@ -42,8 +44,6 @@ abstract class GraphQlType implements DefinesGraphQlType
                     fn(string $interfaceName) => $registry->type($interfaceName),
                     $this->interfaces()
                 ),
-                'deprecationReason' => $this->deprecationReason,
-                'removalDate' => $this->removalDate,
             ]
         );
     }

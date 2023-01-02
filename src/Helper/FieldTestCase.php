@@ -11,7 +11,7 @@ use GraphQlTools\Definition\GraphQlInputType;
 use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Definition\GraphQlUnion;
-use GraphQlTools\Helper\Registry\ClassBasedTypeRegistry;
+use GraphQlTools\Helper\Registry\FactoryTypeRegistry;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use RuntimeException;
 use Throwable;
@@ -30,9 +30,9 @@ class FieldTestCase
         $this->fieldDefinition = $definition->findField($this->fieldName);
     }
 
-    private function mockedTypeRegistry(): ClassBasedTypeRegistry
+    private function mockedTypeRegistry(): FactoryTypeRegistry
     {
-        return new class () extends ClassBasedTypeRegistry {
+        return new class () extends FactoryTypeRegistry {
             public function __construct()
             {
                 parent::__construct([], []);

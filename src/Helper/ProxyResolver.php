@@ -14,8 +14,12 @@ use Throwable;
 
 final class ProxyResolver
 {
-    public function __construct(private readonly ?Closure $resolveFunction = null)
+    public function __construct(public readonly ?Closure $resolveFunction = null)
     {
+    }
+
+    public function isDefaultResolveFunction(): bool {
+        return !$this->resolveFunction;
     }
 
     /**

@@ -13,17 +13,17 @@ interface TypeRegistry
      * Given a type name or class name, return an instance of the Type or a Closure which resolves
      * to a type
      *
-     * @param string|class-string<Type>  $classOrTypeName
+     * @param string|class-string<Type>  $nameOrAlias
      * @return Closure(): Type|Type
      */
-    public function type(string $classOrTypeName): Closure|Type;
+    public function type(string $nameOrAlias): Closure|Type;
 
     /**
      * Given a type name or class name, return an instance of the Type
      * to a type
      *
-     * @param string|class-string<Type> $classOrTypeName
+     * @param string|class-string<Type> $nameOrAlias
      * @return Type
      */
-    public function eagerlyLoadType(string $classOrTypeName): Type;
+    public function eagerlyLoadType(string $nameOrAlias): Type;
 }

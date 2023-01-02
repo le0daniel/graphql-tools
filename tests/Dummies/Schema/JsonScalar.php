@@ -24,9 +24,13 @@ final class JsonScalar extends GraphQlScalar {
     }
 
     public function parseLiteral(Node $valueNode, ?array $variables = null) {
-        if (!$valueNode instanceof StringValueNode) {
-            throw new Exception("Invalid input type given. Expected string, got {$valueNode->kind}");
+        if ($valueNode instanceof StringValueNode) {
+            return json_decode($valueNode->value, true, 512, JSON_THROW_ON_ERROR);
         }
-        return json_decode($valueNode->value, true, 512, JSON_THROW_ON_ERROR);
+
+        if (isset($valueNode->value)) {
+            return $valueNode->value;
+        }
+        throw new Exception("Invalid input type given. Expected string, got {$valueNode->kind}");
     }
 }

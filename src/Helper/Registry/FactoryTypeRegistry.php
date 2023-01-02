@@ -4,8 +4,6 @@ namespace GraphQlTools\Helper\Registry;
 
 use Closure;
 use GraphQL\Type\Definition\Type;
-use GraphQlTools\Definition\Field\Field;
-use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Contract\TypeRegistry as TypeRegistryContract;
 use GraphQlTools\Definition\GraphQlInputType;
 use GraphQlTools\Definition\GraphQlInterface;
@@ -14,40 +12,43 @@ use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Definition\GraphQlUnion;
 use RuntimeException;
 
-class ClassBasedTypeRegistry implements TypeRegistryContract
+class FactoryTypeRegistry implements TypeRegistryContract
 {
     private array $typeInstances = [];
 
     /**
-     *
-     *
-     * @param array $typeNameResolution
-     * @param array $reverseTypeNameResolution
+     * @param array<string, callable|class-string> $types
+     * @param array<string, string> $aliasesOfTypes
      */
     public function __construct(
-        private readonly array $typeNameResolution,
-        private readonly array $reverseTypeNameResolution
+        private readonly array $types,
+        private readonly array $aliasesOfTypes
     )
     {
     }
 
-    public function type(string $classOrTypeName): Closure|Type
+    public function type(string $nameOrAlias): Closure|Type
     {
         return fn() => $this->getType(
-            $this->resolveTypeName($classOrTypeName)
+            $this->resolveTypeName($nameOrAlias)
         );
     }
 
-    public function eagerlyLoadType(string $classOrTypeName): Type
+    /**
+     * @interal
+     * @param string $nameOrAlias
+     * @return Type
+     */
+    public function eagerlyLoadType(string $nameOrAlias): Type
     {
         return $this->getType(
-            $this->resolveTypeName($classOrTypeName)
+            $this->resolveTypeName($nameOrAlias)
         );
     }
 
-    protected function resolveTypeName(string $classOrTypeName): string
+    protected function resolveTypeName(string $nameOrAlias): string
     {
-        return $this->reverseTypeNameResolution[$classOrTypeName] ?? $classOrTypeName;
+        return $this->aliasesOfTypes[$nameOrAlias] ?? $nameOrAlias;
     }
 
     protected function getType(string $typeName): Type
@@ -61,7 +62,7 @@ class ClassBasedTypeRegistry implements TypeRegistryContract
 
     protected function createInstanceOfType(string $typeName): Type
     {
-        $typeFactory = $this->typeNameResolution[$typeName] ?? null;
+        $typeFactory = $this->types[$typeName] ?? null;
         if (!$typeFactory) {
             throw new RuntimeException("Could not resolve type '{$typeName}', no factory provided. Did you register this type?");
         }

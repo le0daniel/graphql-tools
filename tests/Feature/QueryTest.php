@@ -43,14 +43,16 @@ class QueryTest extends ExecutionTestCase
 
             // Ensure circular dependencies work fine
             Field::withName('testCircular')
-                ->ofType($registry->eagerlyLoadType('User')),
+                ->ofType($registry->type('User')),
 
             'lazy' => fn() => Field::withName('lazy')
                 ->ofType(Type::string())
                 ->resolvedBy(fn() => 'lazy-field')
         ]);
 
-        return $federatedSchema->createSchema(QueryType::class, null);
+        $schema = $federatedSchema->createSchema(QueryType::class, null);
+        $schema->assertValid();
+        return $schema;
     }
 
     protected function queryType(): string
@@ -62,7 +64,7 @@ class QueryTest extends ExecutionTestCase
     {
         $result = $this->execute('query { currentUser }');
         $this->assertNoErrors($result);
-        self::assertEquals('Hello World!', $result->data['currentUser']);
+        self::assertEquals('Hello -- No Name Provided --', $result->data['currentUser']);
     }
 
     public function testFieldExecutionWithArguments(): void
@@ -70,6 +72,13 @@ class QueryTest extends ExecutionTestCase
         $result = $this->execute('query { currentUser(name: "Doris") }');
         $this->assertNoErrors($result);
         self::assertEquals('Hello Doris', $result->data['currentUser']);
+    }
+
+    public function testFieldExecutionWithContextualValueResolver(): void
+    {
+        $result = $this->execute('query { middlewareWithPrimitiveBinding }');
+        $this->assertNoErrors($result);
+        self::assertEquals('test', $result->data['middlewareWithPrimitiveBinding']);
     }
 
     public function testSimpleExecution(): void

@@ -8,6 +8,8 @@ use GraphQL\Type\SchemaConfig;
 use GraphQlTools\Definition\GraphQlInputType;
 use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
+use GraphQlTools\Helper\TypeCacheManager;
+use GraphQlTools\Utility\Arrays;
 use RuntimeException;
 use GraphQlTools\Contract\TypeRegistry as TypeRegistryContract;
 
@@ -16,11 +18,6 @@ class FederatedSchema
     private array $typeResolutionMap = [];
     private array $eagerlyLoadedTypes = [];
     private array $typeFieldExtensions = [];
-    private array $directives = [];
-
-    public function registerDirective($directive): void {
-        $this->directives[] = $directive;
-    }
 
     public function registerType(string $typeName, string $declarationClassName, bool $eagerlyLoad = false): void {
         if (isset($this->typeResolutionMap[$typeName])) {
@@ -66,7 +63,7 @@ class FederatedSchema
             };
         }
 
-        return new ClassBasedTypeRegistry(
+        return new FactoryTypeRegistry(
             $typeMap,
             $reverseResolutionMap
         );
@@ -87,6 +84,51 @@ class FederatedSchema
         return $extensions;
     }
 
+    public function cacheSchema(): string {
+        $cacheManager = new TypeCacheManager(lazyFields: true);
+        [$aliases, $types] = $cacheManager->cache(
+            array_values($this->typeResolutionMap),
+            $this->typeFieldExtensions
+        );
+        $exportedAliases = var_export($aliases, true);
+        $mappedTypes = Arrays::mapWithKeys($types,fn(string $typeName, string $code): array => [
+            $typeName, var_export($typeName, true) . " => {$code}",
+        ]);
+        $typesCode = implode(','.PHP_EOL, $mappedTypes);
+        $eagerlyLoadTypes = var_export($this->eagerlyLoadedTypes, true);
+
+        return "       
+            return [
+                'eagerlyLoaded' => {$eagerlyLoadTypes},
+                'aliases' => {$exportedAliases},
+                'types' => [
+                    {$typesCode}
+                ]       
+            ];
+        ";
+    }
+
+    public static function fromCachedSchema(array $cache, string $queryTypeName, ?string $mutationTypeName = null): Schema {
+        $typeRegistry = new FactoryTypeRegistry(
+            $cache['types'],
+            $cache['aliases']
+        );
+        return new Schema(
+            SchemaConfig::create(
+                [
+                    'query' => $typeRegistry->eagerlyLoadType($queryTypeName),
+                    'mutation' => $mutationTypeName ? $typeRegistry->eagerlyLoadType($mutationTypeName) : null,
+                    'typeLoader' => $typeRegistry->eagerlyLoadType(...),
+                    'types' => fn() => array_map(
+                        $typeRegistry->eagerlyLoadType(...),
+                        $cache['eagerlyLoaded'],
+                    ),
+                    'assumeValid' => true,
+                ]
+            )
+        );
+    }
+
     public function createSchema(
         string $queryTypeName,
         ?string $mutationTypeName,
@@ -101,12 +143,11 @@ class FederatedSchema
                     'mutation' => $mutationTypeName
                         ? $typeRegistry->eagerlyLoadType($mutationTypeName)
                         : null,
-                    'types' => array_map(
+                    'types' => fn() => array_map(
                         $typeRegistry->eagerlyLoadType(...),
                         $this->eagerlyLoadedTypes,
                     ),
                     'typeLoader' => $typeRegistry->eagerlyLoadType(...),
-                    'directives' => empty($this->directives) ? null : $this->directives,
                     'assumeValid' => $assumeValid,
                 ]
             )

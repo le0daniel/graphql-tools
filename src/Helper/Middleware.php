@@ -3,7 +3,6 @@
 namespace GraphQlTools\Helper;
 
 use Closure;
-use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\GraphQlContext;
 use Throwable;
