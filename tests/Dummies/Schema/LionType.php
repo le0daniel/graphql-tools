@@ -49,7 +49,7 @@ final class LionType extends GraphQlType {
                         ->withDefaultValue('This is a string'),
                     InputField::withName('else')
                         ->ofType(Type::string())
-                        ->withDefaultValue(Eating::MEAT)
+                        ->withDefaultValue(Eating::MEAT->name)
                 )
                 ->deprecated('Some reason', \DateTime::createFromFormat('Y-m-d H:i:s', '2023-01-09 10:00:10'))
                 ->withMetadata([

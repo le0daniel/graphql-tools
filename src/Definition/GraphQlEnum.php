@@ -44,7 +44,10 @@ abstract class GraphQlEnum implements DefinesGraphQlType
 
         return Arrays::mapWithKeys(
             $valuesOrEnumClassName::cases(),
-            fn($index, $enum): array => [$enum->name, $enum]
+            fn($index, $enum): array => [(string) $enum->name, [
+                'value' => $enum,
+                'name' => (string) $enum->name,
+            ]]
         );
     }
 

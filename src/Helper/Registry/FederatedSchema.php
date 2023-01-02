@@ -109,18 +109,18 @@ class FederatedSchema
     }
 
     public static function fromCachedSchema(array $cache, string $queryTypeName, ?string $mutationTypeName = null): Schema {
-        $typeRegistry = new FactoryTypeRegistry(
+        $registry = new FactoryTypeRegistry(
             $cache['types'],
             $cache['aliases']
         );
         return new Schema(
             SchemaConfig::create(
                 [
-                    'query' => $typeRegistry->eagerlyLoadType($queryTypeName),
-                    'mutation' => $mutationTypeName ? $typeRegistry->eagerlyLoadType($mutationTypeName) : null,
-                    'typeLoader' => $typeRegistry->eagerlyLoadType(...),
+                    'query' => $registry->eagerlyLoadType($queryTypeName),
+                    'mutation' => $mutationTypeName ? $registry->eagerlyLoadType($mutationTypeName) : null,
+                    'typeLoader' => $registry->eagerlyLoadType(...),
                     'types' => fn() => array_map(
-                        $typeRegistry->eagerlyLoadType(...),
+                        $registry->eagerlyLoadType(...),
                         $cache['eagerlyLoaded'],
                     ),
                     'assumeValid' => true,
@@ -131,7 +131,7 @@ class FederatedSchema
 
     public function createSchema(
         string $queryTypeName,
-        ?string $mutationTypeName,
+        ?string $mutationTypeName = null,
         bool $assumeValid = true,
     ): Schema {
         $typeRegistry = $this->createInstanceOfTypeRegistry();
