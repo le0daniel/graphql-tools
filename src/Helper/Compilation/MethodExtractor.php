@@ -129,7 +129,7 @@ class MethodExtractor
             $replacement = str_starts_with($usage, 'self')
                 ? $selfReplacement . substr($usage, 4)
                 : $staticReplacement . substr($usage, 6);
-            return [$usage => $replacement];
+            return [$usage, $replacement];
         });
 
         return str_replace(
