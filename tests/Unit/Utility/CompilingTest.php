@@ -13,6 +13,7 @@ use ReflectionFunction;
 class CompilingTest extends TestCase
 {
     private const VALUE = 'test';
+    public const PUBLIC_VALUE = 'test';
 
     /**
      * @dataProvider absoluteClassNameDataProvider
@@ -68,7 +69,9 @@ class CompilingTest extends TestCase
             'Non Nullable String type' => ['string $string', fn(string $string) => null],
             'Nullable String' => ['?string $string', fn(?string $string) => null],
             'With default value' => ['?string $string = \'string\'', fn(?string $string = 'string') => null],
-            'With default value constant' => ['?string $string = self::VALUE', fn(?string $string = self::VALUE) => null],
+            'With enum default value' => ['?\GraphQlTools\Test\Dummies\Enum\Eating $string = \GraphQlTools\Test\Dummies\Enum\Eating::MEAT', fn(?Eating $string = Eating::MEAT) => null],
+            'With default value constant' => ['?string $string = \GraphQlTools\Test\Unit\Utility\CompilingTest::VALUE', fn(?string $string = self::VALUE) => null],
+            'With public const default value' => ['?string $string = \GraphQlTools\Test\Unit\Utility\CompilingTest::PUBLIC_VALUE', fn(?string $string = CompilingTest::PUBLIC_VALUE) => null],
             'With default value and non null' => ['string $string = \'string\'', fn(string $string = 'string') => null],
             'With default value and non null and custom type' => ['?\GraphQlTools\Contract\TypeRegistry $string = NULL', fn(TypeRegistry $string = null) => null],
             'With intersection type' => ['\GraphQlTools\Contract\TypeRegistry&\GraphQlTools\Utility\Compiling $class', fn(TypeRegistry&Compiling $class) => null],

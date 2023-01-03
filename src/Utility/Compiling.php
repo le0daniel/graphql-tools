@@ -20,16 +20,15 @@ class Compiling
             : '\\' . $className;
     }
 
-    private static function isPossibleClassName(string $value): bool {
-        if (class_exists($value)) {
-            return true;
-        }
+    private static function isClassName(string $value): bool {
+        return class_exists($value);
+    }
 
+    private static function isEnum(string $value): bool {
         if (preg_match(self::ENUM_VALUE_REGEX, $value)) {
             [$enumClass, $value] = explode('::', $value, 2);
             return enum_exists($enumClass);
         }
-
         return false;
     }
 
@@ -42,7 +41,7 @@ class Compiling
         }
 
         $serialized = var_export($variable, true);
-        if (self::isPossibleClassName($serialized)) {
+        if (self::isClassName($serialized) || self::isEnum($serialized)) {
             return self::absoluteClassName($serialized);
         }
 
@@ -66,10 +65,26 @@ class Compiling
     }
 
     private static function getDefaultValueOfParameter(ReflectionParameter $parameter): string {
-        if ($parameter->isDefaultValueConstant()) {
-            return $parameter->getDefaultValueConstantName();
+        if (!$parameter->isDefaultValueConstant()) {
+            return self::exportVariable($parameter->getDefaultValue());
         }
-        return self::exportVariable($parameter->getDefaultValue());
+
+        $constName = $parameter->getDefaultValueConstantName();
+        if (!str_contains($constName, '::')) {
+            return $constName;
+        }
+
+        if (self::isEnum($constName)) {
+            return self::absoluteClassName($constName);
+        }
+
+        [$scope, $constName] = explode('::', $constName);
+        if ($scope === 'self') {
+            $className = self::absoluteClassName($parameter->getDeclaringClass()->getName());
+            return "{$className}::{$constName}";
+        }
+
+        return self::absoluteClassName($scope) . "::{$constName}";
     }
 
     public static function reflectionTypeToString(ReflectionNamedType|ReflectionIntersectionType|ReflectionUnionType $type) {

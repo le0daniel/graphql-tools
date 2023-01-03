@@ -6,13 +6,10 @@ use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Classes;
 use GraphQlTools\Utility\CodeAnalysing;
 use GraphQlTools\Utility\Compiling;
+use GraphQlTools\Utility\Reflections;
 use Opis\Closure\ReflectionClosure;
 use ReflectionFunction;
-use ReflectionIntersectionType;
 use ReflectionMethod;
-use ReflectionNamedType;
-use ReflectionParameter;
-use ReflectionUnionType;
 use RuntimeException;
 use Throwable;
 
@@ -42,7 +39,8 @@ class MethodExtractor
     public function toCode(): string
     {
         if ($this->isPublicStatic()) {
-            return $this->absoluteClassName($this->methodReflection->getDeclaringClass()->getName()) . '::' . $this->methodName . '(...)';
+            $className = Compiling::absoluteClassName($this->methodReflection->getDeclaringClass()->getName());
+            return "{$className}::{$this->methodName}(...)";
         }
 
         $fileName = tempnam(sys_get_temp_dir(), 'closure');
@@ -104,7 +102,7 @@ class MethodExtractor
     private function buildNamespacedClosure(): string
     {
         $functionCode = $this->buildExtractedFunctionCode();
-        $usedNamespaces = $this->findUsedNamespacesInDeclaringClass();
+        $usedNamespaces = Reflections::findUsedNamespacesInDeclaringClass($this->methodReflection->getFileName());
 
         $namespace = $this->methodReflection->getDeclaringClass()->inNamespace()
             ? $this->methodReflection->getDeclaringClass()->getNamespaceName()
@@ -112,7 +110,7 @@ class MethodExtractor
 
         return "<?php declare(strict_types=1);
             namespace {$namespace} {
-                {$this->implodeUsedNamespaces($usedNamespaces)}
+                {$this->combineUsedNamespaces($usedNamespaces)}
                 return {$functionCode};
             }
         ";
@@ -124,8 +122,8 @@ class MethodExtractor
             return $this->declaringCode;
         }
 
-        $selfReplacement = $this->absoluteClassName($this->methodReflection->getDeclaringClass()->name);
-        $staticReplacement = $this->absoluteClassName($this->className);
+        $selfReplacement = Compiling::absoluteClassName($this->methodReflection->getDeclaringClass()->name);
+        $staticReplacement = Compiling::absoluteClassName($this->className);
 
         $replacements = Arrays::mapWithKeys($usages, function($_, string $usage) use ($selfReplacement, $staticReplacement) {
             $replacement = str_starts_with($usage, 'self')
@@ -154,85 +152,8 @@ class MethodExtractor
         return "static function ({$parameters}){$returnType} {" . $codeFromStartingBracket;
     }
 
-    private function implodeUsedNamespaces(array $lines): string
+    private function combineUsedNamespaces(array $lines): string
     {
         return implode(PHP_EOL, array_map(fn(string $namespace): string => "use {$namespace};", $lines));
     }
-
-    private function export(mixed $variable): string
-    {
-        return Compiling::exportVariable($variable);
-    }
-
-    private function absoluteClassName(string $classname): string
-    {
-        return Compiling::absoluteClassName($classname);
-    }
-
-    /**
-     * @throws \ReflectionException
-     */
-    private function findUsedNamespacesInDeclaringClass(): array
-    {
-        $tokens = token_get_all(file_get_contents($this->methodReflection->getFileName()));
-
-        $use = [];
-        $state = null;
-        $code = '';
-
-        foreach ($tokens as $token) {
-            if ($state === null) {
-                switch ($token[0]) {
-                    case T_USE:
-                        $state = 'use';
-                        break;
-                }
-            }
-            if ($state === 'use') {
-                switch ($token[0]) {
-                    case T_USE:
-                        break;
-                    case T_STRING:
-                    case T_NAME_QUALIFIED:
-                        $code .= $token[1];
-                        break;
-                    case ';':
-                        $use[] = $code;
-                        $code = '';
-                        $state = null;
-                        break;
-                    case '(':
-                        $code = '';
-                        $state = null;
-                        break;
-                    default:
-                        $code .= is_array($token) ? $token[1] : $token;
-                }
-            }
-        }
-
-        return $use;
-    }
-
-    private function getSafeDefaultValue(ReflectionParameter $parameter): string {
-        if ($parameter->isDefaultValueConstant()) {
-            return $parameter->getDefaultValueConstantName();
-        }
-        return $this->export($parameter->getDefaultValue());
-    }
-
-    private function parameterToString(ReflectionParameter $parameter): string
-    {
-        $parameterNameAndDefaultValue = $parameter->isDefaultValueAvailable()
-            ? "\${$parameter->name} = " . $this->getSafeDefaultValue($parameter)
-            : '$' . $parameter->name;
-
-        if (!$parameter->hasType()) {
-            return $parameterNameAndDefaultValue;
-        }
-
-        $type = $parameter->getType();
-        return Compiling::reflectionTypeToString($type) . " {$parameterNameAndDefaultValue}";
-    }
-
 }

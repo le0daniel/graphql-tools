@@ -33,10 +33,53 @@ final class Reflections
         return $parentClasses;
     }
 
-    public static function setProperty(object $target, string $propertyName, mixed $value): void {
+    public static function setProperty(object $target, string $propertyName, mixed $value): void
+    {
         $reflection = new ReflectionClass($target);
         $property = $reflection->getProperty($propertyName);
         $property->setValue($target, $value);
+    }
+
+    public static function findUsedNamespacesInDeclaringClass(string $fileName): array
+    {
+        $tokens = token_get_all(file_get_contents($fileName));
+
+        $use = [];
+        $state = null;
+        $code = '';
+
+        foreach ($tokens as $token) {
+            if ($state === null) {
+                switch ($token[0]) {
+                    case T_USE:
+                        $state = 'use';
+                        break;
+                }
+            }
+            if ($state === 'use') {
+                switch ($token[0]) {
+                    case T_USE:
+                        break;
+                    case T_STRING:
+                    case T_NAME_QUALIFIED:
+                        $code .= $token[1];
+                        break;
+                    case ';':
+                        $use[] = $code;
+                        $code = '';
+                        $state = null;
+                        break;
+                    case '(':
+                        $code = '';
+                        $state = null;
+                        break;
+                    default:
+                        $code .= is_array($token) ? $token[1] : $token;
+                }
+            }
+        }
+
+        return $use;
     }
 
 }
