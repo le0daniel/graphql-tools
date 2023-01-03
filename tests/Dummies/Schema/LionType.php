@@ -12,7 +12,6 @@ use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Test\Dummies\Enum\Eating;
-use GraphQlTools\Helper\Compilation\ClosureCompiler as C;
 
 final class LionType extends GraphQlType {
 
@@ -41,7 +40,7 @@ final class LionType extends GraphQlType {
             Field::withName('fieldWithMeta')
                 ->ofType(Type::nonNull(Type::string()))
                 ->resolvedBy(function ($value, $args, $context, ResolveInfo $resolveInfo) {
-                    return "policy is: " . $resolveInfo->fieldDefinition->config['metadata']['policy'];
+                    return "policy is: " . $resolveInfo->fieldDefinition->config['__metadata']['policy'];
                 })
                 ->withArguments(
                     InputField::withName('test')

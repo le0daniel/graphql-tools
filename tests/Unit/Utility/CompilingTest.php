@@ -2,13 +2,17 @@
 
 namespace GraphQlTools\Test\Unit\Utility;
 
+use Closure;
 use DateTimeImmutable;
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Test\Dummies\Enum\Eating;
 use GraphQlTools\Utility\Compiling;
 use PHPUnit\Framework\TestCase;
+use ReflectionFunction;
 
 class CompilingTest extends TestCase
 {
+    private const VALUE = 'test';
 
     /**
      * @dataProvider absoluteClassNameDataProvider
@@ -44,4 +48,32 @@ class CompilingTest extends TestCase
             'Enum' => ['\GraphQlTools\Test\Dummies\Enum\Eating::MEAT', Eating::MEAT],
         ];
     }
+
+    /**
+     * @param string $expected
+     * @param mixed $value
+     * @return void
+     * @dataProvider parametersToStringDataProvider
+     */
+    public function testParametersToString(string $expected, Closure $closure): void
+    {
+        $reflection = new ReflectionFunction($closure);
+        self::assertEquals($expected, Compiling::parametersToString(...$reflection->getParameters()));
+    }
+
+    protected function parametersToStringDataProvider(): array
+    {
+        return [
+            'Empty Closure' => ['', fn() => null],
+            'Non Nullable String type' => ['string $string', fn(string $string) => null],
+            'Nullable String' => ['?string $string', fn(?string $string) => null],
+            'With default value' => ['?string $string = \'string\'', fn(?string $string = 'string') => null],
+            'With default value constant' => ['?string $string = self::VALUE', fn(?string $string = self::VALUE) => null],
+            'With default value and non null' => ['string $string = \'string\'', fn(string $string = 'string') => null],
+            'With default value and non null and custom type' => ['?\GraphQlTools\Contract\TypeRegistry $string = NULL', fn(TypeRegistry $string = null) => null],
+            'With intersection type' => ['\GraphQlTools\Contract\TypeRegistry&\GraphQlTools\Utility\Compiling $class', fn(TypeRegistry&Compiling $class) => null],
+            'With union type nullable' => ['\GraphQlTools\Contract\TypeRegistry|\GraphQlTools\Utility\Compiling|null $class', fn(TypeRegistry|Compiling|null $class) => null],
+        ];
+    }
+
 }

@@ -2,9 +2,7 @@
 
 namespace GraphQlTools\Test\Unit\GraphQl\Fields;
 
-use GraphQlTools\Data\Models\Holder;
 use GraphQlTools\Helper\TypeTestCase;
-use GraphQlTools\Test\Dummies\HolderDummy;
 use GraphQlTools\Test\Dummies\Schema\TigerType;
 use Throwable;
 

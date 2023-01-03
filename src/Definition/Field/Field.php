@@ -13,7 +13,6 @@ use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
 use GraphQlTools\Definition\Shared\Deprecatable;
 use GraphQlTools\Helper\Middleware;
 use GraphQlTools\Helper\ProxyResolver;
-use GraphQlTools\Utility\Fields;
 
 
 class Field implements DefinesGraphQlType
@@ -41,7 +40,7 @@ class Field implements DefinesGraphQlType
             'removalDate' => $this->removalDate,
             'description' => $this->addDeprecationToDescription($this->description ?? ''),
             'args' => $this->buildArguments($registry),
-            Fields::METADATA_CONFIG_KEY => $this->metadata
+            '__metadata' => $this->metadata
         ]);
     }
 

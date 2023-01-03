@@ -2,7 +2,9 @@
 
 namespace GraphQlTools\Helper\Compilation;
 
+use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Classes;
+use GraphQlTools\Utility\CodeAnalysing;
 use GraphQlTools\Utility\Compiling;
 use Opis\Closure\ReflectionClosure;
 use ReflectionFunction;
@@ -101,8 +103,8 @@ class MethodExtractor
 
     private function buildNamespacedClosure(): string
     {
-        $functionCode = $this->buildMethodCode();
-        $usedNamespaces = $this->findUsedNamespaces();
+        $functionCode = $this->buildExtractedFunctionCode();
+        $usedNamespaces = $this->findUsedNamespacesInDeclaringClass();
 
         $namespace = $this->methodReflection->getDeclaringClass()->inNamespace()
             ? $this->methodReflection->getDeclaringClass()->getNamespaceName()
@@ -116,30 +118,39 @@ class MethodExtractor
         ";
     }
 
-    private function buildMethodCode(): string
-    {
-        $parameters = implode(', ', array_map($this->parameterToString(...), $this->methodReflection->getParameters()));
-        $returnType = $this->methodReflection->hasReturnType()
-            ? ": " . Compiling::parameterTypeToString($this->methodReflection->getReturnType())
-            : '';
-        $openBracketPosition = strpos($this->declaringCode, '{');
-        if (!$openBracketPosition) {
-            throw new RuntimeException("Could not find method open bracket.");
+    private function replaceSelfAndStaticUsageInCode(): string {
+        $usages = array_unique(CodeAnalysing::selfAndStaticUsages($this->declaringCode));
+        if (empty($usages)) {
+            return $this->declaringCode;
         }
 
-        $replacements = [
-            'self::' => $this->absoluteClassName($this->methodReflection->getDeclaringClass()->name) . '::',
-            'static::' => $this->absoluteClassName($this->className) . '::'
-        ];
+        $selfReplacement = $this->absoluteClassName($this->methodReflection->getDeclaringClass()->name);
+        $staticReplacement = $this->absoluteClassName($this->className);
 
-        $codeWithReplacedSelfAndStatic = str_replace(
+        $replacements = Arrays::mapWithKeys($usages, function($_, string $usage) use ($selfReplacement, $staticReplacement) {
+            $replacement = str_starts_with($usage, 'self')
+                ? $selfReplacement . substr($usage, 4)
+                : $staticReplacement . substr($usage, 6);
+            return [$usage => $replacement];
+        });
+
+        return str_replace(
             array_keys($replacements),
             array_values($replacements),
             $this->declaringCode
         );
+    }
 
-        $codeFromStartingBracket = substr($codeWithReplacedSelfAndStatic, $openBracketPosition + 1);
+    private function buildExtractedFunctionCode(): string
+    {
+        $parameters = Compiling::parametersToString(... $this->methodReflection->getParameters());
+        $returnType = $this->methodReflection->hasReturnType()
+            ? ": " . Compiling::reflectionTypeToString($this->methodReflection->getReturnType())
+            : '';
 
+        $code = $this->replaceSelfAndStaticUsageInCode();
+        $openBracketPosition = strpos($code, '{');
+        $codeFromStartingBracket = substr($code, $openBracketPosition + 1);
         return "static function ({$parameters}){$returnType} {" . $codeFromStartingBracket;
     }
 
@@ -161,7 +172,7 @@ class MethodExtractor
     /**
      * @throws \ReflectionException
      */
-    private function findUsedNamespaces(): array
+    private function findUsedNamespacesInDeclaringClass(): array
     {
         $tokens = token_get_all(file_get_contents($this->methodReflection->getFileName()));
 
@@ -203,18 +214,25 @@ class MethodExtractor
         return $use;
     }
 
+    private function getSafeDefaultValue(ReflectionParameter $parameter): string {
+        if ($parameter->isDefaultValueConstant()) {
+            return $parameter->getDefaultValueConstantName();
+        }
+        return $this->export($parameter->getDefaultValue());
+    }
+
     private function parameterToString(ReflectionParameter $parameter): string
     {
         $parameterNameAndDefaultValue = $parameter->isDefaultValueAvailable()
-            ? "\${$parameter->name} = {$this->export($parameter->getDefaultValue())}"
+            ? "\${$parameter->name} = " . $this->getSafeDefaultValue($parameter)
             : '$' . $parameter->name;
 
-        if (!$parameter->getType()) {
+        if (!$parameter->hasType()) {
             return $parameterNameAndDefaultValue;
         }
 
         $type = $parameter->getType();
-        return Compiling::parameterTypeToString($type) . " {$parameterNameAndDefaultValue}";
+        return Compiling::reflectionTypeToString($type) . " {$parameterNameAndDefaultValue}";
     }
 
 }

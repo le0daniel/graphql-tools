@@ -6,14 +6,14 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use ReflectionIntersectionType;
 use ReflectionNamedType;
+use ReflectionParameter;
 use ReflectionUnionType;
 use RuntimeException;
 
 class Compiling
 {
     private const DATE_TIME_FORMAT = 'Y-m-d H:i:s';
-    private const ENUM_VALUE_REGEX = '/^[a-zA-Z][a-zA-Z_\\\\]+::[a-zA-Z][a-zA-Z0-9]+$/';
-
+    private const ENUM_VALUE_REGEX = '/^[^:]+::[^:]+$/';
     public static function absoluteClassName(string $className): string {
         return str_starts_with($className, '\\')
             ? $className
@@ -49,28 +49,53 @@ class Compiling
         return $serialized;
     }
 
-    public static function parameterTypeToString(ReflectionNamedType|ReflectionUnionType|ReflectionIntersectionType $type): string {
-        if ($type->isBuiltin()) {
-            return $type->allowsNull() && $type->getName() !== 'mixed'
-                ? "?{$type->getName()}"
-                : $type->getName();
+    public static function parametersToString(ReflectionParameter ... $parameters): string {
+        $parameterStrings = [];
+        foreach ($parameters as $parameter) {
+            $signature = "\${$parameter->getName()}";
+            if ($parameter->isDefaultValueAvailable()) {
+                $signature .= " = " . self::getDefaultValueOfParameter($parameter);
+            }
+
+            $parameterStrings[] = $parameter->hasType()
+                ? self::reflectionTypeToString($parameter->getType()) . " {$signature}"
+                : $signature;
         }
 
+        return implode(', ', $parameterStrings);
+    }
+
+    private static function getDefaultValueOfParameter(ReflectionParameter $parameter): string {
+        if ($parameter->isDefaultValueConstant()) {
+            return $parameter->getDefaultValueConstantName();
+        }
+        return self::exportVariable($parameter->getDefaultValue());
+    }
+
+    public static function reflectionTypeToString(ReflectionNamedType|ReflectionIntersectionType|ReflectionUnionType $type) {
         if ($type instanceof ReflectionNamedType) {
-            return $type->allowsNull()
-                ? '?' . self::absoluteClassName($type->getName())
-                : self::absoluteClassName($type->getName());
-        }
-
-        if ($type instanceof ReflectionUnionType) {
-            return implode('&', array_map(self::parameterTypeToString(...), $type->getTypes()));
+            return self::namedTypeToString($type);
         }
 
         if ($type instanceof ReflectionIntersectionType) {
-            return implode('|', array_map(self::parameterTypeToString(...), $type->getTypes()));
+            return implode('&', array_map(self::namedTypeToString(...), $type->getTypes()));
         }
 
-        throw new RuntimeException("Invalid type given.");
+        if ($type instanceof ReflectionUnionType) {
+            return implode('|', array_map(self::namedTypeToString(...), $type->getTypes()));
+        }
+
+        $className = $type::class;
+        throw new RuntimeException("Could not convert type ({$className}) to string.");
+    }
+
+    private static function namedTypeToString(ReflectionNamedType $type): string {
+        if ($type->isBuiltin()) {
+            return (string) $type;
+        }
+
+        $name = self::absoluteClassName($type->getName());
+        return $type->allowsNull() ? "?{$name}" : $name;
     }
 
 }
