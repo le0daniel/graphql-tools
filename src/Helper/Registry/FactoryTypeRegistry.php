@@ -22,15 +22,23 @@ class FactoryTypeRegistry implements TypeRegistryContract
      */
     public function __construct(
         private readonly array $types,
-        private readonly array $aliasesOfTypes
+        private readonly array $aliasesOfTypes = []
     )
     {
+    }
+
+    public function verifyAliasCollisions(): void {
+        foreach ($this->aliasesOfTypes as $alias => $typeName) {
+            if (array_key_exists($alias, $this->types)) {
+                throw new RuntimeException("The alias `{$alias}` is used also as typename, which is invalid.");
+            }
+        }
     }
 
     public function type(string $nameOrAlias): Closure|Type
     {
         return fn() => $this->getType(
-            $this->resolveTypeName($nameOrAlias)
+            $this->resolveTypeNameAliases($nameOrAlias)
         );
     }
 
@@ -42,11 +50,11 @@ class FactoryTypeRegistry implements TypeRegistryContract
     public function eagerlyLoadType(string $nameOrAlias): Type
     {
         return $this->getType(
-            $this->resolveTypeName($nameOrAlias)
+            $this->resolveTypeNameAliases($nameOrAlias)
         );
     }
 
-    protected function resolveTypeName(string $nameOrAlias): string
+    protected function resolveTypeNameAliases(string $nameOrAlias): string
     {
         return $this->aliasesOfTypes[$nameOrAlias] ?? $nameOrAlias;
     }

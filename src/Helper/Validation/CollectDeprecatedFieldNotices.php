@@ -31,7 +31,7 @@ class CollectDeprecatedFieldNotices extends ContextualValidationRule
         return $parent ? $parent->name : '';
     }
 
-    public function getVisitor(ValidationContext $context)
+    public function getVisitor(ValidationContext $context): array
     {
         return [
             NodeKind::FIELD => function (FieldNode $node) use ($context): void {
@@ -96,7 +96,7 @@ class CollectDeprecatedFieldNotices extends ContextualValidationRule
 
     public function isVisibleInResult(): bool
     {
-        return empty($this->messages);
+        return !empty($this->messages);
     }
 
     /**

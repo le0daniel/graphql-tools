@@ -12,6 +12,7 @@ use RuntimeException;
 class Compiling
 {
     private const DATE_TIME_FORMAT = 'Y-m-d H:i:s';
+    private const ENUM_VALUE_REGEX = '/^[a-zA-Z][a-zA-Z_\\\\]+::[a-zA-Z][a-zA-Z0-9]+$/';
 
     public static function absoluteClassName(string $className): string {
         return str_starts_with($className, '\\')
@@ -20,7 +21,16 @@ class Compiling
     }
 
     private static function isPossibleClassName(string $value): bool {
-        return class_exists($value);
+        if (class_exists($value)) {
+            return true;
+        }
+
+        if (preg_match(self::ENUM_VALUE_REGEX, $value)) {
+            [$enumClass, $value] = explode('::', $value, 2);
+            return enum_exists($enumClass);
+        }
+
+        return false;
     }
 
     public static function exportVariable(mixed $variable): string {

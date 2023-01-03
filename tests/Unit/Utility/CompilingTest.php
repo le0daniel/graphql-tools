@@ -3,6 +3,7 @@
 namespace GraphQlTools\Test\Unit\Utility;
 
 use DateTimeImmutable;
+use GraphQlTools\Test\Dummies\Enum\Eating;
 use GraphQlTools\Utility\Compiling;
 use PHPUnit\Framework\TestCase;
 
@@ -40,6 +41,7 @@ class CompilingTest extends TestCase
         return [
             'String' => ["'string'", 'string'],
             'DateTime' => ["\DateTimeImmutable::createFromFormat('Y-m-d H:i:s', '2021-01-03 08:25:26')", DateTimeImmutable::createFromFormat('Y-m-d H:i:s', '2021-01-03 08:25:26')],
+            'Enum' => ['\GraphQlTools\Test\Dummies\Enum\Eating::MEAT', Eating::MEAT],
         ];
     }
 }
