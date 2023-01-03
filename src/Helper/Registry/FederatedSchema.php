@@ -15,20 +15,31 @@ use GraphQlTools\Contract\TypeRegistry as TypeRegistryContract;
 
 class FederatedSchema
 {
-    private array $typeResolutionMap = [];
+    private array $types = [];
     private array $eagerlyLoadedTypes = [];
     private array $typeFieldExtensions = [];
 
     public function registerType(string $typeName, string $declarationClassName, bool $eagerlyLoad = false): void {
-        if (isset($this->typeResolutionMap[$typeName])) {
-            throw new RuntimeException("Type with name '{$typeName}' was already registered");
+        if (isset($this->types[$typeName])) {
+            throw new RuntimeException("Type with name '{$typeName}' was already registered. You can not register a type twice.");
         }
 
-        $this->typeResolutionMap[$typeName] = $declarationClassName;
+        $this->types[$typeName] = $declarationClassName;
 
         if ($eagerlyLoad) {
             $this->eagerlyLoadedTypes[] = $typeName;
         }
+    }
+
+    public function registerTypes(array $types): void {
+        foreach ($types as $typeName => $className) {
+            $typeName = is_string($typeName) ? $typeName : $className::typeName();
+            $this->registerType($typeName, $className);
+        }
+    }
+
+    public function registerEagerlyLoadedType(string $typeNameOrAlias): void {
+        $this->eagerlyLoadedTypes[] = $typeNameOrAlias;
     }
 
     /**
@@ -44,50 +55,53 @@ class FederatedSchema
         $this->typeFieldExtensions[$typeOrClassName][] = $fieldFactory;
     }
 
-    protected function createInstanceOfTypeRegistry(): TypeRegistryContract
+    protected function resolveFieldExtensionAliases(array $aliases): array
     {
-        $typeMap = $this->typeResolutionMap;
-        $reverseResolutionMap = array_flip($this->typeResolutionMap);
+        $extensionFactories = [];
 
-        // Normalize Type Extensions to type Name
-        foreach ($this->createFieldExtensionList($reverseResolutionMap) as $typeName => $fieldExtensions) {
-            if (!isset($typeMap[$typeName])) {
+        foreach ($this->typeFieldExtensions as $typeNameOrAlias => $fieldExtensions) {
+            $typeName = $aliases[$typeNameOrAlias] ?? $typeNameOrAlias;
+            if (!isset($extensionFactories[$typeName])) {
+                $extensionFactories[$typeName] = [];
+            }
+            array_push($extensionFactories[$typeName], ...$fieldExtensions);
+        }
+
+        return $extensionFactories;
+    }
+
+    protected function createTypeAndAliases(): array {
+        $types = $this->types;
+        $aliases = array_flip($types);
+        $fieldExtensions = $this->resolveFieldExtensionAliases($aliases);
+        foreach ($fieldExtensions as $typeName => $extensionFactories) {
+            if (!isset($types[$typeName])) {
                 throw new RuntimeException("Tried to extend type '{$typeName}' which has not been registered.");
             }
 
-            $typeClassName = $typeMap[$typeName];
-            $typeMap[$typeName] = static function (TypeRegistryContract $registry) use ($typeClassName, $fieldExtensions) {
+            $typeClassName = $types[$typeName];
+            $types[$typeName] = static function (TypeRegistryContract $registry) use ($typeClassName, $extensionFactories) {
                 /** @var GraphQlType|GraphQlInterface $instance */
                 $instance = new $typeClassName;
-                return $instance->toDefinition($registry, $fieldExtensions);
+                return $instance->toDefinition($registry, $extensionFactories);
             };
         }
 
-        return new FactoryTypeRegistry(
-            $typeMap,
-            $reverseResolutionMap
-        );
+        return [$types, $aliases];
     }
 
-    private function createFieldExtensionList(array $reverseResolutionMap): array {
-        $extensions = [];
-        foreach ($this->typeFieldExtensions as $typeNameOfClassName => $fieldExtensions) {
-            $typeName = $reverseResolutionMap[$typeNameOfClassName] ?? $typeNameOfClassName;
-
-            if (!isset($extensions[$typeName])) {
-                $extensions[$typeName] = $fieldExtensions;
-            }
-            else {
-                array_push($extensions[$typeName], ...$fieldExtensions);
-            }
-        }
-        return $extensions;
+    protected function createInstanceOfTypeRegistry(array $types, array $aliases): TypeRegistryContract
+    {
+        return new FactoryTypeRegistry(
+            $types,
+            $aliases
+        );
     }
 
     public function cacheSchema(): string {
         $cacheManager = new TypeCacheManager(lazyFields: true);
         [$aliases, $types] = $cacheManager->cache(
-            array_values($this->typeResolutionMap),
+            array_values($this->types),
             $this->typeFieldExtensions
         );
         $exportedAliases = var_export($aliases, true);
@@ -134,7 +148,9 @@ class FederatedSchema
         ?string $mutationTypeName = null,
         bool $assumeValid = true,
     ): Schema {
-        $typeRegistry = $this->createInstanceOfTypeRegistry();
+        [$types, $aliases] = $this->createTypeAndAliases();
+        $typeRegistry = $this->createInstanceOfTypeRegistry($types, $aliases);
+        $eagerlyLoadedTypes = $this->eagerlyLoadedTypes;
 
         return new Schema(
             SchemaConfig::create(
@@ -143,10 +159,12 @@ class FederatedSchema
                     'mutation' => $mutationTypeName
                         ? $typeRegistry->eagerlyLoadType($mutationTypeName)
                         : null,
-                    'types' => fn() => array_map(
-                        $typeRegistry->eagerlyLoadType(...),
-                        $this->eagerlyLoadedTypes,
-                    ),
+                    'types' => static function() use ($eagerlyLoadedTypes, $typeRegistry) {
+                        return array_map(
+                            $typeRegistry->eagerlyLoadType(...),
+                            $eagerlyLoadedTypes,
+                        );
+                    },
                     'typeLoader' => $typeRegistry->eagerlyLoadType(...),
                     'assumeValid' => $assumeValid,
                 ]
