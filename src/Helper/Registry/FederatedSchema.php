@@ -99,7 +99,7 @@ class FederatedSchema
     }
 
     public function cacheSchema(): string {
-        $cacheManager = new TypeCacheManager(lazyFields: true);
+        $cacheManager = new TypeCacheManager();
         [$aliases, $types] = $cacheManager->cache(
             array_values($this->types),
             $this->typeFieldExtensions

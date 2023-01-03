@@ -31,7 +31,6 @@ class TypeCacheManager
 
     public function __construct(
         private readonly string $typeRegistryName = 'typeRegistry',
-        private readonly bool   $lazyFields = true,
     )
     {
         $this->closureCompiler = new ClosureCompiler();
@@ -280,9 +279,7 @@ class TypeCacheManager
     {
         $fields = array_map(function (FieldDefinition $definition) use ($withResolveFunction): string {
             $code = $this->fieldCompiler->compileField($definition, $withResolveFunction);
-            return $this->lazyFields
-                ? "{$this->export($definition->name)} => fn() => {$code}"
-                : $code;
+            return "{$this->export($definition->name)} => fn() => {$code}";
         }, $fieldDefinitions);
         return '[' . implode(',', $fields,) . ']';
     }

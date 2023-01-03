@@ -12,6 +12,7 @@ use GraphQlTools\Definition\Shared\Deprecatable;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Classes;
+use GraphQlTools\Utility\Typing;
 
 abstract class GraphQlEnum implements DefinesGraphQlType
 {
@@ -29,13 +30,26 @@ abstract class GraphQlEnum implements DefinesGraphQlType
     }
 
     /**
-     * @return array<string, string|array<{key: string, value: mixed}>>
+     * @return array<string, array<{key: string, value: mixed}>>
      * @throws DefinitionException
      */
     private function initValues(): array {
         $valuesOrEnumClassName = $this->values();
         if (is_array($valuesOrEnumClassName)) {
-            return $valuesOrEnumClassName;
+            return Arrays::mapWithKeys($valuesOrEnumClassName,static function(string|int $key, mixed $value) {
+                if (is_int($key)) {
+                    Typing::verifyIsString($value);
+                    return [$value, ['name' => $value, 'value' => $value]];
+                }
+
+                if (is_array($value)) {
+                    $value['name'] = $value['name'] ?? $key;
+                    Typing::verifyIsString($value['name']);
+                    return [$value['name'], $value];
+                }
+
+                throw DefinitionException::from($value, 'string|array<string, mixed>');
+            });
         }
 
         if (!enum_exists($valuesOrEnumClassName)) {
