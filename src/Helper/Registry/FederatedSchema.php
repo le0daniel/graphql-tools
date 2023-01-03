@@ -10,6 +10,7 @@ use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Helper\TypeCacheManager;
 use GraphQlTools\Utility\Arrays;
+use GraphQlTools\Utility\Compiling;
 use RuntimeException;
 use GraphQlTools\Contract\TypeRegistry as TypeRegistryContract;
 
@@ -70,10 +71,14 @@ class FederatedSchema
         return $extensionFactories;
     }
 
-    protected function createTypeAndAliases(): array {
+    protected function createTypeAndAliasesAndFieldExtensions(): array {
         $types = $this->types;
         $aliases = array_flip($types);
         $fieldExtensions = $this->resolveFieldExtensionAliases($aliases);
+        return [$types, $aliases, $fieldExtensions];
+    }
+
+    protected function combineFieldExtensionsAndTypes(array $types, array $fieldExtensions): array {
         foreach ($fieldExtensions as $typeName => $extensionFactories) {
             if (!isset($types[$typeName])) {
                 throw new RuntimeException("Tried to extend type '{$typeName}' which has not been registered.");
@@ -86,8 +91,7 @@ class FederatedSchema
                 return $instance->toDefinition($registry, $extensionFactories);
             };
         }
-
-        return [$types, $aliases];
+        return $types;
     }
 
     protected function createInstanceOfTypeRegistry(array $types, array $aliases): TypeRegistryContract
@@ -100,13 +104,13 @@ class FederatedSchema
 
     public function cacheSchema(): string {
         $cacheManager = new TypeCacheManager();
-        [$aliases, $types] = $cacheManager->cache(
-            array_values($this->types),
-            $this->typeFieldExtensions
-        );
+        [$types, $aliases, $fieldExtensions] = $this->createTypeAndAliasesAndFieldExtensions();
+
+
+        [$types, $dependencies] = $cacheManager->cache($types, $aliases, $fieldExtensions);
         $exportedAliases = var_export($aliases, true);
         $mappedTypes = Arrays::mapWithKeys($types,fn(string $typeName, string $code): array => [
-            $typeName, var_export($typeName, true) . " => {$code}",
+            $typeName, Compiling::exportVariable($typeName) . " => {$code}",
         ]);
         $typesCode = implode(','.PHP_EOL, $mappedTypes);
         $eagerlyLoadTypes = var_export($this->eagerlyLoadedTypes, true);
@@ -148,8 +152,11 @@ class FederatedSchema
         ?string $mutationTypeName = null,
         bool $assumeValid = true,
     ): Schema {
-        [$types, $aliases] = $this->createTypeAndAliases();
-        $typeRegistry = $this->createInstanceOfTypeRegistry($types, $aliases);
+        [$types, $aliases, $fieldExtensions] = $this->createTypeAndAliasesAndFieldExtensions();
+        $typeRegistry = $this->createInstanceOfTypeRegistry(
+            $this->combineFieldExtensionsAndTypes($types, $fieldExtensions),
+            $aliases
+        );
         $eagerlyLoadedTypes = $this->eagerlyLoadedTypes;
 
         return new Schema(

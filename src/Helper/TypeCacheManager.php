@@ -76,72 +76,67 @@ class TypeCacheManager
         });
     }
 
-    public function cache(array $typesToCache, array $extendedFieldsByType = []): array
+    private function allEqual(string ...$values): bool {
+        return count(array_unique($values)) === 1;
+    }
+
+    public function cache(array $typesToCache, array $aliases, array $extendedFieldsByType = []): array
     {
-        $aliases = [];
         $types = [];
+        $dependencies = [];
 
-        foreach ($typesToCache as $className) {
-            $typeName = $className::typeName();
-            $typeExtensions = [
-                ... $extendedFieldsByType[$typeName] ?? [],
-                ... $extendedFieldsByType[$className] ?? [],
-            ];
+        foreach ($typesToCache as $providedTypeName => $className) {
+            $classTypeName = $className::typeName();
+            $providedTypeName = is_int($providedTypeName) ? $classTypeName : $providedTypeName;
 
+            $compiled = $this->buildType(new $className, $aliases, $extendedFieldsByType[$classTypeName] ?? []);
+            [$typeName, $code, $typeDependencies] = Arrays::unpack($compiled, 'name', 'code', 'typeDependencies');
 
-            $compiled = $this->buildType(new $className, $typeExtensions);
-            $typeName = $compiled['name'];
-
-            foreach ($compiled['aliases'] as $alias) {
-                $aliases[$alias] = $typeName;
+            if (!$this->allEqual($providedTypeName, $classTypeName, $typeName)) {
+                throw new RuntimeException("Encountered different name for the type {$className} = {$typeName}.");
             }
 
-            $types[$typeName] = $compiled['code'];
+            $types[$typeName] = $code;
+            $dependencies[$typeName] = $typeDependencies;
         }
 
         return [
-            $aliases,
-            $types
+            $types,
+            $dependencies
         ];
     }
 
-    public function buildType(mixed $type, array $injectedFields = []): array
+    public function buildType(GraphQlType|GraphQlInputType|GraphQlScalar|GraphQlInterface|GraphQlUnion|GraphQlEnum $type, array $aliases, array $injectedFields = []): array
     {
-        if ($type instanceof GraphQlType) {
-            return $this->compileType($type, $injectedFields);
-        }
-        if ($type instanceof GraphQlInputType) {
-            return $this->compileInputType($type);
-        }
-        if ($type instanceof GraphQlScalar) {
-            return $this->compileScalar($type);
-        }
-        if ($type instanceof GraphQlInterface) {
-            return $this->compileInterface($type, $injectedFields);
-        }
-        if ($type instanceof GraphQlUnion) {
-            return $this->compileUnion($type);
-        }
-        if ($type instanceof GraphQlEnum) {
-            return $this->compileEnum($type);
-        }
+        $registry = $this->mockedTypeRegistry($aliases);
+        $compiled = match (true) {
+            $type instanceof GraphQlType => $this->compileType($registry, $type, $injectedFields),
+            $type instanceof GraphQlInputType => $this->compileInputType($registry, $type),
+            $type instanceof GraphQlScalar => $this->compileScalar($registry, $type),
+            $type instanceof GraphQlInterface => $this->compileInterface($registry, $type, $injectedFields),
+            $type instanceof GraphQlUnion => $this->compileUnion($registry, $type),
+            $type instanceof GraphQlEnum => $this->compileEnum($registry, $type),
+        };
 
-        $typeClass = is_object($type) ? $type::class : gettype($type);
-        throw new RuntimeException("Unsupported type ({$typeClass}) given.");
+        [$name, $code] = Arrays::unpack($compiled, 'name', 'code');
+        $typeDependencies = $registry->getDependencies();
+        return [
+            'name' => $name,
+            'code' => $code,
+            'typeDependencies' => $typeDependencies,
+        ];
     }
 
-    private function compileScalar(GraphQlScalar $type): array
+    private function compileScalar(TypeRegistry $registry, GraphQlScalar $type): array
     {
         return [
             'name' => $type::typeName(),
-            'aliases' => [$type::class],
             'code' => "static fn() => new {$this->absoluteClassName($type::class)}"
         ];
     }
 
-    private function compileEnum(GraphQlEnum $type): array
+    private function compileEnum(TypeRegistry $registry, GraphQlEnum $type): array
     {
-        $registry = $this->mockedTypeRegistry();
         $typeDefinition = $type->toDefinition($registry);
         $config = $this->recursivelyInitializeConfig($typeDefinition->config);
 
@@ -155,14 +150,12 @@ class TypeCacheManager
 
         return [
             'name' => $typeDefinition->name,
-            'aliases' => [$type::class],
             'code' => $code
         ];
     }
 
-    private function compileUnion(GraphQlUnion $type): array
+    private function compileUnion(TypeRegistry $registry, GraphQlUnion $type): array
     {
-        $registry = $this->mockedTypeRegistry();
         $typeDefinition = $type->toDefinition($registry);
         $config = $this->recursivelyInitializeConfig($typeDefinition->config);
         $resolveClosure = $this->closureCompiler->compile($type->getResolveTypeClosure());
@@ -181,14 +174,12 @@ class TypeCacheManager
 
         return [
             'name' => $typeDefinition->name,
-            'aliases' => [$type::class],
             'code' => $code
         ];
     }
 
-    private function compileInterface(GraphQlInterface $type, array $injectedFields): array
+    private function compileInterface(TypeRegistry $registry, GraphQlInterface $type, array $injectedFields): array
     {
-        $registry = $this->mockedTypeRegistry();
         $typeDefinition = $type->toDefinition($registry, $injectedFields);
         $config = $this->recursivelyInitializeConfig($typeDefinition->config);
 
@@ -208,14 +199,12 @@ class TypeCacheManager
 
         return [
             'name' => $type::typeName(),
-            'aliases' => [$type::class],
             'code' => $code
         ];
     }
 
-    private function compileInputType(GraphQlInputType $type): array
+    private function compileInputType(TypeRegistry $registry, GraphQlInputType $type): array
     {
-        $registry = $this->mockedTypeRegistry();
         $typeDefinition = $type->toDefinition($registry);
         $config = $this->recursivelyInitializeConfig($typeDefinition->config);
         $inputFields = implode(',', array_map(function (array $config): string {
@@ -233,14 +222,12 @@ class TypeCacheManager
 
         return [
             'name' => $typeDefinition->name,
-            'aliases' => [$type::class],
             'code' => $code
         ];
     }
 
-    private function compileType(GraphQlType $type, array $injectedFields = []): array
+    private function compileType(TypeRegistry $registry, GraphQlType $type, array $injectedFields = []): array
     {
-        $registry = $this->mockedTypeRegistry();
         $typeDefinition = $type->toDefinition($registry, $injectedFields);
         $config = $this->recursivelyInitializeConfig($typeDefinition->config);
 
@@ -255,7 +242,6 @@ class TypeCacheManager
 
         return [
             'name' => $typeDefinition->name,
-            'aliases' => [$type::class],
             'code' => $code
         ];
     }
@@ -284,16 +270,31 @@ class TypeCacheManager
         return '[' . implode(',', $fields,) . ']';
     }
 
-    public function mockedTypeRegistry(): TypeRegistry
+    /**
+     * @return TypeRegistry
+     */
+    public function mockedTypeRegistry(array $aliases)
     {
-        return new class ($this->typeRegistryName) implements TypeRegistry {
-            public function __construct(private readonly string $typeRegistryVariableName = 'registry')
+        return new class ($this->typeRegistryName, $aliases) implements TypeRegistry {
+            private array $dependencies = [];
+            public function __construct(private readonly string $typeRegistryVariableName, private readonly array $aliases)
             {
+            }
+
+            /**
+             * @return array
+             */
+            public function getDependencies(): array
+            {
+                return array_values(array_unique($this->dependencies));
             }
 
             public function type(string $nameOrAlias): Closure
             {
-                $exportedTypeName = var_export($nameOrAlias, true);
+                $typeName = $this->aliases[$nameOrAlias] ?? $nameOrAlias;
+
+                $this->dependencies[] = $typeName;
+                $exportedTypeName = Compiling::exportVariable($typeName);
                 $code = "\${$this->typeRegistryVariableName}->type({$exportedTypeName})";
 
                 // It is needed to return a type for lists, because the ListOfType does validation

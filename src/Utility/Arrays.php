@@ -10,6 +10,14 @@ use RuntimeException;
 
 final class Arrays
 {
+    public static function unpack(array $array, string ...$keys): array {
+        $unpacked = [];
+        foreach ($keys as $key) {
+            $unpacked[] = $array[$key] ?? null;
+        }
+        return $unpacked;
+    }
+
     public static function wrap(mixed $value): array {
         return is_array($value) ? $value : [$value];
     }
