@@ -20,23 +20,23 @@ trait HasDataloaders
      * an instance extending the ExecutableByDataLoader contract. This is then
      * given to a new instance of a data loader.
      *
-     * @param string $classNameOrLoaderName
+     * @param string $key
      * @return Closure|ExecutableByDataLoader
      */
-    protected function makeInstanceOfDataLoaderExecutor(string $classNameOrLoaderName): Closure|ExecutableByDataLoader
+    protected function makeInstanceOfDataLoaderExecutor(string $key): Closure|ExecutableByDataLoader
     {
-        return new $classNameOrLoaderName;
+        return new $key;
     }
 
-    public function dataLoader(string $classNameOrLoaderName): DataLoader
+    public function dataLoader(string $key): DataLoader
     {
-        if (!isset($this->dataLoaderInstances[$classNameOrLoaderName])) {
-            $this->dataLoaderInstances[$classNameOrLoaderName] = new DataLoader(
-                $this->makeInstanceOfDataLoaderExecutor($classNameOrLoaderName)
+        if (!isset($this->dataLoaderInstances[$key])) {
+            $this->dataLoaderInstances[$key] = new DataLoader(
+                $this->makeInstanceOfDataLoaderExecutor($key)
             );
         }
 
-        return $this->dataLoaderInstances[$classNameOrLoaderName];
+        return $this->dataLoaderInstances[$key];
     }
 
 }

@@ -20,6 +20,7 @@ use GraphQlTools\Definition\GraphQlUnion;
 use GraphQlTools\Helper\Compilation\ClosureCompiler;
 use GraphQlTools\Helper\Compilation\FieldCompiler;
 use GraphQlTools\Utility\Arrays;
+use GraphQlTools\Utility\Compiling;
 use RuntimeException;
 
 class TypeCacheManager
@@ -40,19 +41,11 @@ class TypeCacheManager
 
     private function export(mixed $value): string
     {
-        if ($value instanceof DateTimeInterface) {
-            return "\DateTimeImmutable::createFromFormat('Y-m-d H:i:s', '{$value->format('Y-m-d H:i:s')}')";
-        }
-
-        $exported = var_export($value, true);
-        if (preg_match('/^[a-zA-Z0-9]+\\\\[a-zA-Z0-9:\\\\]+$/', $exported)) {
-            return '\\' . $exported;
-        }
-
-        return $exported;
+        return Compiling::exportVariable($value);
     }
 
-    private function recursiveExport(array $values): string {
+    private function recursiveExport(array $values): string
+    {
         $exported = [];
         foreach ($values as $key => $value) {
             $exported[] = is_array($value)
@@ -65,23 +58,27 @@ class TypeCacheManager
 
     private function absoluteClassName(string $className): string
     {
-        return str_starts_with($className, '\\') ? $className : "\\$className";
+        return Compiling::absoluteClassName($className);
     }
 
-    private function initializeConfig(array $config, array $blacklistedKeys = ['resolveType']): array
+    private function recursivelyInitializeConfig(array $config, array $blacklistedKeys = ['resolveType']): array
     {
-        return Arrays::mapWithKeys($config,function(string|int $key, mixed $value) use ($blacklistedKeys): array {
+        return Arrays::mapWithKeys($config, function (string|int $key, mixed $value) use ($blacklistedKeys): array {
             if (!$value instanceof Closure || in_array($key, $blacklistedKeys, true)) {
                 return [$key, $value];
             }
 
             $initialized = $value();
 
-            return [$key, is_array($initialized) ? self::initializeConfig($initialized, []): $initialized];
+            return [
+                $key,
+                is_array($initialized) ? self::recursivelyInitializeConfig($initialized, []) : $initialized
+            ];
         });
     }
 
-    public function cache(array $typesToCache, array $extendedFieldsByType = []) {
+    public function cache(array $typesToCache, array $extendedFieldsByType = []): array
+    {
         $aliases = [];
         $types = [];
 
@@ -130,10 +127,12 @@ class TypeCacheManager
             return $this->compileEnum($type);
         }
 
-        throw new RuntimeException("Unsupported type given.");
+        $typeClass = is_object($type) ? $type::class : gettype($type);
+        throw new RuntimeException("Unsupported type ({$typeClass}) given.");
     }
 
-    private function compileScalar(GraphQlScalar $type): array {
+    private function compileScalar(GraphQlScalar $type): array
+    {
         return [
             'name' => $type::typeName(),
             'aliases' => [$type::class],
@@ -141,10 +140,11 @@ class TypeCacheManager
         ];
     }
 
-    private function compileEnum(GraphQlEnum $type): array {
-        $registry = $this->collectorRegistry();
+    private function compileEnum(GraphQlEnum $type): array
+    {
+        $registry = $this->mockedTypeRegistry();
         $typeDefinition = $type->toDefinition($registry);
-        $config = $this->initializeConfig($typeDefinition->config);
+        $config = $this->recursivelyInitializeConfig($typeDefinition->config);
 
         $code = "static fn({$this->registryNameSpace()} \${$this->typeRegistryName}) => new {$this->absoluteClassName(UnionType::class)}([
             'name' => {$this->export($typeDefinition->name)},
@@ -161,10 +161,11 @@ class TypeCacheManager
         ];
     }
 
-    private function compileUnion(GraphQlUnion $type): array {
-        $registry = $this->collectorRegistry();
+    private function compileUnion(GraphQlUnion $type): array
+    {
+        $registry = $this->mockedTypeRegistry();
         $typeDefinition = $type->toDefinition($registry);
-        $config = $this->initializeConfig($typeDefinition->config);
+        $config = $this->recursivelyInitializeConfig($typeDefinition->config);
         $resolveClosure = $this->closureCompiler->compile($type->getResolveTypeClosure());
 
         $code = "static fn({$this->registryNameSpace()} \${$this->typeRegistryName}) => new {$this->absoluteClassName(UnionType::class)}([
@@ -186,10 +187,11 @@ class TypeCacheManager
         ];
     }
 
-    private function compileInterface(GraphQlInterface $type, array $injectedFields): array {
-        $registry = $this->collectorRegistry();
+    private function compileInterface(GraphQlInterface $type, array $injectedFields): array
+    {
+        $registry = $this->mockedTypeRegistry();
         $typeDefinition = $type->toDefinition($registry, $injectedFields);
-        $config = $this->initializeConfig($typeDefinition->config);
+        $config = $this->recursivelyInitializeConfig($typeDefinition->config);
 
         $resolveClosure = $this->closureCompiler->compile($type->getResolveTypeClosure());
 
@@ -212,11 +214,12 @@ class TypeCacheManager
         ];
     }
 
-    private function compileInputType(GraphQlInputType $type): array {
-        $registry = $this->collectorRegistry();
+    private function compileInputType(GraphQlInputType $type): array
+    {
+        $registry = $this->mockedTypeRegistry();
         $typeDefinition = $type->toDefinition($registry);
-        $config = $this->initializeConfig($typeDefinition->config);
-        $inputFields = implode(',', array_map(function(array $config): string {
+        $config = $this->recursivelyInitializeConfig($typeDefinition->config);
+        $inputFields = implode(',', array_map(function (array $config): string {
             $code = $this->fieldCompiler->compileInputField($config);
             return "{$this->export($config['name'])} => {$code}";
         }, $config['fields']));
@@ -238,9 +241,9 @@ class TypeCacheManager
 
     private function compileType(GraphQlType $type, array $injectedFields = []): array
     {
-        $registry = $this->collectorRegistry();
+        $registry = $this->mockedTypeRegistry();
         $typeDefinition = $type->toDefinition($registry, $injectedFields);
-        $config = $this->initializeConfig($typeDefinition->config);
+        $config = $this->recursivelyInitializeConfig($typeDefinition->config);
 
         $code = "static fn({$this->registryNameSpace()} \${$this->typeRegistryName}) => new {$this->absoluteClassName(ObjectType::class)}([
             'name' => {$this->export($typeDefinition->name)},
@@ -265,9 +268,12 @@ class TypeCacheManager
 
     private function compileListOfType(array $types): string
     {
-        $compiled = array_map(fn(mixed $type) => is_callable($type) ? $type() : $type, $types);
-        $imploded = implode(',', $compiled);
-        return "[{$imploded}]";
+        $initializedTypes = array_map(static function (mixed $type): string {
+            $type = is_callable($type) ? $type() : $type;
+            return (string)$type;
+        }, $types);
+
+        return "[" . implode(',', $initializedTypes) . "]";
     }
 
     private function compileFieldsToArrayDefinition(array $fieldDefinitions, bool $withResolveFunction = true): string
@@ -281,18 +287,11 @@ class TypeCacheManager
         return '[' . implode(',', $fields,) . ']';
     }
 
-    public function collectorRegistry()
+    public function mockedTypeRegistry(): TypeRegistry
     {
         return new class ($this->typeRegistryName) implements TypeRegistry {
-            private array $typeDependencies = [];
-
             public function __construct(private readonly string $typeRegistryVariableName = 'registry')
             {
-            }
-
-            public function getTypeDependencies(): array
-            {
-                return array_unique($this->typeDependencies);
             }
 
             public function type(string $nameOrAlias): Closure
@@ -307,7 +306,7 @@ class TypeCacheManager
                     {
                     }
 
-                    public function assertValid()
+                    public function assertValid(): bool
                     {
                         return true;
                     }

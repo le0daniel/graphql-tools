@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Test\Definition\Field;
+namespace GraphQlTools\Test\Unit\Definition\Field;
 
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Contract\TypeRegistry;

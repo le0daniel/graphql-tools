@@ -14,6 +14,7 @@ use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\WrappingType;
 use GraphQlTools\Helper\ProxyResolver;
 use GraphQlTools\Utility\Arrays;
+use GraphQlTools\Utility\Compiling;
 use ReflectionClass;
 
 class FieldCompiler
@@ -39,14 +40,15 @@ class FieldCompiler
                 : null,
         ]));
 
-        return "{$this->absoluteClassName($fieldDefinition::class)}::create([
+        $className = Compiling::absoluteClassName($fieldDefinition::class);
+        return "{$className}::create([
             {$lines}
         ])";
     }
 
     public function compileInputField(array $config): string
     {
-        $lines = implode(',' . PHP_EOL, Arrays::removeNullValues([
+        $lines = Arrays::removeNullValues([
             "'name' => {$this->export($config['name'])}",
             "'type' => {$this->compileType($config['type'])}",
             "'deprecationReason' => {$this->export($config['deprecationReason'] ?? null)}",
@@ -55,9 +57,11 @@ class FieldCompiler
             isset($config['defaultValue'])
                 ? "'defaultValue' => {$this->export($config['defaultValue'])}"
                 : null,
-        ]));
+        ]);
+        $implodedLines = implode(',' . PHP_EOL, $lines);
+
         return "[
-            {$lines}
+            {$implodedLines}
         ]";
     }
 
@@ -74,41 +78,26 @@ class FieldCompiler
             return (string) $type();
         }
 
+        $typeClassName = Compiling::absoluteClassName($type::class);
         if ($type instanceof WrappingType) {
             $property = (new ReflectionClass($type))->getProperty('ofType')->getValue($type);
             $next = $this->compileType($property);
-            return "new {$this->absoluteClassName($type::class)}({$next})";
+            return "new {$typeClassName}({$next})";
         }
 
         return match ($type::class) {
-            IDType::class => "{$this->absoluteClassName(Type::class)}::id()",
-            StringType::class => "{$this->absoluteClassName(Type::class)}::string()",
-            BooleanType::class => "{$this->absoluteClassName(Type::class)}::boolean()",
-            IntType::class => "{$this->absoluteClassName(Type::class)}::int()",
-            FloatType::class => "{$this->absoluteClassName(Type::class)}::float()",
+            IDType::class => "{$typeClassName}::id()",
+            StringType::class => "{$typeClassName}::string()",
+            BooleanType::class => "{$typeClassName}::boolean()",
+            IntType::class => "{$typeClassName}::int()",
+            FloatType::class => "{$typeClassName}::float()",
             default => throw new \RuntimeException("Can not compile this type.")
         };
     }
 
     private function export(mixed $variable): string
     {
-        if ($variable instanceof DateTimeInterface) {
-            return "\DateTimeImmutable::createFromFormat('Y-m-d H:i:s', '{$variable->format('Y-m-d H:i:s')}')";
-        }
-
-        $value = var_export($variable, true);
-        if (preg_match('/^[a-zA-Z0-9]+\\\\[a-zA-Z0-9:\\\\]+$/', $value)) {
-            return '\\' . $value;
-        }
-
-        return $value;
-    }
-
-    private function absoluteClassName(string $className): string
-    {
-        return str_starts_with($className, '\\')
-            ? $className
-            : '\\' . $className;
+        return Compiling::exportVariable($variable);
     }
 
     private function compileResolver(?ProxyResolver $resolver): string
@@ -116,7 +105,8 @@ class FieldCompiler
         if (!$resolver) {
             return 'null';
         }
-        $className = $this->absoluteClassName(ProxyResolver::class);
+
+        $className = Compiling::absoluteClassName(ProxyResolver::class);
 
         return $resolver->isDefaultResolveFunction()
             ? "new {$className}(null)"

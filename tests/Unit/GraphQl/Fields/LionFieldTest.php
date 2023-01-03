@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Test\Fields;
+namespace GraphQlTools\Test\Unit\GraphQl\Fields;
 
 use GraphQlTools\Helper\TypeTestCase;
 use GraphQlTools\Test\Dummies\Schema\LionType;

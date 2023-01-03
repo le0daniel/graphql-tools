@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GraphQlTools\Test\Utility;
+namespace GraphQlTools\Test\Unit\Utility;
 
 use GraphQlTools\Utility\Arrays;
 use PHPUnit\Framework\TestCase;

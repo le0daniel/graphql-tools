@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Test\Helper;
+namespace GraphQlTools\Test\Unit\Helper;
 
 use Closure;
 use GraphQlTools\Helper\Context;

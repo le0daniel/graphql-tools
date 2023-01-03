@@ -3,6 +3,7 @@
 namespace GraphQlTools\Helper\Compilation;
 
 use GraphQlTools\Utility\Classes;
+use GraphQlTools\Utility\Compiling;
 use Opis\Closure\ReflectionClosure;
 use ReflectionFunction;
 use ReflectionIntersectionType;
@@ -11,6 +12,7 @@ use ReflectionNamedType;
 use ReflectionParameter;
 use ReflectionUnionType;
 use RuntimeException;
+use Throwable;
 
 class MethodExtractor
 {
@@ -32,7 +34,7 @@ class MethodExtractor
             Classes::getDeclaredClassInFile($function->getFileName());
             $code = self::getCodeFromReflection($function);
             return preg_match(self::METHOD_NAME_REGEX, $code) === 1;
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return false;
         }
     }
@@ -76,13 +78,13 @@ class MethodExtractor
             return $this->absoluteClassName($this->methodReflection->getDeclaringClass()->getName()) . '::' . $this->methodName . '(...)';
         }
 
+        $fileName = tempnam(sys_get_temp_dir(), 'closure');
         try {
-            $fileName = tempnam(sys_get_temp_dir(), 'closure');
             file_put_contents($fileName, $this->buildNamespacedClosure());
             $closure = require $fileName;
             return (new ReflectionClosure($closure))->getCode();
         } finally {
-            if (isset($fileName) && file_exists($fileName)) {
+            if (file_exists($fileName)) {
                 unlink($fileName);
             }
         }
@@ -112,7 +114,7 @@ class MethodExtractor
     {
         $parameters = implode(', ', array_map($this->parameterToString(...), $this->methodReflection->getParameters()));
         $returnType = $this->methodReflection->hasReturnType()
-            ? ": {$this->typeToString($this->methodReflection->getReturnType())}"
+            ? ": " . Compiling::parameterTypeToString($this->methodReflection->getReturnType())
             : '';
         $openBracketPosition = strpos($this->declaringCode, '{');
         if (!$openBracketPosition) {
@@ -142,14 +144,12 @@ class MethodExtractor
 
     private function export(mixed $variable): string
     {
-        return var_export($variable, true);
+        return Compiling::exportVariable($variable);
     }
 
     private function absoluteClassName(string $classname): string
     {
-        return str_starts_with($classname, '\\')
-            ? $classname
-            : '\\' . $classname;
+        return Compiling::absoluteClassName($classname);
     }
 
     /**
@@ -208,33 +208,7 @@ class MethodExtractor
         }
 
         $type = $parameter->getType();
-        return "{$this->typeToString($type)} {$parameterNameAndDefaultValue}";
-    }
-
-    private function typeToString(ReflectionNamedType|ReflectionUnionType|ReflectionIntersectionType $type): string
-    {
-
-        if ($type->isBuiltin()) {
-            return $type->allowsNull() && $type->getName() !== 'mixed'
-                ? "?{$type->getName()}"
-                : $type->getName();
-        }
-
-        if ($type instanceof ReflectionNamedType) {
-            return $type->allowsNull()
-                ? "?{$this->absoluteClassName($type->getName())}"
-                : "{$this->absoluteClassName($type->getName())}";
-        }
-
-        if ($type instanceof ReflectionUnionType) {
-            return implode('&', array_map($this->typeToString(...), $type->getTypes()));
-        }
-
-        if ($type instanceof ReflectionIntersectionType) {
-            return implode('|', array_map($this->typeToString(...), $type->getTypes()));
-        }
-
-        throw new RuntimeException("Invalid type given.");
+        return Compiling::parameterTypeToString($type) . " {$parameterNameAndDefaultValue}";
     }
 
 }

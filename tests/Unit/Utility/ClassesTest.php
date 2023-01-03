@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Test\Utility;
+namespace GraphQlTools\Test\Unit\Utility;
 
 use GraphQlTools\Utility\Classes;
 use PHPUnit\Framework\TestCase;
@@ -27,11 +27,11 @@ class ClassesTest extends TestCase
     public function testClassNameAsArray()
     {
         self::assertEquals([
-            'GraphQlTools', 'Test', 'Utility', 'ClassesTest'
+            'GraphQlTools', 'Test', 'Unit', 'Utility', 'ClassesTest'
         ], Classes::classNameAsArray(self::class));
 
         self::assertEquals([
-            'GraphQlTools', 'Test', 'Utility', 'ClassesTest'
+            'GraphQlTools', 'Test', 'Unit', 'Utility', 'ClassesTest'
         ], Classes::classNameAsArray('\\'.self::class));
     }
 }

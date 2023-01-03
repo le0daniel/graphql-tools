@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Test\Execution;
+namespace GraphQlTools\Test\Unit\Helper;
 
 use GraphQL\Executor\ExecutionResult;
 use GraphQlTools\Contract\Extension;
@@ -15,7 +15,7 @@ use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
 
-class ExtensionsTest extends TestCase
+class ExtensionManagerTest extends TestCase
 {
     use ProphecyTrait;
 

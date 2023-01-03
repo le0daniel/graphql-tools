@@ -20,8 +20,9 @@ interface TypeRegistry
 
     /**
      * Given a type name or class name, return an instance of the Type
-     * to a type
+     * to a type. This should only be used internally by the framework.
      *
+     * @interal
      * @param string|class-string<Type> $nameOrAlias
      * @return Type
      */

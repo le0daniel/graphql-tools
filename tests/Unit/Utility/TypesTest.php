@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Test\Utility;
+namespace GraphQlTools\Test\Unit\Utility;
 
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Utility\Types;
