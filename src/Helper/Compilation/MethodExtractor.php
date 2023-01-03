@@ -29,7 +29,35 @@ class MethodExtractor
         $this->verifyScopeUsage();
     }
 
-    public static function isMethod(ReflectionFunction $function): bool {
+    public static function fromReflectionFunction(ReflectionFunction $function): self
+    {
+        $code = self::getCodeFromReflection($function);
+        $methodName = self::getMethodName($code);
+        $className = Classes::getDeclaredClassInFile($function->getFileName());
+        return new self($className, $methodName, $code);
+    }
+
+    public function toCode(): string
+    {
+        if ($this->isPublicStatic()) {
+            return $this->absoluteClassName($this->methodReflection->getDeclaringClass()->getName()) . '::' . $this->methodName . '(...)';
+        }
+
+        $fileName = tempnam(sys_get_temp_dir(), 'closure');
+
+        try {
+            file_put_contents($fileName, $this->buildNamespacedClosure());
+            $closure = require $fileName;
+            return (new ReflectionClosure($closure))->getCode();
+        } finally {
+            if (file_exists($fileName)) {
+                unlink($fileName);
+            }
+        }
+    }
+
+    public static function isMethod(ReflectionFunction $function): bool
+    {
         try {
             Classes::getDeclaredClassInFile($function->getFileName());
             $code = self::getCodeFromReflection($function);
@@ -39,18 +67,11 @@ class MethodExtractor
         }
     }
 
-    private static function getCodeFromReflection(ReflectionFunction $function): string {
+    private static function getCodeFromReflection(ReflectionFunction $function): string
+    {
         $linesOfCodeInFile = explode(PHP_EOL, file_get_contents($function->getFileName()));
         $methodBodyLines = array_slice($linesOfCodeInFile, $function->getStartLine() - 1, $function->getEndLine() - ($function->getStartLine() - 1));
         return implode(PHP_EOL, $methodBodyLines);
-    }
-
-    public static function fromReflectionFunction(ReflectionFunction $function): self
-    {
-        $code = self::getCodeFromReflection($function);
-        $methodName = self::getMethodName($code);
-        $className = Classes::getDeclaredClassInFile($function->getFileName());
-        return new self($className, $methodName, $code);
     }
 
     private static function getMethodName(string $code): string
@@ -73,28 +94,13 @@ class MethodExtractor
         }
     }
 
-    public function toCode(): string {
-        if ($this->isPublicStatic()) {
-            return $this->absoluteClassName($this->methodReflection->getDeclaringClass()->getName()) . '::' . $this->methodName . '(...)';
-        }
-
-        $fileName = tempnam(sys_get_temp_dir(), 'closure');
-        try {
-            file_put_contents($fileName, $this->buildNamespacedClosure());
-            $closure = require $fileName;
-            return (new ReflectionClosure($closure))->getCode();
-        } finally {
-            if (file_exists($fileName)) {
-                unlink($fileName);
-            }
-        }
-    }
-
-    private function isPublicStatic(): bool {
+    private function isPublicStatic(): bool
+    {
         return $this->methodReflection->isStatic() && $this->methodReflection->isPublic();
     }
 
-    private function buildNamespacedClosure(): string {
+    private function buildNamespacedClosure(): string
+    {
         $functionCode = $this->buildMethodCode();
         $usedNamespaces = $this->findUsedNamespaces();
 
