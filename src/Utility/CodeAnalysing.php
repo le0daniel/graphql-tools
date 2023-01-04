@@ -4,15 +4,36 @@ namespace GraphQlTools\Utility;
 
 class CodeAnalysing
 {
-    private static array|null $variable;
+    private static function isSelfOrStaticToken(string|array $token): bool {
+        if ($token[0] === T_STATIC) {
+            return true;
+        }
 
-    private const SELF_OR_STATIC_USAGE_IN_CODE = '/(self|static)::\$?[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*/m';
+        return $token[0] === T_STRING && $token[1] === 'self';
+    }
 
-    public static function selfAndStaticUsages(string $code): array {
-        // TODO: Improve and use tokenizer
-        preg_match_all(self::SELF_OR_STATIC_USAGE_IN_CODE, $code, $matches, PREG_SET_ORDER);
-        return empty($matches)
-            ? []
-            : array_map(fn(array $match) => $match[0], $matches);
+    public static function selfAndStaticUsages(string $code): array
+    {
+        if (!str_starts_with(trim($code), '<?php')) {
+            $code = "<?php $code";
+        }
+
+        $usages = [];
+        $tokens = token_get_all($code);
+        for ($i = 0; $i < count($tokens); $i++) {
+            $token = $tokens[$i];
+            if (!self::isSelfOrStaticToken($token)) {
+                continue;
+            }
+
+            $nextToken = $tokens[$i + 1] ?? null;
+            if (!$nextToken || $nextToken[0] !== T_PAAMAYIM_NEKUDOTAYIM) {
+                continue;
+            }
+
+            $usages[] = $token[1] . $nextToken[1] . $tokens[$i+2][1];
+            $i = $i + 2;
+        }
+        return $usages;
     }
 }
