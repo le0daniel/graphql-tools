@@ -4,22 +4,11 @@ namespace GraphQlTools\Utility;
 
 class CodeAnalysing
 {
-    private static function isSelfOrStaticToken(string|array $token): bool {
-        if ($token[0] === T_STATIC) {
-            return true;
-        }
-
-        return $token[0] === T_STRING && $token[1] === 'self';
-    }
-
     public static function selfAndStaticUsages(string $code): array
     {
-        if (!str_starts_with(trim($code), '<?php')) {
-            $code = "<?php $code";
-        }
-
+        $tokens = self::tokenizeCode($code);
         $usages = [];
-        $tokens = token_get_all($code);
+
         for ($i = 0; $i < count($tokens); $i++) {
             $token = $tokens[$i];
             if (!self::isSelfOrStaticToken($token)) {
@@ -35,5 +24,29 @@ class CodeAnalysing
             $i = $i + 2;
         }
         return $usages;
+    }
+
+    public static function usesThis(string $code): bool {
+        foreach (self::tokenizeCode($code) as $token) {
+            if ($token[0] === T_VARIABLE && $token[1] === '$this') {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static function tokenizeCode(string $code): array {
+        if (!str_contains($code, '<?php')) {
+            $code = "<?php $code";
+        }
+        return token_get_all($code);
+    }
+
+    private static function isSelfOrStaticToken(string|array $token): bool {
+        if ($token[0] === T_STATIC) {
+            return true;
+        }
+
+        return $token[0] === T_STRING && $token[1] === 'self';
     }
 }

@@ -6,14 +6,13 @@ namespace GraphQlTools\Test\Unit\Helper;
 
 use GraphQL\Deferred;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
-use GraphQL\Type\Definition\FieldDefinition;
-use GraphQlTools\Contract\Extension;
 use GraphQlTools\Events\VisitFieldEvent;
-use GraphQlTools\Helper\OperationContext;
-use GraphQlTools\Helper\ExtensionManager;
-use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use GraphQlTools\Helper\Context;
+use GraphQlTools\Helper\Extension\Extension;
+use GraphQlTools\Helper\ExtensionManager;
+use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Helper\ProxyResolver;
+use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;

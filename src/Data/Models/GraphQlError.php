@@ -3,11 +3,8 @@
 namespace GraphQlTools\Data\Models;
 
 use GraphQL\Error\Error;
-use GraphQlTools\Utility\Lists;
 use GraphQlTools\Utility\Typing;
-use \Protobuf\Trace\Error as ProtobufError;
 use GraphQL\Language\SourceLocation;
-use Protobuf\Trace\Location;
 
 class GraphQlError
 {
@@ -38,18 +35,4 @@ class GraphQlError
     {
         return implode('.', $this->path ?? []);
     }
-
-    public function toProtobufError(): ProtobufError
-    {
-        $locations = array_map(static function (GraphQlErrorLocation $errorLocation): Location {
-            return (new Location())
-                ->setColumn($errorLocation->column)
-                ->setLine($errorLocation->line);
-        }, $this->locations);
-
-        return (new ProtobufError())
-            ->setLocation($locations)
-            ->setMessage($this->message);
-    }
-
 }

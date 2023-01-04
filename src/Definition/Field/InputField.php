@@ -3,12 +3,12 @@
 namespace GraphQlTools\Definition\Field;
 
 use GraphQlTools\Contract\DefinesGraphQlType;
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Shared\DefinesDefaultValue;
 use GraphQlTools\Definition\Field\Shared\DefinesField;
 use GraphQlTools\Definition\Field\Shared\DefinesMetadata;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
-use GraphQlTools\Contract\TypeRegistry;
-use GraphQlTools\Definition\Shared\Deprecatable;
+use GraphQlTools\Definition\Field\Shared\Deprecatable;
 
 final class InputField implements DefinesGraphQlType
 {

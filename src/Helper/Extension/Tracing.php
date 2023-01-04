@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Helper\Extension;
 
-use DateTimeImmutable;
-use GraphQlTools\Contract\Extension;
-use GraphQlTools\Data\Models\GraphQlError;
-use GraphQlTools\Events\VisitFieldEvent;
-use GraphQlTools\Events\StartEvent;
-use GraphQlTools\Events\EndEvent;
-use GraphQlTools\Data\Models\ExecutionTrace;
-use GraphQlTools\Data\Models\ResolverTrace;
 use Closure;
+use DateTimeImmutable;
+use GraphQlTools\Data\Models\ExecutionTrace;
+use GraphQlTools\Data\Models\GraphQlError;
+use GraphQlTools\Data\Models\ResolverTrace;
+use GraphQlTools\Events\EndEvent;
+use GraphQlTools\Events\StartEvent;
+use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Utility\Query;
 
 final class Tracing extends Extension
@@ -57,13 +56,13 @@ final class Tracing extends Extension
 
     public function toExecutionTrace(): ExecutionTrace
     {
-        return ExecutionTrace::from(
+        return new ExecutionTrace(
             $this->query,
             $this->startTimeInNanoseconds,
             $this->endTimeInNanoseconds,
-            $this->startDateTime,
             $this->fieldTraces,
-            $this->errors
+            $this->errors,
+            $this->startDateTime,
         );
     }
 

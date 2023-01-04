@@ -5,6 +5,7 @@ namespace GraphQlTools\Test\Unit\Helper\Compilation;
 use Closure;
 use GraphQlTools\Helper\Compilation\ClosureCompiler;
 use PHPUnit\Framework\TestCase;
+use function _PHPStan_5c71ab23c\RingCentral\Psr7\str;
 
 class ClosureCompilerTest extends TestCase
 {
@@ -12,6 +13,18 @@ class ClosureCompilerTest extends TestCase
     protected function setUp(): void
     {
         $this->compiler = new ClosureCompiler();
+    }
+
+    private function testMethod(string $test, \DateTimeInterface $date): string {
+        return "{$test} {$date->format('Y')}";
+    }
+
+    public static function staticMethod(string $test, \DateTimeInterface $date): string {
+        return "{$test} {$date->format('Y')}";
+    }
+
+    private function testWithSelfAccess(): string {
+        return self::class . ' <=> ' . static::class;
     }
 
     /**
@@ -22,14 +35,6 @@ class ClosureCompilerTest extends TestCase
     {
         $compiled = $this->compiler->compile($closure);
         self::assertEquals($expected, $compiled);
-    }
-
-    private function testMethod(string $test, \DateTimeInterface $date): string {
-        return "{$test} {$date->format('Y')}";
-    }
-
-    public static function staticMethod(string $test, \DateTimeInterface $date): string {
-        return "{$test} {$date->format('Y')}";
     }
 
     public function compileDataProvider(): array {
@@ -52,6 +57,11 @@ class ClosureCompilerTest extends TestCase
             ],
             'test with public static method' => [
                 '\GraphQlTools\Test\Unit\Helper\Compilation\ClosureCompilerTest::staticMethod(...)', self::staticMethod(...),
+            ],
+            'test method with static & self access' => [
+                "static function (): string {
+        return \GraphQlTools\Test\Unit\Helper\Compilation\ClosureCompilerTest::class . ' <=> ' . \GraphQlTools\Test\Unit\Helper\Compilation\ClosureCompilerTest::class;
+    }", $this->testWithSelfAccess(...)
             ],
         ];
     }

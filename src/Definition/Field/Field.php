@@ -10,7 +10,7 @@ use GraphQlTools\Definition\Field\Shared\DefinesArguments;
 use GraphQlTools\Definition\Field\Shared\DefinesField;
 use GraphQlTools\Definition\Field\Shared\DefinesMetadata;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
-use GraphQlTools\Definition\Shared\Deprecatable;
+use GraphQlTools\Definition\Field\Shared\Deprecatable;
 use GraphQlTools\Helper\Middleware;
 use GraphQlTools\Helper\ProxyResolver;
 

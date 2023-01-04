@@ -9,17 +9,17 @@ use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\GraphQlContext;
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Shared\ComposableFields;
-use GraphQlTools\Definition\Shared\Deprecatable;
+use GraphQlTools\Definition\Shared\HasDeprecation;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\InitializesFields;
-use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Utility\Classes;
 
 abstract class GraphQlInterface implements DefinesGraphQlType
 {
-    use InitializesFields, HasDescription, Deprecatable, ComposableFields;
+    use InitializesFields, HasDescription, HasDeprecation, ComposableFields;
 
     private const CLASS_POSTFIX = 'Interface';
 
@@ -30,8 +30,8 @@ abstract class GraphQlInterface implements DefinesGraphQlType
         return new InterfaceType([
             'name' => static::typeName(),
             'description' => $this->addDeprecationToDescription($this->description()),
-            'deprecationReason' => $this->deprecationReason,
-            'removalDate' => $this->removalDate,
+            'deprecationReason' => $this->deprecationReason(),
+            'removalDate' => $this->removalDate(),
             'fields' => fn() => $this->initializeFields(
                 $registry,
                 [$this->fields(...), ...$injectedFieldFactories],

@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace GraphQlTools\Helper;
 
 use Closure;
-use GraphQlTools\Contract\Extension;
-use GraphQlTools\Events\VisitFieldEvent;
-use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
+use GraphQlTools\Events\StartEvent;
+use GraphQlTools\Events\VisitFieldEvent;
+use GraphQlTools\Helper\Extension\Extension;
 use Throwable;
 
 final class ExtensionManager

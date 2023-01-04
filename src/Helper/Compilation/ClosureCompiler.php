@@ -56,8 +56,7 @@ class ClosureCompiler
         $reflection = new ReflectionClosure($closure);
 
         if (MethodExtractor::isMethod($reflection)) {
-            $methodExtractor = MethodExtractor::fromReflectionFunction($reflection);
-            return $methodExtractor->toCode();
+            return MethodExtractor::fromReflectionFunction($reflection)->toCode();
         }
 
         $this->verifyBindings($reflection);

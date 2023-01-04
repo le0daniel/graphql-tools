@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Definition\Shared;
+namespace GraphQlTools\Definition\Field\Shared;
 
 use DateTimeInterface;
 

@@ -3,12 +3,12 @@
 namespace GraphQlTools\Test\Unit\Helper;
 
 use GraphQL\Executor\ExecutionResult;
-use GraphQlTools\Contract\Extension;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;
-use GraphQlTools\Helper\ExtensionManager;
+use GraphQlTools\Helper\Extension\Extension;
 use GraphQlTools\Helper\Extension\Tracing;
+use GraphQlTools\Helper\ExtensionManager;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;

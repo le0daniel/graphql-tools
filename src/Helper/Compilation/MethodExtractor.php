@@ -15,25 +15,26 @@ use Throwable;
 
 class MethodExtractor
 {
-    private const METHOD_NAME_REGEX = '/function\s+(?<name>[a-zA-Z0-9]+)\(/';
+    private const METHOD_NAME_REGEX = '/function\s+(?<name>[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)\s*\(/';
     private const CLOSURE_NAMESPACE = '__CompiledClosure';
+    private readonly string $declaringCode;
     private readonly ReflectionMethod $methodReflection;
 
     /**
      * @throws \ReflectionException
      */
-    public function __construct(private readonly string $className, private readonly string $methodName, private readonly string $declaringCode)
+    public function __construct(private readonly string $className, private readonly string $methodName)
     {
         $this->methodReflection = new ReflectionMethod($this->className, $this->methodName);
+        $this->declaringCode = self::getCodeFromReflection($this->methodReflection);
         $this->verifyScopeUsage();
     }
 
     public static function fromReflectionFunction(ReflectionFunction $function): self
     {
-        $code = self::getCodeFromReflection($function);
-        $methodName = self::getMethodName($code);
+        $methodName = self::getMethodName(self::getCodeFromReflection($function));
         $className = Classes::getDeclaredClassInFile($function->getFileName());
-        return new self($className, $methodName, $code);
+        return new self($className, $methodName);
     }
 
     public function toCode(): string
@@ -59,7 +60,9 @@ class MethodExtractor
     public static function isMethod(ReflectionFunction $function): bool
     {
         try {
-            Classes::getDeclaredClassInFile($function->getFileName());
+            if (!Classes::getDeclaredClassInFile($function->getFileName())) {
+                return false;
+            }
             $code = self::getCodeFromReflection($function);
             return preg_match(self::METHOD_NAME_REGEX, $code) === 1;
         } catch (Throwable) {
@@ -67,7 +70,7 @@ class MethodExtractor
         }
     }
 
-    private static function getCodeFromReflection(ReflectionFunction $function): string
+    private static function getCodeFromReflection(ReflectionFunction|ReflectionMethod $function): string
     {
         $linesOfCodeInFile = explode(PHP_EOL, file_get_contents($function->getFileName()));
         $methodBodyLines = array_slice($linesOfCodeInFile, $function->getStartLine() - 1, $function->getEndLine() - ($function->getStartLine() - 1));
@@ -85,12 +88,8 @@ class MethodExtractor
 
     private function verifyScopeUsage(): void
     {
-        $tokens = token_get_all("<?php declare(strict_types=1); {$this->declaringCode};");
-
-        foreach ($tokens as $token) {
-            if ($token[0] === T_VARIABLE && $token[1] === '$this') {
-                throw new RuntimeException("Can not extract method which uses `\$this`.");
-            }
+        if (CodeAnalysing::usesThis($this->declaringCode)) {
+            throw new RuntimeException("Can not extract method which uses `\$this`.");
         }
     }
 

@@ -9,14 +9,14 @@ use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Shared\ComposableFields;
-use GraphQlTools\Definition\Shared\Deprecatable;
+use GraphQlTools\Definition\Shared\HasDeprecation;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\InitializesFields;
 use GraphQlTools\Utility\Classes;
 
 abstract class GraphQlType implements DefinesGraphQlType
 {
-    use HasDescription, Deprecatable, InitializesFields, ComposableFields;
+    use HasDescription, HasDeprecation, InitializesFields, ComposableFields;
 
     private const CLASS_POSTFIX = 'Type';
 
@@ -33,8 +33,8 @@ abstract class GraphQlType implements DefinesGraphQlType
             [
                 'name' => static::typeName(),
                 'description' => $this->addDeprecationToDescription($this->description()),
-                'deprecationReason' => $this->deprecationReason,
-                'removalDate' => $this->removalDate,
+                'deprecationReason' => $this->deprecationReason(),
+                'removalDate' => $this->removalDate(),
                 'fields' => fn() => $this->initializeFields(
                     $registry,
                     [$this->fields(...), ...$injectedFieldFactories],

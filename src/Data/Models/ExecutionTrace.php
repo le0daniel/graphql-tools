@@ -4,11 +4,10 @@ namespace GraphQlTools\Data\Models;
 
 use DateTime;
 use DateTimeImmutable;
-use GraphQlTools\Utility\Lists;
 use GraphQlTools\Utility\Typing;
-use JetBrains\PhpStorm\Internal\TentativeType;
+use JsonSerializable;
 
-final class ExecutionTrace implements \JsonSerializable
+final class ExecutionTrace implements JsonSerializable
 {
     public function __construct(
         public readonly string            $query,
@@ -23,7 +22,7 @@ final class ExecutionTrace implements \JsonSerializable
         Typing::verifyListOfType(GraphQlError::class, $this->errors);
     }
 
-    public static function from(
+    public static function fromSerialized(
         string            $query,
         int               $startTimeInNanoSeconds,
         int               $endTimeInNanoSeconds,
@@ -40,6 +39,10 @@ final class ExecutionTrace implements \JsonSerializable
             $errors,
             $startDateTime,
         );
+    }
+
+    public function serialize(): string {
+
     }
 
     public function durationNs(): int

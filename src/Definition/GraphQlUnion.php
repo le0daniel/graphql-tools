@@ -9,7 +9,7 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\UnionType;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\GraphQlContext;
-use GraphQlTools\Definition\Shared\Deprecatable;
+use GraphQlTools\Definition\Shared\HasDeprecation;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Helper\OperationContext;
@@ -17,7 +17,7 @@ use GraphQlTools\Utility\Classes;
 
 abstract class GraphQlUnion implements DefinesGraphQlType
 {
-    use HasDescription, Deprecatable;
+    use HasDescription, HasDeprecation;
 
     private const CLASS_POSTFIX = 'Union';
 
@@ -25,8 +25,8 @@ abstract class GraphQlUnion implements DefinesGraphQlType
         return new UnionType([
             'name' => static::typeName(),
             'description' => $this->addDeprecationToDescription($this->description()),
-            'deprecationReason' => $this->deprecationReason,
-            'removalDate' => $this->removalDate,
+            'deprecationReason' => $this->deprecationReason(),
+            'removalDate' => $this->removalDate(),
             'types' => fn() => array_map(fn(string $typeName) => $registry->type($typeName), $this->possibleTypes()),
             'resolveType' => fn($_, OperationContext $context, $info) => $registry->type(
                 $this->resolveToType($_, $context->context, $info)

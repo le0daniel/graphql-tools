@@ -8,7 +8,7 @@ use BackedEnum;
 use GraphQL\Type\Definition\EnumType;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
-use GraphQlTools\Definition\Shared\Deprecatable;
+use GraphQlTools\Definition\Shared\HasDeprecation;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Classes;
@@ -17,15 +17,15 @@ use GraphQlTools\Utility\Typing;
 abstract class GraphQlEnum implements DefinesGraphQlType
 {
     private const CLASS_POSTFIX = 'Enum';
-    use HasDescription, Deprecatable;
+    use HasDescription, HasDeprecation;
 
     public function toDefinition(TypeRegistry $registry): EnumType {
         return new EnumType([
             'name' => static::typeName(),
             'description' => $this->addDeprecationToDescription($this->description()),
             'values' => $this->initValues(),
-            'deprecationReason' => $this->deprecationReason,
-            'removalDate' => $this->removalDate,
+            'deprecationReason' => $this->deprecationReason(),
+            'removalDate' => $this->removalDate(),
         ]);
     }
 
