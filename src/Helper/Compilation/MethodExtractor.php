@@ -101,7 +101,7 @@ class MethodExtractor
     private function buildNamespacedClosure(): string
     {
         $functionCode = $this->buildExtractedFunctionCode();
-        $usedNamespaces = Reflections::findUsedNamespacesInDeclaringClass($this->methodReflection->getFileName());
+        $usedNamespaces = CodeAnalysing::findUsedNamespacesInFile($this->methodReflection->getFileName());
 
         $namespace = $this->methodReflection->getDeclaringClass()->inNamespace()
             ? $this->methodReflection->getDeclaringClass()->getNamespaceName()
