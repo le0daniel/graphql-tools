@@ -31,8 +31,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "GraphQlTools\\Test\\": "tests/",
-      "Protobuf\\": "build/"
+      "GraphQlTools\\Test\\": "tests/"
     }
   }
 }

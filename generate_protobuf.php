@@ -6,9 +6,13 @@ use GraphQlTools\Utility\Process;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-const BUILD_DIRECTORY = __DIR__ . '/build';
+const BUILD_DIRECTORY = __DIR__ . '/src/Protobuf';
 const NAMESPACE_REGEX = '/namespace\s+([a-zA-Z0-9\\\\]+);/';
-const PREFIX_NAMESPACE = 'Protobuf';
+const PREFIX_NAMESPACE = 'GraphQlTools\Protobuf';
+
+if (!file_exists(BUILD_DIRECTORY) && !is_dir(BUILD_DIRECTORY)) {
+    mkdir(BUILD_DIRECTORY);
+}
 
 function generateProtobuf(): void {
     $files = Directories::fileIteratorWithRegex(BUILD_DIRECTORY, '/\.php$/');
@@ -17,7 +21,7 @@ function generateProtobuf(): void {
     }
 
     Process::mustExecute('protoc', [
-        'php_out' => 'build',
+        'php_out' => BUILD_DIRECTORY,
         './report.proto'
     ]);
 
