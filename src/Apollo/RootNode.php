@@ -2,12 +2,14 @@
 
 namespace GraphQlTools\Apollo;
 
+use GraphQlTools\Data\Models\GraphQlErrorLocation;
 use GraphQlTools\Data\Models\ResolverTrace;
 use GraphQlTools\Data\Models\GraphQlError;
+use GraphQlTools\Protobuf\Trace\Error;
+use GraphQlTools\Protobuf\Trace\Location;
+use GraphQlTools\Protobuf\Trace\Node;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Typing;
-use Protobuf\Trace\Error;
-use Protobuf\Trace\Node;
 
 final class RootNode
 {
@@ -17,14 +19,14 @@ final class RootNode
     private array $rootChildren = [];
 
     /** @var array<string, GraphQlError> */
-    private readonly array $errorMap;
+    private readonly array $errorIndex;
 
     public function __construct(array $resolverTraces, array $errors)
     {
         Typing::verifyListOfType(ResolverTrace::class, $resolverTraces);
         Typing::verifyListOfType(GraphQlError::class, $errors);
 
-        $this->errorMap = Arrays::mapWithKeys($errors, static function($index, GraphQlError $error): array {
+        $this->errorIndex = Arrays::mapWithKeys($errors, static function($index, GraphQlError $error): array {
             return [$error->pathKey(), $error];
         });
 
@@ -135,9 +137,19 @@ final class RootNode
         $node->setResponseName($fieldTrace->lastPathElement());
 
         /** @var GraphQlError[] $errors */
-        $errors = $this->errorMap[$fieldTrace->pathKey()] ?? [];
+        $errors = $this->errorIndex[$fieldTrace->pathKey()] ?? [];
         if (!empty($errors)) {
-            $node->setError(array_map(fn(GraphQlError $error): Error => $error->toProtobufError(), $errors));
+            $node->setError(array_map(function(GraphQlError $error): Error {
+                $protobufError = new Error();
+                $protobufError->setLocation(array_map(function(GraphQlErrorLocation $location): Location {
+                    $protobufLocation = new Location();
+                    $protobufLocation->setColumn($location->column);
+                    $protobufLocation->setLine($location->line);
+                    return $protobufLocation;
+                }, $error->locations));
+                $protobufError->setMessage($error->message);
+                return $protobufError;
+            }, $errors));
         }
 
         return $node;

@@ -5,7 +5,7 @@ namespace GraphQlTools\Apollo;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Classes;
 
-final class ProtobufClass
+final class ProtobufClassModifier
 {
     private const NAMESPACE_REGEX = '/namespace\s(?<namespace>[a-zA-Z0-9\\\\]+);$/m';
     private const CLASS_USAGE_PREFIX = '/\\\\[A-Z][a-zA-Z0-9\\\\]+/m';
@@ -23,9 +23,9 @@ final class ProtobufClass
         return implode(PHP_EOL, $lines);
     }
 
-    private function pregMatchAllContent(string $regex): array
+    private function pregMatchAllClassUsage(): array
     {
-        preg_match_all($regex, $this->content, $matches);
+        preg_match_all(self::CLASS_USAGE_PREFIX, $this->content, $matches);
         return $matches ?? [];
     }
 
@@ -75,7 +75,7 @@ final class ProtobufClass
 
     public function prefixUsedClasses(string $prefix): void
     {
-        $matches = $this->pregMatchAllContent(self::CLASS_USAGE_PREFIX);
+        $matches = $this->pregMatchAllClassUsage();
 
         $classUsages = Arrays::removeNullValues(array_map(function (string $classUsage) use ($prefix) {
             $parts = Classes::classNameAsArray($classUsage);

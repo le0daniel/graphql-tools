@@ -30,7 +30,7 @@ use Traversable;
 
 final class Query
 {
-    private const QUERY_NAME_REGEX = '/(?:query|mutation)\s+(?<queryName>[a-zA-Z\d]+)\s*(?:{|\()/m';
+    private const QUERY_NAME_REGEX = '/(?:query|mutation)\s+(?<queryName>[a-zA-Z\d_]+)\s*(?:{|\()/m';
     private const INT_LITERAL_VALUE = '0';
     private const FLOAT_LITERAL_VALUE = '0';
     private const STRING_LITERAL_VALUE = '';

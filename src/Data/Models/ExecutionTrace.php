@@ -2,8 +2,10 @@
 
 namespace GraphQlTools\Data\Models;
 
+use DateInterval;
 use DateTime;
 use DateTimeImmutable;
+use GraphQlTools\Utility\Time;
 use GraphQlTools\Utility\Typing;
 use JsonSerializable;
 
@@ -22,27 +24,9 @@ final class ExecutionTrace implements JsonSerializable
         Typing::verifyListOfType(GraphQlError::class, $this->errors);
     }
 
-    public static function fromSerialized(
-        string            $query,
-        int               $startTimeInNanoSeconds,
-        int               $endTimeInNanoSeconds,
-        DateTimeImmutable $startDateTime,
-        array             $fieldTraces,
-        array             $errors,
-    ): self
-    {
-        return new self(
-            $query,
-            $startTimeInNanoSeconds,
-            $endTimeInNanoSeconds,
-            $fieldTraces,
-            $errors,
-            $startDateTime,
-        );
-    }
-
-    public function serialize(): string {
-
+    public function endDateTime(): DateTimeImmutable {
+        $durationInMicroseconds = (int) Time::nanoSecondsToMicroseconds($this->durationNs(), 0);
+        return $this->startDateTime->add(DateInterval::createFromDateString("{$durationInMicroseconds} microseconds"));
     }
 
     public function durationNs(): int

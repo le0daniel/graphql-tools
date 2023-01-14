@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-use GraphQlTools\Apollo\ProtobufClass;
+use GraphQlTools\Apollo\ProtobufClassModifier;
 use GraphQlTools\Utility\Directories;
 use GraphQlTools\Utility\Process;
 
@@ -43,7 +43,7 @@ generateProtobuf();
 writeLine('Modify Protobuf files');
 $files = Directories::fileIteratorWithRegex(BUILD_DIRECTORY, '/\.php$/');
 foreach ($files as $file) {
-    $protobufClass = new ProtobufClass($file->getRealPath());
+    $protobufClass = new ProtobufClassModifier($file->getRealPath());
     $protobufClass->removeClassAliases();
     $protobufClass->prefixNamespace(PREFIX_NAMESPACE);
     $protobufClass->prefixUsedClasses(PREFIX_NAMESPACE);

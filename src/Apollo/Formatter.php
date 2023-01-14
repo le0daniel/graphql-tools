@@ -7,26 +7,32 @@ use DateTimeImmutable;
 use Exception;
 use Google\Protobuf\Timestamp;
 use GraphQlTools\Data\Models\ExecutionTrace;
+use GraphQlTools\Protobuf\Trace;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Query;
-use Protobuf\Trace;
 
 final class Formatter
 {
     public const BLACKLISTED_HEADERS = ['authorization', 'cookie', 'set-cookie'];
     public const BLACKLISTED_VARIABLE_VALUES = ['secret', 'token'];
 
-    public static function singleTraceToProtobuf(ExecutionTrace $executionTrace): array
+    protected function defaultQueryName(string $query): string {
+        return 'Query:' . md5($query);
+    }
+
+    public function singleTraceToProtobuf(ExecutionTrace $executionTrace): array
     {
         $querySignature = Query::createSignatureString($executionTrace->query);
-        $queryName = Query::getQueryName($executionTrace->query) ?? 'No-Name';
+        $queryName = Query::getQueryName($executionTrace->query) ?? $this->defaultQueryName($executionTrace->query);
+
+        // This is needed for apollo, otherwise it will not work to ingest a query
         $apolloQueryName = "{$queryName}-" . substr(md5($querySignature), 0, 12);
         $fullApolloSignature = "#{$apolloQueryName}" . PHP_EOL . $querySignature;
 
         $trace = (new Trace())
             ->setDurationNs($executionTrace->durationNs())
             ->setStartTime(self::toTimestamp($executionTrace->startDateTime))
-            ->setEndTime(self::toTimestamp($executionTrace->endTime))
+            ->setEndTime(self::toTimestamp($executionTrace->endDateTime()))
             ->setRoot((new RootNode($executionTrace->fieldTraces, $executionTrace->errors))->toProtobuf())
         ;
 
