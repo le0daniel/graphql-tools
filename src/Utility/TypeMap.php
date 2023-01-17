@@ -34,7 +34,12 @@ class TypeMap
                 continue;
             }
 
-            $parentClassNames = Reflections::getAllParentClasses(new \ReflectionClass($className));
+            $reflection = new \ReflectionClass($className);
+            if ($reflection->isAbstract()) {
+                continue;
+            }
+
+            $parentClassNames = Reflections::getAllParentClasses($reflection);
             foreach ($parentClassNames as $parentClassName) {
                 if (in_array($parentClassName, self::CLASS_MAP_INSTANCES, true)) {
                     /** @var class-string<GraphQlUnion|GraphQlType|GraphQlScalar|GraphQlInterface|GraphQlEnum|GraphQlInputType> $className */
