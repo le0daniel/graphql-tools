@@ -44,7 +44,7 @@ class Field implements DefinesGraphQlType
         ]);
     }
 
-    public function resolvedBy(Closure|Middleware $closure): self
+    public function resolvedBy(Closure $closure): self
     {
         $this->resolveFunction = $closure;
         return $this;
