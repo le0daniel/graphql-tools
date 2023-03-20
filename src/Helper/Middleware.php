@@ -28,9 +28,9 @@ class Middleware
 
     /**
      * @param Closure $middle
-     * @return callable(mixed, array, GraphQlContext, ResolveInfo): mixed
+     * @return Closure(mixed, array, GraphQlContext, ResolveInfo): mixed
      */
-    public function then(Closure $middle): callable {
+    public function then(Closure $middle): Closure {
         return array_reduce(
             array_reverse($this->pipes), $this->createReducer(), $this->prepareDestination($middle),
         );

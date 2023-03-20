@@ -18,7 +18,8 @@ use GraphQlTools\Helper\ProxyResolver;
 class Field implements DefinesGraphQlType
 {
     use DefinesField, Deprecatable, DefinesReturnType, DefinesArguments, DefinesMetadata;
-    private null|Closure|Middleware $resolveFunction = null;
+    private null|Closure $resolveFunction = null;
+    private array $middlewares = [];
 
     final protected function __construct(public readonly string $name)
     {
@@ -29,12 +30,21 @@ class Field implements DefinesGraphQlType
         return new self($name);
     }
 
+    public function middleware(Closure... $middleware): self {
+        $this->middlewares = $middleware;
+        return $this;
+    }
+
     final public function toDefinition(TypeRegistry $registry): FieldDefinition
     {
+        $resolveFn = empty($this->middlewares)
+            ? new ProxyResolver($this->resolveFunction ?? null)
+            : new ProxyResolver(Middleware::create($this->middlewares)->then($this->resolveFunction));
+
         $this->verifyTypeIsSet();
         return FieldDefinition::create([
             'name' => $this->name,
-            'resolve' => new ProxyResolver($this->resolveFunction ?? null),
+            'resolve' => $resolveFn,
             'type' => $this->resolveReturnType($registry),
             'deprecationReason' => $this->deprecationReason,
             'removalDate' => $this->removalDate,

@@ -21,21 +21,14 @@ final class LionType extends GraphQlType {
         $this->deprecationReason = 'Because it is deprecated! Deal with it!';
     }
 
-    public function testMyDependencies(string $string, Context $context, ?ResolveInfo $info): string {
-        $className = static::class ?? self::class;
-        $clusure = function () use ($className) {
-            return "name is: {$className}";
-        };
-        $resolveInfo = ResolveInfo::class;
-
-        return "The string is: {$string}: {\$this->name}: {$className} as {$clusure()} with {$resolveInfo}";
-    }
-
     protected function fields(TypeRegistry $registry): array {
         return [
             Field::withName('sound')
                 ->ofType(Type::nonNull(Type::string()))
-                ->resolvedBy(fn($data) => $data['sound']),
+                ->middleware(
+                    fn(array $data, $args, $context, $info, $next) => $next($data['sound'] ?? '', $args, $context, $info)
+                )
+                ->resolvedBy(fn(string $sound) => $sound),
 
             Field::withName('fieldWithMeta')
                 ->ofType(Type::nonNull(Type::string()))
