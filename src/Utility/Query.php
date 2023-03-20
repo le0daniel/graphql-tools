@@ -113,11 +113,11 @@ final class Query
         // This might change in future versions...
         return Visitor::visit($ast, [
             NodeKind::DOCUMENT => static function (DocumentNode $node): DocumentNode {
-                $node->definitions = NodeList::create(self::sortBy($node->definitions, 'kind', 'name.value'));
+                $node->definitions = new NodeList(self::sortBy($node->definitions, 'kind', 'name.value'));
                 return $node;
             },
             NodeKind::OPERATION_DEFINITION => static function (OperationDefinitionNode $node): OperationDefinitionNode {
-                $node->variableDefinitions = NodeList::create(self::sortBy($node->variableDefinitions, 'variable.name.value'));
+                $node->variableDefinitions = new NodeList(self::sortBy($node->variableDefinitions, 'variable.name.value'));
                 return $node;
             },
             NodeKind::SELECTION_SET => static function (SelectionSetNode $node) {
@@ -133,7 +133,7 @@ final class Query
                     );
                 }
 
-                $node->selections = NodeList::create(Arrays::nonRecursiveFlatten($splitNodeList));
+                $node->selections = new NodeList(Arrays::nonRecursiveFlatten($splitNodeList));
                 return $node;
             },
 
@@ -142,28 +142,28 @@ final class Query
                     return $node;
                 }
 
-                $node->arguments = NodeList::create(self::sortBy($node->arguments, 'name.value'));
+                $node->arguments = new NodeList(self::sortBy($node->arguments, 'name.value'));
                 return $node;
             },
 
             NodeKind::FRAGMENT_SPREAD => static function (FragmentSpreadNode $node): FragmentSpreadNode {
-                $node->directives = NodeList::create(self::sortBy($node->directives, 'name.value'));
+                $node->directives = new NodeList(self::sortBy($node->directives, 'name.value'));
                 return $node;
             },
 
             NodeKind::INLINE_FRAGMENT => static function (InlineFragmentNode $node): InlineFragmentNode {
-                $node->directives = NodeList::create(self::sortBy($node->directives, 'name.value'));
+                $node->directives = new NodeList(self::sortBy($node->directives, 'name.value'));
                 return $node;
             },
 
             NodeKind::FRAGMENT_DEFINITION => static function (FragmentDefinitionNode $node): FragmentDefinitionNode {
-                $node->directives = NodeList::create(self::sortBy($node->directives, 'name.value'));
-                $node->variableDefinitions = NodeList::create(self::sortBy($node->variableDefinitions, 'variable.name.value'));
+                $node->directives = new NodeList(self::sortBy($node->directives, 'name.value'));
+                $node->variableDefinitions = new NodeList(self::sortBy($node->variableDefinitions, 'variable.name.value'));
                 return $node;
             },
 
             NodeKind::DIRECTIVE => static function (DirectiveNode $node): DirectiveNode {
-                $node->arguments = NodeList::create(self::sortBy($node->arguments, 'name.value'));
+                $node->arguments = new NodeList(self::sortBy($node->arguments, 'name.value'));
                 return $node;
             }
         ]);
@@ -199,13 +199,13 @@ final class Query
 
             NodeKind::LST => function (ListValueNode $node): ListValueNode {
                 $clone = clone $node;
-                $clone->values = self::LIST_LITERAL_VALUE;
+                $clone->values = new NodeList(self::OBJECT_LITERAL_VALUE);
                 return $clone;
             },
 
             NodeKind::OBJECT => function (ObjectValueNode $node): ObjectValueNode {
                 $clone = clone $node;
-                $clone->fields = self::OBJECT_LITERAL_VALUE;
+                $clone->fields = new NodeList(self::OBJECT_LITERAL_VALUE);
                 return $clone;
             },
         ]);

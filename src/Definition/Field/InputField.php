@@ -6,13 +6,13 @@ use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Shared\DefinesDefaultValue;
 use GraphQlTools\Definition\Field\Shared\DefinesField;
-use GraphQlTools\Definition\Field\Shared\DefinesMetadata;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
+use GraphQlTools\Definition\Field\Shared\DefinesTags;
 use GraphQlTools\Definition\Field\Shared\Deprecatable;
 
 final class InputField implements DefinesGraphQlType
 {
-    use DefinesField, Deprecatable, DefinesReturnType, DefinesDefaultValue, DefinesMetadata;
+    use DefinesField, Deprecatable, DefinesReturnType, DefinesDefaultValue, DefinesTags;
 
     final public function __construct(public readonly string $name)
     {
@@ -23,6 +23,12 @@ final class InputField implements DefinesGraphQlType
         return new self($name);
     }
 
+    /**
+     * @internal This is used internally to get the state of the builder. Do not use this.
+     * @param TypeRegistry $typeRegistry
+     * @return array
+     * @throws \GraphQlTools\Definition\DefinitionException
+     */
     final public function toDefinition(TypeRegistry $typeRegistry): array
     {
         $defaultValue = isset($this->defaultValue)
@@ -35,7 +41,7 @@ final class InputField implements DefinesGraphQlType
             'type' => $this->resolveReturnType($typeRegistry),
             'deprecatedReason' => $this->deprecationReason,
             'removalDate' => $this->removalDate,
-            '__metadata' => $this->metadata,
+            'tags' => $this->getTags(),
         ] + $defaultValue;
     }
 }

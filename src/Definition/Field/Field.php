@@ -6,10 +6,11 @@ use Closure;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
+use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Field\Shared\DefinesArguments;
 use GraphQlTools\Definition\Field\Shared\DefinesField;
-use GraphQlTools\Definition\Field\Shared\DefinesMetadata;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
+use GraphQlTools\Definition\Field\Shared\DefinesTags;
 use GraphQlTools\Definition\Field\Shared\Deprecatable;
 use GraphQlTools\Helper\Middleware;
 use GraphQlTools\Helper\ProxyResolver;
@@ -17,7 +18,7 @@ use GraphQlTools\Helper\ProxyResolver;
 
 class Field implements DefinesGraphQlType
 {
-    use DefinesField, Deprecatable, DefinesReturnType, DefinesArguments, DefinesMetadata;
+    use DefinesField, Deprecatable, DefinesReturnType, DefinesArguments, DefinesTags;
     private null|Closure $resolveFunction = null;
     private array $middlewares = [];
 
@@ -30,11 +31,22 @@ class Field implements DefinesGraphQlType
         return new self($name);
     }
 
+    /**
+     * @api define middlewares to use when resolving this field.
+     * @param Closure ...$middleware
+     * @return $this
+     */
     public function middleware(Closure... $middleware): self {
         $this->middlewares = $middleware;
         return $this;
     }
 
+    /**
+     * @internal
+     * @param TypeRegistry $registry
+     * @return FieldDefinition
+     * @throws DefinitionException
+     */
     final public function toDefinition(TypeRegistry $registry): FieldDefinition
     {
         $resolveFn = empty($this->middlewares)
@@ -42,7 +54,7 @@ class Field implements DefinesGraphQlType
             : new ProxyResolver(Middleware::create($this->middlewares)->then($this->resolveFunction));
 
         $this->verifyTypeIsSet();
-        return FieldDefinition::create([
+        return new FieldDefinition([
             'name' => $this->name,
             'resolve' => $resolveFn,
             'type' => $this->resolveReturnType($registry),
@@ -50,7 +62,7 @@ class Field implements DefinesGraphQlType
             'removalDate' => $this->removalDate,
             'description' => $this->addDeprecationToDescription($this->description ?? ''),
             'args' => $this->buildArguments($registry),
-            '__metadata' => $this->metadata
+            'tags' => $this->getTags(),
         ]);
     }
 

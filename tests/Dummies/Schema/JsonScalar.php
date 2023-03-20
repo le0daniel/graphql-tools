@@ -11,7 +11,7 @@ use GraphQlTools\Definition\GraphQlScalar;
 
 final class JsonScalar extends GraphQlScalar {
 
-    protected function description(): string {
+    public function description(): string {
         return '';
     }
 

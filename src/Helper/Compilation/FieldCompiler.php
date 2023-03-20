@@ -41,7 +41,7 @@ class FieldCompiler
         ]));
 
         $className = Compiling::absoluteClassName($fieldDefinition::class);
-        return "{$className}::create([
+        return "new {$className}([
             {$lines}
         ])";
     }
@@ -80,7 +80,7 @@ class FieldCompiler
 
         $typeClassName = Compiling::absoluteClassName($type::class);
         if ($type instanceof WrappingType) {
-            $property = (new ReflectionClass($type))->getProperty('ofType')->getValue($type);
+            $property = (new ReflectionClass($type))->getProperty('wrappedType')->getValue($type);
             $next = $this->compileType($property);
             return "new {$typeClassName}({$next})";
         }

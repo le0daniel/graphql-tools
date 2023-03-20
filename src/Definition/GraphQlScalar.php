@@ -7,12 +7,10 @@ namespace GraphQlTools\Definition;
 use GraphQL\Type\Definition\ScalarType;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
-use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Utility\Classes;
 
 abstract class GraphQlScalar extends ScalarType implements DefinesGraphQlType
 {
-    use HasDescription;
 
     private const CLASS_POSTFIX = 'Scalar';
 

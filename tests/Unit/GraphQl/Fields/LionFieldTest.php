@@ -16,6 +16,6 @@ class LionFieldTest extends TypeTestCase
     public function testFieldWithMetadataResolution(): void {
         $result = $this->field('fieldWithMeta')
             ->visit(null);
-        self::assertEquals("policy is: This is my special policy", $result);
+        self::assertEquals("Tags are: First, Second", $result);
     }
 }

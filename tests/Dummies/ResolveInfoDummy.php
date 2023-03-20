@@ -6,7 +6,6 @@ namespace GraphQlTools\Test\Dummies;
 
 use GraphQL\Type\Definition\FieldDefinition;
 use \GraphQL\Type\Definition\ResolveInfo as BaseResolveInfo;
-use GraphQlTools\Helper\TypeRegistry;
 use GraphQlTools\Utility\Reflections;
 use ReflectionClass;
 
@@ -23,7 +22,7 @@ final class ResolveInfoDummy
     ): BaseResolveInfo
     {
         $reflection = new ReflectionClass(BaseResolveInfo::class);
-        $fieldDefinition ??= FieldDefinition::create(
+        $fieldDefinition ??= new FieldDefinition(
             [
                 'deprecationReason' => $deprecationReason,
                 'name' => 'random',

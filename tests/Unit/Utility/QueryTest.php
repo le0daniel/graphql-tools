@@ -64,7 +64,7 @@ class QueryTest extends TestCase
                 'query {
                     preview(type: "small", count: 10, object: {type: "a"}, list: [{a: "string"}])
                 }',
-                '{ preview(count: 0, list: [], object: {}, type: "") }'
+                '{ preview(count: 0, list: [], object: { }, type: "") }'
             ],
             'variables' => [
                 'query ($var1: ID!, $bvar: ID!) {

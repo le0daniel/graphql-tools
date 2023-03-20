@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Test\Dummies\Schema;
 
+use DateTime;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Contract\TypeRegistry;
@@ -33,8 +34,9 @@ final class LionType extends GraphQlType {
             Field::withName('fieldWithMeta')
                 ->ofType(Type::nonNull(Type::string()))
                 ->resolvedBy(function ($value, $args, $context, ResolveInfo $resolveInfo) {
-                    return "policy is: " . $resolveInfo->fieldDefinition->config['__metadata']['policy'];
+                    return "Tags are: " . implode(', ', $resolveInfo->fieldDefinition->config['tags'] ?? []);
                 })
+                ->tags('First', 'Second')
                 ->withArguments(
                     InputField::withName('test')
                         ->ofType(Type::string())
@@ -43,10 +45,7 @@ final class LionType extends GraphQlType {
                         ->ofType(Type::string())
                         ->withDefaultValue(Eating::MEAT->name)
                 )
-                ->deprecated('Some reason', \DateTime::createFromFormat('Y-m-d H:i:s', '2023-01-09 10:00:10'))
-                ->withMetadata([
-                    'policy' => 'This is my special policy'
-                ]),
+                ->deprecated('Some reason', DateTime::createFromFormat('Y-m-d H:i:s', '2023-01-09 10:00:10')),
 
             // Field::withName('myEnum')
             //     ->ofType($registry->type(EatingEnum::class))

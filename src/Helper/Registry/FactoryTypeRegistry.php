@@ -35,7 +35,7 @@ class FactoryTypeRegistry implements TypeRegistryContract
         }
     }
 
-    public function type(string $nameOrAlias): Closure|Type
+    public function type(string $nameOrAlias): Closure
     {
         return fn() => $this->getType(
             $this->resolveTypeNameAliases($nameOrAlias)

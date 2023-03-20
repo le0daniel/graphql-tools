@@ -3,7 +3,6 @@
 namespace GraphQlTools\Helper;
 
 use Closure;
-use DateTimeInterface;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\InterfaceType;
@@ -309,7 +308,7 @@ class TypeCacheManager
                         return true;
                     }
 
-                    public function __toString()
+                    public function toString(): string
                     {
                         return $this->code;
                     }

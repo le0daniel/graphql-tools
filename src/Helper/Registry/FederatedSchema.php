@@ -136,7 +136,17 @@ class FederatedSchema
                 [
                     'query' => $registry->eagerlyLoadType($queryTypeName),
                     'mutation' => $mutationTypeName ? $registry->eagerlyLoadType($mutationTypeName) : null,
-                    'typeLoader' => $registry->eagerlyLoadType(...),
+                    'typeLoader' => static function(string $typeNameOrClassName) use ($registry) {
+                        try {
+                            return $registry->eagerlyLoadType($typeNameOrClassName);
+                        } catch (RuntimeException $exception) {
+                            $isDefaultOperationType = in_array($typeNameOrClassName, ['Query', 'Mutation', 'Subscription'], true);
+                            if ($isDefaultOperationType) {
+                                return null;
+                            }
+                            throw $exception;
+                        }
+                    },
                     'types' => fn() => array_map(
                         $registry->eagerlyLoadType(...),
                         $cache['eagerlyLoaded'],
@@ -172,7 +182,17 @@ class FederatedSchema
                             $eagerlyLoadedTypes,
                         );
                     },
-                    'typeLoader' => $typeRegistry->eagerlyLoadType(...),
+                    'typeLoader' => static function(string $typeNameOrClassName) use ($typeRegistry) {
+                        try {
+                            return $typeRegistry->eagerlyLoadType($typeNameOrClassName);
+                        } catch (RuntimeException $exception) {
+                            $isDefaultOperationType = in_array($typeNameOrClassName, ['Query', 'Mutation', 'Subscription'], true);
+                            if ($isDefaultOperationType) {
+                                return null;
+                            }
+                            throw $exception;
+                        }
+                    },
                     'assumeValid' => $assumeValid,
                 ]
             )
