@@ -11,6 +11,7 @@ use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Helper\TypeCacheManager;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Compiling;
+use GraphQlTools\Utility\Types;
 use RuntimeException;
 use GraphQlTools\Contract\TypeRegistry as TypeRegistryContract;
 
@@ -131,6 +132,7 @@ class FederatedSchema
             $cache['types'],
             $cache['aliases']
         );
+
         return new Schema(
             SchemaConfig::create(
                 [
@@ -140,8 +142,7 @@ class FederatedSchema
                         try {
                             return $registry->eagerlyLoadType($typeNameOrClassName);
                         } catch (RuntimeException $exception) {
-                            $isDefaultOperationType = in_array($typeNameOrClassName, ['Query', 'Mutation', 'Subscription'], true);
-                            if ($isDefaultOperationType) {
+                            if (Types::isDefaultOperationTypeName($typeNameOrClassName)) {
                                 return null;
                             }
                             throw $exception;
@@ -186,8 +187,7 @@ class FederatedSchema
                         try {
                             return $typeRegistry->eagerlyLoadType($typeNameOrClassName);
                         } catch (RuntimeException $exception) {
-                            $isDefaultOperationType = in_array($typeNameOrClassName, ['Query', 'Mutation', 'Subscription'], true);
-                            if ($isDefaultOperationType) {
+                            if (Types::isDefaultOperationTypeName($typeNameOrClassName)) {
                                 return null;
                             }
                             throw $exception;

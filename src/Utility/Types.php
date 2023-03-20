@@ -13,4 +13,8 @@ final class Types
             ? $type
             : $type();
     }
+
+    public static function isDefaultOperationTypeName(string $typeName): bool {
+        return in_array($typeName, ['Query', 'Mutation', 'Subscription'], true);
+    }
 }

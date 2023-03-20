@@ -269,10 +269,7 @@ class TypeCacheManager
         return '[' . implode(',', $fields,) . ']';
     }
 
-    /**
-     * @return TypeRegistry
-     */
-    public function mockedTypeRegistry(array $aliases)
+    public function mockedTypeRegistry(array $aliases): TypeRegistry
     {
         return new class ($this->typeRegistryName, $aliases) implements TypeRegistry {
             private array $dependencies = [];
@@ -294,25 +291,7 @@ class TypeCacheManager
 
                 $this->dependencies[] = $typeName;
                 $exportedTypeName = Compiling::exportVariable($typeName);
-                $code = "\${$this->typeRegistryVariableName}->type({$exportedTypeName})";
-
-                // It is needed to return a type for lists, because the ListOfType does validation
-                // As it eagerly creates the error message, which does check the types.
-                return fn() => new class($code) extends Type {
-                    public function __construct(private readonly string $code)
-                    {
-                    }
-
-                    public function assertValid(): bool
-                    {
-                        return true;
-                    }
-
-                    public function toString(): string
-                    {
-                        return $this->code;
-                    }
-                };
+                return fn() => "\${$this->typeRegistryVariableName}->type({$exportedTypeName})";
             }
 
             public function eagerlyLoadType(string $nameOrAlias): Type
