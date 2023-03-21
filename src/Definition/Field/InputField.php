@@ -4,6 +4,7 @@ namespace GraphQlTools\Definition\Field;
 
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
+use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Field\Shared\DefinesDefaultValue;
 use GraphQlTools\Definition\Field\Shared\DefinesDescription;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
@@ -23,11 +24,16 @@ final class InputField implements DefinesGraphQlType
         return new self($name);
     }
 
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
     /**
      * @internal This is used internally to get the state of the builder. Do not use this.
      * @param TypeRegistry $typeRegistry
      * @return array
-     * @throws \GraphQlTools\Definition\DefinitionException
+     * @throws DefinitionException
      */
     final public function toDefinition(TypeRegistry $typeRegistry): array
     {

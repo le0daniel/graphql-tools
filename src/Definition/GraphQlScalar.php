@@ -24,6 +24,11 @@ abstract class GraphQlScalar extends ScalarType implements DefinesGraphQlType
         );
     }
 
+    public function getName(): string
+    {
+        return static::typeName();
+    }
+
     public static function typeName(): string
     {
         $typeName = Classes::baseName(static::class);
@@ -33,6 +38,6 @@ abstract class GraphQlScalar extends ScalarType implements DefinesGraphQlType
     }
 
     public function toDefinition(TypeRegistry $registry): static {
-        return $this;
+        return clone $this;
     }
 }

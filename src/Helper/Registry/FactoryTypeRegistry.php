@@ -4,12 +4,9 @@ namespace GraphQlTools\Helper\Registry;
 
 use Closure;
 use GraphQL\Type\Definition\Type;
+use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\TypeRegistry as TypeRegistryContract;
-use GraphQlTools\Definition\GraphQlInputType;
-use GraphQlTools\Definition\GraphQlInterface;
-use GraphQlTools\Definition\GraphQlScalar;
-use GraphQlTools\Definition\GraphQlType;
-use GraphQlTools\Definition\GraphQlUnion;
+use GraphQlTools\Definition\DefinitionException;
 use RuntimeException;
 
 class FactoryTypeRegistry implements TypeRegistryContract
@@ -72,15 +69,14 @@ class FactoryTypeRegistry implements TypeRegistryContract
     {
         $typeFactory = $this->types[$typeName] ?? null;
         if (!$typeFactory) {
-            throw new RuntimeException("Could not resolve type '{$typeName}', no factory provided. Did you register this type?");
+            throw new DefinitionException("Could not resolve type '{$typeName}', no factory provided. Did you register this type?");
         }
 
-        if (is_callable($typeFactory)) {
-            return $typeFactory($this);
-        }
-
-        /** @var GraphQlType|GraphQlScalar|GraphQlInputType|GraphQlInterface|GraphQlUnion $instance */
-        $instance = (new $typeFactory);
-        return $instance->toDefinition($this);
+        return match (true) {
+            is_callable($typeFactory) => $typeFactory($this),
+            is_string($typeFactory) => (new $typeFactory)->toDefinition($this),
+            $typeFactory instanceof DefinesGraphQlType => $typeFactory->toDefinition($this),
+            default => throw new DefinitionException("Could not create type '{$typeName}', invalid factory provided. Factories must be of type Closure, implement DefinesGraphQlType or a class-string implementing DefinesGraphQlType.")
+        };
     }
 }

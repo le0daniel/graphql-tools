@@ -40,6 +40,11 @@ abstract class GraphQlUnion implements DefinesGraphQlType
         return $this->resolveToType(...);
     }
 
+    public function getName(): string
+    {
+        return static::typeName();
+    }
+
     abstract protected function possibleTypes(): array;
 
     public static function typeName(): string

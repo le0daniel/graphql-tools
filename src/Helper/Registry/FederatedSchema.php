@@ -5,7 +5,8 @@ namespace GraphQlTools\Helper\Registry;
 use Closure;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
-use GraphQlTools\Definition\GraphQlInputType;
+use GraphQlTools\Contract\DefinesGraphQlType;
+use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Helper\TypeCacheManager;
@@ -21,22 +22,24 @@ class FederatedSchema
     private array $eagerlyLoadedTypes = [];
     private array $typeFieldExtensions = [];
 
-    public function registerType(string $typeName, string $declarationClassName, bool $eagerlyLoad = false): void {
+    public function registerType(string $typeName, string|DefinesGraphQlType $typeDeclaration): void {
         if (isset($this->types[$typeName])) {
             throw new RuntimeException("Type with name '{$typeName}' was already registered. You can not register a type twice.");
         }
 
-        $this->types[$typeName] = $declarationClassName;
-
-        if ($eagerlyLoad) {
-            $this->eagerlyLoadedTypes[] = $typeName;
-        }
+        $this->types[$typeName] = $typeDeclaration;
     }
 
     public function registerTypes(array $types): void {
-        foreach ($types as $typeName => $className) {
-            $typeName = is_string($typeName) ? $typeName : $className::typeName();
-            $this->registerType($typeName, $className);
+        foreach ($types as $possibleName => $declaration) {
+            $typeName = match (true) {
+                is_string($possibleName) => $possibleName,
+                is_string($declaration) => $declaration::typeName(),
+                $declaration instanceof DefinesGraphQlType => $declaration->getName(),
+                default => throw new DefinitionException('Expected the type name to be resolvable, could not resolve name.'),
+            };
+
+            $this->registerType($typeName, $declaration);
         }
     }
 
@@ -73,8 +76,14 @@ class FederatedSchema
     }
 
     protected function createTypeAndAliasesAndFieldExtensions(): array {
+        $aliases = [];
+        foreach ($this->types as $typeName => $declaration) {
+            if (is_string($declaration)) {
+                $aliases[$declaration] = $typeName;
+            }
+        }
+
         $types = $this->types;
-        $aliases = array_flip($types);
         $fieldExtensions = $this->resolveFieldExtensionAliases($aliases);
         return [$types, $aliases, $fieldExtensions];
     }
@@ -82,7 +91,7 @@ class FederatedSchema
     protected function combineFieldExtensionsAndTypes(array $types, array $fieldExtensions): array {
         foreach ($fieldExtensions as $typeName => $extensionFactories) {
             if (!isset($types[$typeName])) {
-                throw new RuntimeException("Tried to extend type '{$typeName}' which has not been registered.");
+                throw new DefinitionException("Tried to extend type '{$typeName}' which has not been registered.");
             }
 
             $typeClassName = $types[$typeName];
@@ -106,9 +115,8 @@ class FederatedSchema
     public function cacheSchema(): string {
         $cacheManager = new TypeCacheManager();
         [$types, $aliases, $fieldExtensions] = $this->createTypeAndAliasesAndFieldExtensions();
-
-
         [$types, $dependencies] = $cacheManager->cache($types, $aliases, $fieldExtensions);
+
         $exportedAliases = var_export($aliases, true);
         $mappedTypes = Arrays::mapWithKeys($types,fn(string $typeName, string $code): array => [
             $typeName, Compiling::exportVariable($typeName) . " => {$code}",
@@ -141,7 +149,7 @@ class FederatedSchema
                     'typeLoader' => static function(string $typeNameOrClassName) use ($registry) {
                         try {
                             return $registry->eagerlyLoadType($typeNameOrClassName);
-                        } catch (RuntimeException $exception) {
+                        } catch (DefinitionException $exception) {
                             if (Types::isDefaultOperationTypeName($typeNameOrClassName)) {
                                 return null;
                             }
@@ -186,7 +194,7 @@ class FederatedSchema
                     'typeLoader' => static function(string $typeNameOrClassName) use ($typeRegistry) {
                         try {
                             return $typeRegistry->eagerlyLoadType($typeNameOrClassName);
-                        } catch (RuntimeException $exception) {
+                        } catch (DefinitionException $exception) {
                             if (Types::isDefaultOperationTypeName($typeNameOrClassName)) {
                                 return null;
                             }

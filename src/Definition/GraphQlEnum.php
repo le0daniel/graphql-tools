@@ -65,6 +65,11 @@ abstract class GraphQlEnum implements DefinesGraphQlType
         );
     }
 
+    public function getName(): string
+    {
+        return static::typeName();
+    }
+
     /**
      * Return a key value array or a serial array containing
      * either the key and the internal value or the keys only.

@@ -30,6 +30,11 @@ abstract class GraphQlInputType implements DefinesGraphQlType
         ]);
     }
 
+    public function getName(): string
+    {
+        return static::typeName();
+    }
+
     public static function typeName(): string
     {
         $typeName = Classes::baseName(static::class);

@@ -66,6 +66,11 @@ class Field implements DefinesGraphQlType
         ]);
     }
 
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
     public function resolvedBy(Closure $closure): self
     {
         $this->resolveFunction = $closure;
