@@ -4,7 +4,7 @@ namespace GraphQlTools\Definition\Field\Shared;
 
 use DateTimeInterface;
 
-trait DefinesField
+trait DefinesDescription
 {
     protected ?string $description = null;
 

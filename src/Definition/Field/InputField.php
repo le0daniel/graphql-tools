@@ -5,14 +5,14 @@ namespace GraphQlTools\Definition\Field;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Shared\DefinesDefaultValue;
-use GraphQlTools\Definition\Field\Shared\DefinesField;
+use GraphQlTools\Definition\Field\Shared\DefinesDescription;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
 use GraphQlTools\Definition\Field\Shared\DefinesTags;
 use GraphQlTools\Definition\Field\Shared\Deprecatable;
 
 final class InputField implements DefinesGraphQlType
 {
-    use DefinesField, Deprecatable, DefinesReturnType, DefinesDefaultValue, DefinesTags;
+    use DefinesDescription, Deprecatable, DefinesReturnType, DefinesDefaultValue, DefinesTags;
 
     final public function __construct(public readonly string $name)
     {

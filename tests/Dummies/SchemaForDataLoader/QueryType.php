@@ -17,7 +17,7 @@ class QueryType extends GraphQlType
     {
         return [
             Field::withName('loadByIds')
-                ->ofType(new ListOfType($registry->type(IngredientType::class)))
+                ->ofType(Type::listOf($registry->type(IngredientType::class)))
                 ->withArguments(
                     InputField::withName('ids')
                         ->ofType(Type::nonNull(Type::listOf(Type::nonNull(Type::id()))))

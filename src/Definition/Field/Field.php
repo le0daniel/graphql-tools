@@ -8,7 +8,7 @@ use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Field\Shared\DefinesArguments;
-use GraphQlTools\Definition\Field\Shared\DefinesField;
+use GraphQlTools\Definition\Field\Shared\DefinesDescription;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
 use GraphQlTools\Definition\Field\Shared\DefinesTags;
 use GraphQlTools\Definition\Field\Shared\Deprecatable;
@@ -18,7 +18,7 @@ use GraphQlTools\Helper\ProxyResolver;
 
 class Field implements DefinesGraphQlType
 {
-    use DefinesField, Deprecatable, DefinesReturnType, DefinesArguments, DefinesTags;
+    use DefinesDescription, Deprecatable, DefinesReturnType, DefinesArguments, DefinesTags;
     private null|Closure $resolveFunction = null;
     private array $middlewares = [];
 
