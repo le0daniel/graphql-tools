@@ -4,6 +4,7 @@ namespace GraphQlTools\Utility;
 
 use DateTimeImmutable;
 use DateTimeInterface;
+use GraphQlTools\Data\ValueObjects\RawPhpExpression;
 use ReflectionIntersectionType;
 use ReflectionNamedType;
 use ReflectionParameter;
@@ -14,17 +15,21 @@ class Compiling
 {
     private const DATE_TIME_FORMAT = 'Y-m-d H:i:s';
     private const ENUM_VALUE_REGEX = '/^[^:]+::[^:]+$/';
-    public static function absoluteClassName(string $className): string {
+
+    public static function absoluteClassName(string $className): string
+    {
         return str_starts_with($className, '\\')
             ? $className
             : '\\' . $className;
     }
 
-    private static function isClassName(string $value): bool {
+    private static function isClassName(string $value): bool
+    {
         return class_exists($value);
     }
 
-    private static function isEnum(string $value): bool {
+    private static function isEnum(string $value): bool
+    {
         if (preg_match(self::ENUM_VALUE_REGEX, $value)) {
             [$enumClass, $value] = explode('::', $value, 2);
             return enum_exists($enumClass);
@@ -32,7 +37,30 @@ class Compiling
         return false;
     }
 
-    public static function exportVariable(mixed $variable): string {
+    public static function exportArray(array $values): string
+    {
+        $exported = [];
+        $arrayIsList = array_is_list($values);
+
+        foreach ($values as $key => $value) {
+            $exportedKey = self::exportVariable($key);
+            $exportedValue = is_array($value)
+                ? self::exportArray($value)
+                : self::exportVariable($value);
+            $exported[] = $arrayIsList
+                ? $exportedValue
+                : "{$exportedKey} => {$exportedValue}";
+        }
+
+        return '[' . implode(',', $exported) . ']';
+    }
+
+    public static function exportVariable(mixed $variable): string
+    {
+        if ($variable instanceof RawPhpExpression) {
+            return $variable->toString();
+        }
+
         if ($variable instanceof DateTimeInterface) {
             $className = self::absoluteClassName(DateTimeImmutable::class);
             $dateTimeFormat = self::DATE_TIME_FORMAT;
@@ -48,7 +76,8 @@ class Compiling
         return $serialized;
     }
 
-    public static function parametersToString(ReflectionParameter ... $parameters): string {
+    public static function parametersToString(ReflectionParameter ...$parameters): string
+    {
         $parameterStrings = [];
         foreach ($parameters as $parameter) {
             $signature = "\${$parameter->getName()}";
@@ -64,7 +93,8 @@ class Compiling
         return implode(', ', $parameterStrings);
     }
 
-    private static function getDefaultValueOfParameter(ReflectionParameter $parameter): string {
+    private static function getDefaultValueOfParameter(ReflectionParameter $parameter): string
+    {
         if (!$parameter->isDefaultValueConstant()) {
             return self::exportVariable($parameter->getDefaultValue());
         }
@@ -87,7 +117,8 @@ class Compiling
         return self::absoluteClassName($scope) . "::{$constName}";
     }
 
-    public static function reflectionTypeToString(ReflectionNamedType|ReflectionIntersectionType|ReflectionUnionType $type) {
+    public static function reflectionTypeToString(ReflectionNamedType|ReflectionIntersectionType|ReflectionUnionType $type)
+    {
         if ($type instanceof ReflectionNamedType) {
             return self::namedTypeToString($type);
         }
@@ -104,9 +135,10 @@ class Compiling
         throw new RuntimeException("Could not convert type ({$className}) to string.");
     }
 
-    private static function namedTypeToString(ReflectionNamedType $type): string {
+    private static function namedTypeToString(ReflectionNamedType $type): string
+    {
         if ($type->isBuiltin()) {
-            return (string) $type;
+            return (string)$type;
         }
 
         $name = self::absoluteClassName($type->getName());

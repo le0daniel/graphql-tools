@@ -48,7 +48,7 @@ trait InitializesFields
             }
 
             if (!$supportsLazyFields) {
-                $typeName = static::typeName();
+                $typeName = $this->getName();
                 throw new DefinitionException("Lazy fields are not supported for type {$typeName}.");
             }
 

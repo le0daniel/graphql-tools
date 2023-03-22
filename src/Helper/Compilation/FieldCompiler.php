@@ -12,6 +12,7 @@ use GraphQL\Type\Definition\IntType;
 use GraphQL\Type\Definition\StringType;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\WrappingType;
+use GraphQlTools\Data\ValueObjects\RawPhpExpression;
 use GraphQlTools\Helper\ProxyResolver;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Compiling;
@@ -26,43 +27,34 @@ class FieldCompiler
     public function compileField(FieldDefinition $fieldDefinition, bool $includeResolveFunction = true): string
     {
         $config = $fieldDefinition->config;
-        $lines = implode(',' . PHP_EOL, Arrays::removeNullValues([
-            "'name' => {$this->export($config['name'])}",
-            $includeResolveFunction
-                ? "'resolve' => {$this->compileResolver($config['resolve'] ?? null)}"
+        $hasArguments = !empty($config['args'] ?? null);
+        $body = Compiling::exportArray(Arrays::removeNullValues([
+            'name' => $config['name'],
+            'resolve' => $includeResolveFunction
+                ? new RawPhpExpression($this->compileResolver($config['resolve'] ?? null))
                 : null,
-            "'type' => {$this->compileType($config['type'])}",
-            "'deprecationReason' => {$this->export($config['deprecationReason'] ?? null)}",
-            "'removalDate' => {$this->export($config['removalDate'])}",
-            "'description' => {$this->export($config['description'] ?? null)}",
-            !empty($config['args'] ?? null)
-                ? "'args' => {$this->compileArguments($config['args'])}"
-                : null,
+            'type' => new RawPhpExpression($this->compileType($config['type'])),
+            'deprecationReason' => $config['deprecationReason'] ?? null,
+            'removalDate' => $config['removalDate'],
+            'description' => $config['description'] ?? null,
+            'args' => $hasArguments ? new RawPhpExpression($this->compileArguments($config['args'])) : null,
+            'tags' => $config['tags'] ?? [],
         ]));
 
         $className = Compiling::absoluteClassName($fieldDefinition::class);
-        return "new {$className}([
-            {$lines}
-        ])";
+        return "new {$className}({$body})";
     }
 
     public function compileInputField(array $config): string
     {
-        $lines = Arrays::removeNullValues([
-            "'name' => {$this->export($config['name'])}",
-            "'type' => {$this->compileType($config['type'])}",
-            "'deprecationReason' => {$this->export($config['deprecationReason'] ?? null)}",
-            "'removalDate' => {$this->export($config['removalDate'])}",
-            "'description' => {$this->export($config['description'] ?? null)}",
-            isset($config['defaultValue'])
-                ? "'defaultValue' => {$this->export($config['defaultValue'])}"
-                : null,
-        ]);
-        $implodedLines = implode(',' . PHP_EOL, $lines);
-
-        return "[
-            {$implodedLines}
-        ]";
+        return Compiling::exportArray(Arrays::removeNullValues([
+            'name' => $config['name'],
+            'type' => new RawPhpExpression($this->compileType($config['type'])),
+            'deprecationReason' => $config['deprecationReason'] ?? null,
+            'removalDate' => $config['removalDate'] ?? null,
+            'description' => $config['description'] ?? null,
+            'defaultValue' =>  $config['defaultValue'] ?? null,
+        ]));
     }
 
     private function compileArguments(array $arguments): string
@@ -75,7 +67,7 @@ class FieldCompiler
     private function compileType(Type|Closure $type): string
     {
         if ($type instanceof Closure) {
-            return (string) $type();
+            return (string)$type();
         }
 
         $typeClassName = Compiling::absoluteClassName($type::class);
@@ -85,6 +77,7 @@ class FieldCompiler
             return "new {$typeClassName}({$next})";
         }
 
+        $typeClassName = Compiling::absoluteClassName(Type::class);
         return match ($type::class) {
             IDType::class => "{$typeClassName}::id()",
             StringType::class => "{$typeClassName}::string()",
@@ -95,15 +88,10 @@ class FieldCompiler
         };
     }
 
-    private function export(mixed $variable): string
-    {
-        return Compiling::exportVariable($variable);
-    }
-
-    private function compileResolver(?ProxyResolver $resolver): string
+    private function compileResolver(?ProxyResolver $resolver): ?string
     {
         if (!$resolver) {
-            return 'null';
+            return null;
         }
 
         $className = Compiling::absoluteClassName(ProxyResolver::class);

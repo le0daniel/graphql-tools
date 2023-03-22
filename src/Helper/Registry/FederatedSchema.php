@@ -22,12 +22,20 @@ class FederatedSchema
     private array $eagerlyLoadedTypes = [];
     private array $typeFieldExtensions = [];
 
+    public function register(DefinesGraphQlType $definition): void {
+        $this->verifyTypeNameIsUsed($definition->getName());
+        $this->types[$definition->getName()] = $definition;
+    }
+
     public function registerType(string $typeName, string|DefinesGraphQlType $typeDeclaration): void {
+        $this->verifyTypeNameIsUsed($typeName);
+        $this->types[$typeName] = $typeDeclaration;
+    }
+
+    private function verifyTypeNameIsUsed(string $typeName): void {
         if (isset($this->types[$typeName])) {
             throw new RuntimeException("Type with name '{$typeName}' was already registered. You can not register a type twice.");
         }
-
-        $this->types[$typeName] = $typeDeclaration;
     }
 
     public function registerTypes(array $types): void {

@@ -9,7 +9,9 @@ use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\UnionType;
+use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
+use GraphQlTools\Data\ValueObjects\RawPhpExpression;
 use GraphQlTools\Definition\GraphQlEnum;
 use GraphQlTools\Definition\GraphQlInputType;
 use GraphQlTools\Definition\GraphQlInterface;
@@ -42,18 +44,6 @@ class TypeCacheManager
         return Compiling::exportVariable($value);
     }
 
-    private function recursiveExport(array $values): string
-    {
-        $exported = [];
-        foreach ($values as $key => $value) {
-            $exported[] = is_array($value)
-                ? "{$this->export($key)} => {$this->recursiveExport($value)}"
-                : "{$this->export($key)} => {$this->export($value)}";
-        }
-
-        return '[' . implode(',', $exported) . ']';
-    }
-
     private function absoluteClassName(string $className): string
     {
         return Compiling::absoluteClassName($className);
@@ -75,25 +65,21 @@ class TypeCacheManager
         });
     }
 
-    private function allEqual(string ...$values): bool {
-        return count(array_unique($values)) === 1;
-    }
-
     public function cache(array $typesToCache, array $aliases, array $extendedFieldsByType = []): array
     {
         $types = [];
         $dependencies = [];
 
-        foreach ($typesToCache as $providedTypeName => $className) {
-            $classTypeName = $className::typeName();
-            $providedTypeName = is_int($providedTypeName) ? $classTypeName : $providedTypeName;
-
-            $compiled = $this->buildType(new $className, $aliases, $extendedFieldsByType[$classTypeName] ?? []);
-            [$typeName, $code, $typeDependencies] = Arrays::unpack($compiled, 'name', 'code', 'typeDependencies');
-
-            if (!$this->allEqual($providedTypeName, $classTypeName, $typeName)) {
-                throw new RuntimeException("Encountered different name for the type {$className} = {$typeName}.");
+        foreach ($typesToCache as $providedTypeName => $declaration) {
+            $declarationTypeName = $declaration instanceof DefinesGraphQlType ? $declaration->getName() : $declaration::typeName();
+            $providedTypeName = is_int($providedTypeName) ? $declarationTypeName : $providedTypeName;
+            if ($declarationTypeName !== $providedTypeName) {
+                throw new RuntimeException("Encountered different name for the type {$providedTypeName} = {$declarationTypeName}.");
             }
+
+            $typeInstance = $declaration instanceof DefinesGraphQlType ? $declaration : new $declaration;
+            $compiled = $this->buildType($typeInstance, $aliases, $extendedFieldsByType[$declarationTypeName] ?? []);
+            [$typeName, $code, $typeDependencies] = Arrays::unpack($compiled, 'name', 'code', 'typeDependencies');
 
             $types[$typeName] = $code;
             $dependencies[$typeName] = $typeDependencies;
@@ -105,7 +91,7 @@ class TypeCacheManager
         ];
     }
 
-    public function buildType(GraphQlType|GraphQlInputType|GraphQlScalar|GraphQlInterface|GraphQlUnion|GraphQlEnum $type, array $aliases, array $injectedFields = []): array
+    public function buildType(DefinesGraphQlType $type, array $aliases, array $injectedFields = []): array
     {
         $registry = $this->mockedTypeRegistry($aliases);
         $compiled = match (true) {
@@ -129,7 +115,7 @@ class TypeCacheManager
     private function compileScalar(TypeRegistry $registry, GraphQlScalar $type): array
     {
         return [
-            'name' => $type::typeName(),
+            'name' => $type->getName(),
             'code' => "static fn() => new {$this->absoluteClassName($type::class)}"
         ];
     }
@@ -139,13 +125,15 @@ class TypeCacheManager
         $typeDefinition = $type->toDefinition($registry);
         $config = $this->recursivelyInitializeConfig($typeDefinition->config);
 
-        $code = "static fn({$this->registryNameSpace()} \${$this->typeRegistryName}) => new {$this->absoluteClassName(UnionType::class)}([
-            'name' => {$this->export($typeDefinition->name)},
-            'removalDate' => {$this->export($config['removalDate'])},
-            'deprecationReason' => {$this->export($config['deprecationReason'] ?? null)},
-            'description' => {$this->export($config['description'] ?? null)},
-            'values' => {$this->recursiveExport($config['values'])},
-        ])";
+        $body = Compiling::exportArray([
+            'name' => $typeDefinition->name,
+            'removalDate' => $config['removalDate'] ?? null,
+            'deprecationReason' => $config['deprecationReason'] ?? null,
+            'description' => $config['description'] ?? null,
+            'values' => $config['values'],
+        ]);
+
+        $code = "static fn({$this->registryNameSpace()} \${$this->typeRegistryName}) => new {$this->absoluteClassName(UnionType::class)}({$body})";
 
         return [
             'name' => $typeDefinition->name,
@@ -159,17 +147,19 @@ class TypeCacheManager
         $config = $this->recursivelyInitializeConfig($typeDefinition->config);
         $resolveClosure = $this->closureCompiler->compile($type->getResolveTypeClosure());
 
-        $code = "static fn({$this->registryNameSpace()} \${$this->typeRegistryName}) => new {$this->absoluteClassName(UnionType::class)}([
-            'name' => {$this->export($typeDefinition->name)},
-            'removalDate' => {$this->export($config['removalDate'])},
-            'deprecationReason' => {$this->export($config['deprecationReason'] ?? null)},
-            'description' => {$this->export($config['description'] ?? null)},
-            'types' => static fn() => {$this->compileListOfType($config['types'])},
-            'resolveType' => static function(\$_, \GraphQlTools\Helper\OperationContext \$context, \$info) use (\${$this->typeRegistryName}) { 
+        $body = Compiling::exportArray([
+            'name' => $typeDefinition->name,
+            'removalDate' => $config['removalDate'] ?? null,
+            'deprecationReason' => $config['deprecationReason'] ?? null,
+            'description' => $config['description'] ?? null,
+            'types' => new RawPhpExpression($this->compileListOfType($config['types'])),
+            'resolveType' => new RawPhpExpression("static function(\$_, \GraphQlTools\Helper\OperationContext \$context, \$info) use (\${$this->typeRegistryName}) { 
                 \$resolver = {$resolveClosure};
                 return \${$this->typeRegistryName}->type(\$resolver(\$_, \$context->context, \$info));
-            },
-        ])";
+            }"),
+        ]);
+
+        $code = "static fn({$this->registryNameSpace()} \${$this->typeRegistryName}) => new {$this->absoluteClassName(UnionType::class)}({$body})";
 
         return [
             'name' => $typeDefinition->name,
@@ -184,17 +174,19 @@ class TypeCacheManager
 
         $resolveClosure = $this->closureCompiler->compile($type->getResolveTypeClosure());
 
-        $code = "static fn({$this->registryNameSpace()} \${$this->typeRegistryName}) => new {$this->absoluteClassName(InterfaceType::class)}([
-            'name' => {$this->export($typeDefinition->name)},
-            'deprecationReason' => {$this->export($config['deprecationReason'] ?? null)},
-            'removalDate' => {$this->export($config['removalDate'])},
-            'description' => {$this->export($config['description'] ?? null)},
-            'fields' => static fn() => {$this->compileFieldsToArrayDefinition($config['fields'], false)},
-            'resolveType' => static function(\$_, \GraphQlTools\Helper\OperationContext \$context, \$info) use (\${$this->typeRegistryName}) { 
+        $body = Compiling::exportArray([
+            'name' => $typeDefinition->name,
+            'deprecationReason' => $config['deprecationReason'] ?? null,
+            'removalDate' => $config['removalDate'] ?? null,
+            'description' => $config['description'] ?? null,
+            'fields' => new RawPhpExpression("static fn() => {$this->compileFieldsToArrayDefinition($config['fields'], false)}"),
+            'resolveType' => new RawPhpExpression("static function(\$_, \GraphQlTools\Helper\OperationContext \$context, \$info) use (\${$this->typeRegistryName}) { 
                 \$resolver = {$resolveClosure};
                 return \${$this->typeRegistryName}->type(\$resolver(\$_, \$context->context, \$info));
-            },
-        ])";
+            }"),
+        ]);
+
+        $code = "static fn({$this->registryNameSpace()} \${$this->typeRegistryName}) => new {$this->absoluteClassName(InterfaceType::class)}({$body})";
 
         return [
             'name' => $type::typeName(),
@@ -206,18 +198,21 @@ class TypeCacheManager
     {
         $typeDefinition = $type->toDefinition($registry);
         $config = $this->recursivelyInitializeConfig($typeDefinition->config);
-        $inputFields = implode(',', array_map(function (array $config): string {
-            $code = $this->fieldCompiler->compileInputField($config);
-            return "{$this->export($config['name'])} => {$code}";
-        }, $config['fields']));
+        $inputFields =
+            implode(',', array_map(function (array $config): string {
+                $code = $this->fieldCompiler->compileInputField($config);
+                return "{$this->export($config['name'])} => {$code}";
+            }, $config['fields']));
 
-        $code = "static fn({$this->registryNameSpace()} \${$this->typeRegistryName}) => new {$this->absoluteClassName(InputObjectType::class)}([
-            'name' => {$this->export($typeDefinition->name)},
-            'fields' => static fn() => [{$inputFields}],
-            'deprecationReason' => {$this->export($config['deprecationReason'] ?? null)},
-            'removalDate' => {$this->export($config['removalDate'])},
-            'description' => {$this->export($config['description'] ?? null)},
-        ])";
+        $body = Compiling::exportArray([
+            'name' => $typeDefinition->name,
+            'fields' => new RawPhpExpression("[{$inputFields}]"),
+            'deprecationReason' => $config['deprecationReason'] ?? null,
+            'removalDate' => $config['removalDate'] ?? null,
+            'description' => $config['description'] ?? null,
+        ]);
+
+        $code = "static fn({$this->registryNameSpace()} \${$this->typeRegistryName}) => new {$this->absoluteClassName(InputObjectType::class)}({$body})";
 
         return [
             'name' => $typeDefinition->name,
@@ -225,19 +220,21 @@ class TypeCacheManager
         ];
     }
 
-    private function compileType(TypeRegistry $registry, GraphQlType $type, array $injectedFields = []): array
+    private function compileType(TypeRegistry $registry, DefinesGraphQlType $type, array $injectedFields = []): array
     {
         $typeDefinition = $type->toDefinition($registry, $injectedFields);
         $config = $this->recursivelyInitializeConfig($typeDefinition->config);
 
-        $code = "static fn({$this->registryNameSpace()} \${$this->typeRegistryName}) => new {$this->absoluteClassName(ObjectType::class)}([
-            'name' => {$this->export($typeDefinition->name)},
-            'fields' => static fn() => {$this->compileFieldsToArrayDefinition($config['fields'])},
-            'interfaces' => static fn() => {$this->compileListOfType($config['interfaces'])},
-            'deprecationReason' => {$this->export($config['deprecationReason'] ?? null)},
-            'removalDate' => {$this->export($config['removalDate'])},
-            'description' => {$this->export($config['description'] ?? null)},
-        ])";
+        $body = Compiling::exportArray([
+            'name' => $typeDefinition->name,
+            'fields' => new RawPhpExpression($this->compileFieldsToArrayDefinition($config['fields'])),
+            'interfaces' => new RawPhpExpression($this->compileListOfType($config['interfaces'])),
+            'deprecationReason' => $config['deprecationReason'] ?? null,
+            'removalDate' => $config['removalDate'] ?? null,
+            'description' => $config['description'] ?? null,
+        ]);
+
+        $code = "static fn({$this->registryNameSpace()} \${$this->typeRegistryName}) => new {$this->absoluteClassName(ObjectType::class)}({$body})";
 
         return [
             'name' => $typeDefinition->name,
@@ -252,27 +249,32 @@ class TypeCacheManager
 
     private function compileListOfType(array $types): string
     {
-        $initializedTypes = array_map(static function (mixed $type): string {
+        $initializedTypes = array_map(static function (mixed $type): RawPhpExpression {
             $type = is_callable($type) ? $type() : $type;
-            return (string)$type;
+            return new RawPhpExpression((string)$type);
         }, $types);
 
-        return "[" . implode(',', $initializedTypes) . "]";
+        return Compiling::exportArray($initializedTypes);
     }
 
     private function compileFieldsToArrayDefinition(array $fieldDefinitions, bool $withResolveFunction = true): string
     {
-        $fields = array_map(function (FieldDefinition $definition) use ($withResolveFunction): string {
-            $code = $this->fieldCompiler->compileField($definition, $withResolveFunction);
-            return "{$this->export($definition->name)} => fn() => {$code}";
-        }, $fieldDefinitions);
-        return '[' . implode(',', $fields,) . ']';
+        $fields = Arrays::mapWithKeys(
+            $fieldDefinitions,
+            function ($_, FieldDefinition $definition) use ($withResolveFunction): array {
+                $code = $this->fieldCompiler->compileField($definition, $withResolveFunction);
+                return [$definition->name, new RawPhpExpression("fn() => {$code}")];
+            }
+        );
+
+        return Compiling::exportArray($fields);
     }
 
     public function mockedTypeRegistry(array $aliases): TypeRegistry
     {
         return new class ($this->typeRegistryName, $aliases) implements TypeRegistry {
             private array $dependencies = [];
+
             public function __construct(private readonly string $typeRegistryVariableName, private readonly array $aliases)
             {
             }
@@ -288,7 +290,6 @@ class TypeCacheManager
             public function type(string $nameOrAlias): Closure
             {
                 $typeName = $this->aliases[$nameOrAlias] ?? $nameOrAlias;
-
                 $this->dependencies[] = $typeName;
                 $exportedTypeName = Compiling::exportVariable($typeName);
                 return fn() => "\${$this->typeRegistryVariableName}->type({$exportedTypeName})";
