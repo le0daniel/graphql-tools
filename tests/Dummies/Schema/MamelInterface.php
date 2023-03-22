@@ -17,7 +17,7 @@ final class MamelInterface extends GraphQlInterface {
 
     protected function fields(TypeRegistry $registry): array {
         return [
-            'sound' => static fn($name) => Field::withName($name)->ofType(Type::nonNull(Type::string())),
+            Field::withName('sound')->ofType(Type::nonNull(Type::string())),
         ];
     }
 

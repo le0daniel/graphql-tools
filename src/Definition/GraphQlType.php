@@ -8,7 +8,6 @@ use GraphQL\Type\Definition\ObjectType;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
-use GraphQlTools\Definition\Shared\ComposableFields;
 use GraphQlTools\Definition\Shared\HasDeprecation;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\InitializesFields;
@@ -16,7 +15,7 @@ use GraphQlTools\Utility\Classes;
 
 abstract class GraphQlType implements DefinesGraphQlType
 {
-    use HasDescription, HasDeprecation, InitializesFields, ComposableFields;
+    use HasDescription, HasDeprecation, InitializesFields;
 
     private const CLASS_POSTFIX = 'Type';
 
@@ -38,7 +37,6 @@ abstract class GraphQlType implements DefinesGraphQlType
                 'fields' => fn() => $this->initializeFields(
                     $registry,
                     [$this->fields(...), ...$injectedFieldFactories],
-                    true
                 ),
                 'interfaces' => fn() => array_map(
                     fn(string $interfaceName) => $registry->type($interfaceName),

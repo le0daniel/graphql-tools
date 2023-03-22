@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Test\Feature;
 
+use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
+use GraphQlTools\Definition\TypeBuilder\GraphQlType;
 use GraphQlTools\Helper\Registry\FederatedSchema;
 use GraphQlTools\Test\Dummies\Schema\JsonScalar;
 use GraphQlTools\Test\Dummies\Schema\QueryType;
@@ -16,9 +18,7 @@ use GraphQlTools\Utility\TypeMap;
 
 class QueryTest extends ExecutionTestCase
 {
-
-    protected function schema(): Schema
-    {
+    protected function federatedSchema(): FederatedSchema {
         $federatedSchema = new FederatedSchema();
         foreach (TypeMap::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema') as $key => $value) {
             $federatedSchema->registerType($key, $value);
@@ -45,12 +45,16 @@ class QueryTest extends ExecutionTestCase
             Field::withName('testCircular')
                 ->ofType($registry->type('User')),
 
-            'lazy' => fn() => Field::withName('lazy')
+            Field::withName('lazy')
                 ->ofType(Type::string())
                 ->resolvedBy(fn() => 'lazy-field')
         ]);
+        return $federatedSchema;
+    }
 
-        $schema = $federatedSchema->createSchema(QueryType::class, null);
+    protected function schema(): Schema
+    {
+        $schema = $this->federatedSchema()->createSchema(QueryType::class, null);
         $schema->assertValid();
         return $schema;
     }
@@ -171,5 +175,13 @@ class QueryTest extends ExecutionTestCase
         self::assertIsArray($result->data['user']);
         self::assertEquals('lazy-field', $result->data['user']['lazy']);
     }
+
+    // public function testQueryWithBuilderField(): void
+    // {
+    //     $result = $this->execute('query { builderField { test } }');
+    //     $this->assertNoErrors($result);
+    //     self::assertIsArray($result->data['builderField']);
+    //     self::assertEquals('This is a test', $result->data['builderField']['test']);
+    // }
 
 }

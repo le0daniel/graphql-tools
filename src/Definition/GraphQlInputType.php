@@ -24,7 +24,7 @@ abstract class GraphQlInputType implements DefinesGraphQlType
         return new InputObjectType([
             'name' => $this->getName(),
             'description' => $this->addDeprecationToDescription($this->description()),
-            'fields' => fn() => $this->initializeFields($registry, [$this->fields(...)], false),
+            'fields' => fn() => $this->initializeFields($registry, [$this->fields(...)]),
             'deprecationReason' => $this->deprecationReason(),
             'removalDate' => $this->removalDate(),
         ]);

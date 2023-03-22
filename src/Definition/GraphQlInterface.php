@@ -10,7 +10,6 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Contract\TypeRegistry;
-use GraphQlTools\Definition\Shared\ComposableFields;
 use GraphQlTools\Definition\Shared\HasDeprecation;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\InitializesFields;
@@ -19,7 +18,7 @@ use GraphQlTools\Utility\Classes;
 
 abstract class GraphQlInterface implements DefinesGraphQlType
 {
-    use InitializesFields, HasDescription, HasDeprecation, ComposableFields;
+    use InitializesFields, HasDescription, HasDeprecation;
 
     private const CLASS_POSTFIX = 'Interface';
 
@@ -35,7 +34,6 @@ abstract class GraphQlInterface implements DefinesGraphQlType
             'fields' => fn() => $this->initializeFields(
                 $registry,
                 [$this->fields(...), ...$injectedFieldFactories],
-                true
             ),
             'resolveType' => fn($_, OperationContext $context, $info) => $registry->type(
                 $this->resolveToType($_, $context->context, $info)

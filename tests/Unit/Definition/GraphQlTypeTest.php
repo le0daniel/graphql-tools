@@ -5,7 +5,6 @@ namespace GraphQlTools\Test\Unit\Definition;
 use Closure;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Contract\TypeRegistry;
-use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlType;
 use PHPUnit\Framework\TestCase;
@@ -56,39 +55,12 @@ class GraphQlTypeTest extends TestCase
         $definition = $this->instance(fn(TypeRegistry $registry) => [
             Field::withName('id')
                 ->ofType(Type::id()),
-
-            'lazy' => fn(string $name) => Field::withName($name)
+            Field::withName('lazy')
                 ->ofType(Type::id()),
         ])->toDefinition($this->registry->reveal());
 
         $definition->assertValid();
         self::assertTrue(true);
-    }
-
-    public function testFailureOnLazyInvalidName()
-    {
-        $definition = $this->instance(fn(TypeRegistry $registry) => [
-            'invalid' => fn(string $name) => Field::withName('else')
-                ->ofType(Type::id()),
-        ])->toDefinition($this->registry->reveal());
-
-        $this->expectException(DefinitionException::class);
-        $this->expectExceptionMessage('A lazy loaded field MUST have the same name as given in the array. Expected `invalid`, got `else`');
-        $definition->assertValid();
-        $this->fail('Should fail.');
-    }
-
-    public function testFailureOnInvalidLazyField()
-    {
-        $definition = $this->instance(fn(TypeRegistry $registry) => [
-            'invalid' => Field::withName('else')
-                ->ofType(Type::id()),
-        ])->toDefinition($this->registry->reveal());
-
-        $this->expectException(DefinitionException::class);
-        $this->expectExceptionMessage('Expected type of Closure, got GraphQlTools\Definition\Field\Field');
-        $definition->assertValid();
-        $this->fail('Should fail.');
     }
 
     public function testTypeName()

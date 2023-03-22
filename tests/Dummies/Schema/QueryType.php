@@ -44,7 +44,7 @@ final class QueryType extends GraphQlType
     {
         $value = 'test';
         return [
-            'currentUser' => static fn(string $name) => Field::withName($name)
+            Field::withName('currentUser')
                 ->ofType(Type::string())
                 ->withArguments(
                     InputField::withName('name')

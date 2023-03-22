@@ -2,25 +2,16 @@
 
 namespace GraphQlTools\Test\Feature;
 
-use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
-use GraphQlTools\Contract\TypeRegistry;
-use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Helper\Registry\FederatedSchema;
-use GraphQlTools\Test\Dummies\Schema\JsonScalar;
-use GraphQlTools\Test\Dummies\Schema\UserType;
-use GraphQlTools\Utility\TypeMap;
+
 
 class CachedSchemaTest extends QueryTest
 {
 
     protected function schema(): Schema
     {
-        $federatedSchema = new FederatedSchema();
-
-        foreach (TypeMap::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema') as $key => $value) {
-            $federatedSchema->registerType($key, $value);
-        }
+        $code = $this->federatedSchema()->cacheSchema();
 
         $federatedSchema->extendType(
             UserType::class,

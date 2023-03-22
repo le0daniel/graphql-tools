@@ -9,7 +9,6 @@ use GraphQL\Type\Schema;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Helper\Extension\Tracing;
 use GraphQlTools\Helper\QueryExecutor;
-use GraphQlTools\Helper\TypeRegistry;
 use PHPUnit\Framework\TestCase;
 
 abstract class ExecutionTestCase extends TestCase {
