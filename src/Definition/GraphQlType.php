@@ -31,7 +31,7 @@ abstract class GraphQlType implements DefinesGraphQlType
     public function toDefinition(TypeRegistry $registry, array $injectedFieldFactories = []): ObjectType {
         return new ObjectType(
             [
-                'name' => $this->getTypeName(),
+                'name' => $this->getName(),
                 'description' => $this->addDeprecationToDescription($this->description()),
                 'deprecationReason' => $this->deprecationReason(),
                 'removalDate' => $this->removalDate(),
@@ -50,10 +50,6 @@ abstract class GraphQlType implements DefinesGraphQlType
 
     public function getName(): string
     {
-        return static::typeName();
-    }
-
-    private function getTypeName(): string {
         return static::typeName();
     }
 

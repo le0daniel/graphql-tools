@@ -22,7 +22,7 @@ abstract class GraphQlInputType implements DefinesGraphQlType
 
     public function toDefinition(TypeRegistry $registry): InputObjectType {
         return new InputObjectType([
-            'name' => static::typeName(),
+            'name' => $this->getName(),
             'description' => $this->addDeprecationToDescription($this->description()),
             'fields' => fn() => $this->initializeFields($registry, [$this->fields(...)], false),
             'deprecationReason' => $this->deprecationReason(),

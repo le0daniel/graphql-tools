@@ -23,7 +23,7 @@ abstract class GraphQlUnion implements DefinesGraphQlType
 
     public function toDefinition(TypeRegistry $registry): UnionType {
         return new UnionType([
-            'name' => static::typeName(),
+            'name' => $this->getName(),
             'description' => $this->addDeprecationToDescription($this->description()),
             'deprecationReason' => $this->deprecationReason(),
             'removalDate' => $this->removalDate(),

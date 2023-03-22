@@ -19,7 +19,7 @@ abstract class GraphQlScalar extends ScalarType implements DefinesGraphQlType
         parent::__construct(
             [
                 'description' => $this->description(),
-                'name' => static::typeName()
+                'name' => $this->getName(),
             ]
         );
     }

@@ -21,7 +21,7 @@ abstract class GraphQlEnum implements DefinesGraphQlType
 
     public function toDefinition(TypeRegistry $registry): EnumType {
         return new EnumType([
-            'name' => static::typeName(),
+            'name' => $this->getName(),
             'description' => $this->addDeprecationToDescription($this->description()),
             'values' => $this->initValues(),
             'deprecationReason' => $this->deprecationReason(),

@@ -28,7 +28,7 @@ abstract class GraphQlInterface implements DefinesGraphQlType
     public function toDefinition(TypeRegistry $registry, array $injectedFieldFactories = []): InterfaceType
     {
         return new InterfaceType([
-            'name' => static::typeName(),
+            'name' => $this->getName(),
             'description' => $this->addDeprecationToDescription($this->description()),
             'deprecationReason' => $this->deprecationReason(),
             'removalDate' => $this->removalDate(),
