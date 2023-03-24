@@ -10,24 +10,6 @@ use RuntimeException;
 
 final class Arrays
 {
-    public static function unpack(array $array, string ...$keys): array {
-        $unpacked = [];
-        foreach ($keys as $key) {
-            $unpacked[] = $array[$key] ?? null;
-        }
-        return $unpacked;
-    }
-
-    public static function wrap(mixed $value): array {
-        return is_array($value) ? $value : [$value];
-    }
-
-    public static function allKeysExist(array $array, array $requiredKeys): bool
-    {
-        $keyIntersection = array_intersect_key(array_flip($requiredKeys), $array);
-        return count($requiredKeys) === count($keyIntersection);
-    }
-
     /**
      * @template K of string|int
      * @template V
@@ -64,16 +46,6 @@ final class Arrays
             $array[$key] = $value;
         }
         return $array;
-    }
-
-    public static function oneKeyExists(array $array, array $keys): bool
-    {
-        foreach ($keys as $key) {
-            if (array_key_exists($key, $array)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public static function onlyKeys(array $array, array $keys, bool $throwOnNonExistentKey = true): array

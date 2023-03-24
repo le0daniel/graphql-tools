@@ -5,29 +5,28 @@ namespace GraphQlTools\Helper;
 use Closure;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Type\Definition\FieldDefinition;
+use GraphQL\Type\Definition\InputObjectType;
+use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
-use GraphQlTools\Definition\GraphQlEnum;
-use GraphQlTools\Definition\GraphQlInputType;
-use GraphQlTools\Definition\GraphQlInterface;
-use GraphQlTools\Definition\GraphQlType;
-use GraphQlTools\Definition\GraphQlUnion;
+use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Helper\Registry\FactoryTypeRegistry;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
-use RuntimeException;
 use Throwable;
 use GraphQlTools\Contract\GraphQlContext;
 
 class FieldTestCase
 {
-    private array $dataLoaderMock = [];
     private readonly FieldDefinition $fieldDefinition;
+    private array $dataLoaders = [];
 
-    public function __construct(private readonly string $className, private readonly string $fieldName)
+    public function __construct(string|DefinesGraphQlType $typeDefinition, string $fieldName)
     {
-        /** @var GraphQlType|GraphQlInputType|GraphQlInterface|GraphQlUnion|GraphQlEnum $type */
-        $type = new ($this->className);
-        $definition = $type->toDefinition($this->mockedTypeRegistry());
-        $this->fieldDefinition = $definition->findField($this->fieldName);
+        /** @var DefinesGraphQlType $type */
+        $definition = is_string($typeDefinition) ? new $typeDefinition : $typeDefinition;
+
+        /** @var ObjectType|InputObjectType $type */
+        $type = $definition->toDefinition($this->mockedTypeRegistry());
+        $this->fieldDefinition = $type->findField($fieldName);
     }
 
     private function mockedTypeRegistry(): FactoryTypeRegistry
@@ -53,33 +52,22 @@ class FieldTestCase
         ], fieldDefinition: $this->fieldDefinition);
     }
 
-    /**
-     * @return array<Closure>
-     */
-    private function buildDataLoaderMocks(): array
-    {
-        $mocks = [];
-        foreach ($this->dataLoaderMock as $key => $returnValue) {
-            $mocks[$key] = static fn(array $queuedItems) => $returnValue instanceof Closure ? ($returnValue)($queuedItems) : $returnValue;
-        }
-        return $mocks;
+    public function withDataLoader(string $key, Closure $closure): self {
+        $this->dataLoaders[$key] = $closure;
+        return $this;
     }
 
     private function buildDefaultContext(): GraphQlContext
     {
-        $mocks = $this->buildDataLoaderMocks();
-        return new class ($mocks) extends Context {
-            public function __construct(private readonly array $mocks)
+        return new class ($this->dataLoaders) implements GraphQlContext {
+            use HasDataloaders;
+
+            public function __construct(private readonly array $dataLoaders = [])
             {
             }
 
-            protected function makeInstanceOfDataLoaderExecutor(string $classNameOrLoaderName): Closure
-            {
-                $instance = $this->mocks[$classNameOrLoaderName] ?? null;
-                if (!$instance) {
-                    throw new RuntimeException("No mock defined for '{$classNameOrLoaderName}'");
-                }
-                return $instance;
+            public function makeInstanceOfDataLoaderExecutor(string $key): Closure {
+                return $this->dataLoaders[$key];
             }
         };
     }
@@ -92,13 +80,7 @@ class FieldTestCase
         return $throwable;
     }
 
-    public function mockedDataloader(string $name, mixed $willReturn): self
-    {
-        $this->dataLoaderMock[$name] = $willReturn;
-        return $this;
-    }
-
-    public function visit(mixed $rootData, array $arguments = [], ?Context $context = null, ?ResolveInfo $resolveInfo = null)
+    public function visit(mixed $rootData, array $arguments = [], ?GraphQlContext $context = null, ?ResolveInfo $resolveInfo = null)
     {
         $resolver = $this->getFieldResolver();
         $resolveInfo ??= $this->buildResolveInfo();

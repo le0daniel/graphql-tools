@@ -10,16 +10,6 @@ use RuntimeException;
 
 final class ArraysTest extends TestCase
 {
-    public function testAllKeysExists(): void {
-        self::assertTrue(Arrays::allKeysExist([], []));
-        self::assertTrue(Arrays::allKeysExist(['test' => 1, 'test2' => true], ['test']));
-        self::assertTrue(Arrays::allKeysExist(['test' => 1, 'test2' => true], ['test', 'test2']));
-        self::assertTrue(Arrays::allKeysExist(['test' => 1, 'test2' => true], []));
-
-        self::assertFalse(Arrays::allKeysExist(['test' => 1, 'test2' => true], ['test3']));
-        self::assertFalse(Arrays::allKeysExist([], ['test3']));
-    }
-
     public function testContainsOneOf(){
         $testArray = ['one', 'two', 'three', 1, 2, 3];
         self::assertTrue(Arrays::containsOneOf($testArray, [1, 'two']));
@@ -85,16 +75,6 @@ final class ArraysTest extends TestCase
 
     public function testRemoveNullValues() {
         self::assertEquals(['key' => 0, 3 => 'test'], Arrays::removeNullValues(['key' => 0, 0 => null, 'value' => null, 3 => 'test']));
-    }
-
-    public function testOneKeyExists(): void
-    {
-        $array = ['key' => 'value', 'key2' => 'value'];
-
-        self::assertTrue(Arrays::oneKeyExists($array, ['key']));
-        self::assertTrue(Arrays::oneKeyExists($array, ['key2']));
-        self::assertTrue(Arrays::oneKeyExists($array, ['key', 'key2']));
-        self::assertFalse(Arrays::oneKeyExists($array, ['key3']));
     }
 
     public function testLast()

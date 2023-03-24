@@ -4,6 +4,7 @@ namespace GraphQlTools\Test\Unit\Helper\Compilation;
 
 use Closure;
 use GraphQlTools\Helper\Compilation\ClosureCompiler;
+use GraphQlTools\Test\Unit\Data\Models\NamedDummy;
 use PHPUnit\Framework\TestCase;
 use function _PHPStan_5c71ab23c\RingCentral\Psr7\str;
 
@@ -63,6 +64,10 @@ class ClosureCompilerTest extends TestCase
         return \GraphQlTools\Test\Unit\Helper\Compilation\ClosureCompilerTest::class . ' <=> ' . \GraphQlTools\Test\Unit\Helper\Compilation\ClosureCompilerTest::class;
     }", $this->testWithSelfAccess(...)
             ],
+            // 'test closure with named variables' => [
+            //     "fn() => new \GraphQlTools\Test\Unit\Data\Models\NamedDummy(test: 'variable', variable: 'test')\n",
+            //     fn() => new NamedDummy(test: 'variable', variable: 'test')
+            // ]
         ];
     }
 }

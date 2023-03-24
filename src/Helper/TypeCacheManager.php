@@ -64,9 +64,7 @@ class TypeCacheManager
             }
 
             $typeInstance = $declaration instanceof DefinesGraphQlType ? $declaration : new $declaration;
-            $compiled = $this->buildType($typeInstance, $aliases, $extendedFieldsByType[$declarationTypeName] ?? []);
-            [$typeName, $code, $typeDependencies] = Arrays::unpack($compiled, 'name', 'code', 'typeDependencies');
-
+            ['name' => $typeName, 'code' => $code, 'typeDependencies' => $typeDependencies] = $this->buildType($typeInstance, $aliases, $extendedFieldsByType[$declarationTypeName] ?? []);
             $types[$typeName] = $code;
             $dependencies[$typeName] = $typeDependencies;
         }
@@ -77,6 +75,12 @@ class TypeCacheManager
         ];
     }
 
+    /**
+     * @param DefinesGraphQlType $type
+     * @param array $aliases
+     * @param array $injectedFields
+     * @return array{'name': string, 'code': string, 'typeDependencies': array<string>}
+     */
     public function buildType(DefinesGraphQlType $type, array $aliases, array $injectedFields = []): array
     {
         $registry = new CompilingTypeRegistry($this->typeRegistryName, $aliases);
@@ -92,12 +96,11 @@ class TypeCacheManager
             default => throw new RuntimeException("Could not compile: " . $declaration::class)
         };
 
-        [$name, $code] = Arrays::unpack($compiled, 'name', 'code');
-        $typeDependencies = $registry->getDependencies();
+        ['name' => $name, 'code' => $code] = $compiled;
         return [
             'name' => $name,
             'code' => $code,
-            'typeDependencies' => $typeDependencies,
+            'typeDependencies' => $registry->getDependencies(),
         ];
     }
 

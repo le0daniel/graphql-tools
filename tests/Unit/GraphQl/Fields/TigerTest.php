@@ -23,7 +23,7 @@ class TigerTest extends TypeTestCase
     public function testDeferredField()
     {
         $result = $this->field('deferred')
-            ->mockedDataloader('test', fn() => [
+            ->withDataLoader('test', fn() => [
                 2 => 'My Deferred',
                 3 => 'Second Deferred'
             ])
