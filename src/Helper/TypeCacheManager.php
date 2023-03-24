@@ -9,13 +9,13 @@ use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ScalarType;
-use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\UnionType;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Data\ValueObjects\RawPhpExpression;
 use GraphQlTools\Helper\Compilation\ClosureCompiler;
 use GraphQlTools\Helper\Compilation\FieldCompiler;
+use GraphQlTools\Helper\Registry\CompilingTypeRegistry;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Compiling;
 use RuntimeException;
@@ -35,20 +35,10 @@ class TypeCacheManager
         error_reporting(E_ALL ^ E_DEPRECATED);
     }
 
-    private function export(mixed $value): string
+    private function recursivelyInitializeConfig(array $config): array
     {
-        return Compiling::exportVariable($value);
-    }
-
-    private function absoluteClassName(string $className): string
-    {
-        return Compiling::absoluteClassName($className);
-    }
-
-    private function recursivelyInitializeConfig(array $config, array $blacklistedKeys = ['resolveType']): array
-    {
-        return Arrays::mapWithKeys($config, function (string|int $key, mixed $value) use ($blacklistedKeys): array {
-            if (!$value instanceof Closure || in_array($key, $blacklistedKeys, true)) {
+        return Arrays::mapWithKeys($config, function (string|int $key, mixed $value): array {
+            if (!$value instanceof Closure || in_array($key, ['resolveType', 'resolveFn'], true)) {
                 return [$key, $value];
             }
 
@@ -89,7 +79,7 @@ class TypeCacheManager
 
     public function buildType(DefinesGraphQlType $type, array $aliases, array $injectedFields = []): array
     {
-        $registry = $this->mockedTypeRegistry($aliases);
+        $registry = new CompilingTypeRegistry($this->typeRegistryName, $aliases);
         $declaration = $type->toDefinition($registry, $injectedFields);
 
         $compiled = match (true) {
@@ -113,9 +103,10 @@ class TypeCacheManager
 
     private function compileScalar(ScalarType $type): array
     {
+        $className = Compiling::absoluteClassName($type::class);
         return [
             'name' => $type->name,
-            'code' => "static function() { return new {$this->absoluteClassName($type::class)}; }"
+            'code' => "static function() { return new {$className}; }"
         ];
     }
 
@@ -140,7 +131,7 @@ class TypeCacheManager
 
     private function compileUnion(UnionType $typeDefinition): array
     {
-        $config = $this->recursivelyInitializeConfig($typeDefinition->config, ['resolveType', 'resolveFn']);
+        $config = $this->recursivelyInitializeConfig($typeDefinition->config);
 
         return [
             'name' => $typeDefinition->name,
@@ -159,7 +150,7 @@ class TypeCacheManager
 
     private function compileInterface(InterfaceType $typeDefinition): array
     {
-        $config = $this->recursivelyInitializeConfig($typeDefinition->config, ['resolveType', 'resolveFn']);
+        $config = $this->recursivelyInitializeConfig($typeDefinition->config);
         $resolveTypeBody = $this->compileResolveTypeFunction($config['resolveFn']);
 
         return [
@@ -241,7 +232,7 @@ class TypeCacheManager
 
     private function registryNameSpace(): string
     {
-        return $this->absoluteClassName(TypeRegistry::class);
+        return Compiling::absoluteClassName(TypeRegistry::class);
     }
 
     private function compileListOfType(array $types): array
@@ -279,37 +270,5 @@ class TypeCacheManager
         );
 
         return Compiling::exportArray($fields);
-    }
-
-    public function mockedTypeRegistry(array $aliases): TypeRegistry
-    {
-        return new class ($this->typeRegistryName, $aliases) implements TypeRegistry {
-            private array $dependencies = [];
-
-            public function __construct(private readonly string $typeRegistryVariableName, private readonly array $aliases)
-            {
-            }
-
-            /**
-             * @return array
-             */
-            public function getDependencies(): array
-            {
-                return array_values(array_unique($this->dependencies));
-            }
-
-            public function type(string $nameOrAlias): Closure
-            {
-                $typeName = $this->aliases[$nameOrAlias] ?? $nameOrAlias;
-                $this->dependencies[] = $typeName;
-                $exportedTypeName = Compiling::exportVariable($typeName);
-                return fn() => "\${$this->typeRegistryVariableName}->type({$exportedTypeName})";
-            }
-
-            public function eagerlyLoadType(string $nameOrAlias): Type
-            {
-                throw new RuntimeException("This method is internal and should not be used.");
-            }
-        };
     }
 }
