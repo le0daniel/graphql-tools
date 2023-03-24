@@ -65,6 +65,7 @@ class CollectDeprecatedFieldNotices extends ContextualValidationRule
                     );
                 }
             },
+
             NodeKind::ARGUMENT => function (ArgumentNode $node) use ($context) {
                 $argument = $context->getArgument();
                 if (!$argument) {

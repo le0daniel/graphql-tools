@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Test\Feature;
 
-use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
-use GraphQlTools\Definition\TypeBuilder\GraphQlType;
 use GraphQlTools\Helper\Registry\FederatedSchema;
 use GraphQlTools\Test\Dummies\Schema\JsonScalar;
 use GraphQlTools\Test\Dummies\Schema\QueryType;

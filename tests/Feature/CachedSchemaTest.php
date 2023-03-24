@@ -13,6 +13,8 @@ class CachedSchemaTest extends QueryTest
     {
         $code = $this->federatedSchema()->cacheSchema();
 
+        file_put_contents(__DIR__ . '/output.php', "<?php {$code}");
+
         $schema = FederatedSchema::fromCachedSchema(
             eval($code),
             'Query'

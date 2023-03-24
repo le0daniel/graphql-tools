@@ -22,7 +22,7 @@ final class AnimalUnion extends GraphQlUnion {
         return 'Animals';
     }
 
-    protected function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string {
+    public static function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string {
         switch ($typeValue['type']) {
             case 'lion':
                 return LionType::class;

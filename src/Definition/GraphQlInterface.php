@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition;
 
-use Closure;
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\DefinesGraphQlType;
@@ -35,8 +34,9 @@ abstract class GraphQlInterface implements DefinesGraphQlType
                 $registry,
                 [$this->fields(...), ...$injectedFieldFactories],
             ),
+            'resolveFn' => [static::class, 'resolveToType'],
             'resolveType' => fn($_, OperationContext $context, $info) => $registry->type(
-                $this->resolveToType($_, $context->context, $info)
+                static::resolveToType($_, $context->context, $info)
             ),
         ]);
     }
@@ -46,11 +46,7 @@ abstract class GraphQlInterface implements DefinesGraphQlType
         return static::typeName();
     }
 
-    public function getResolveTypeClosure(): Closure {
-        return $this->resolveToType(...);
-    }
-
-    abstract protected function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string;
+    abstract public static function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string;
 
     public static function typeName(): string
     {

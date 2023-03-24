@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition;
 
-use Closure;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\UnionType;
 use GraphQlTools\Contract\DefinesGraphQlType;
@@ -28,17 +27,14 @@ abstract class GraphQlUnion implements DefinesGraphQlType
             'deprecationReason' => $this->deprecationReason(),
             'removalDate' => $this->removalDate(),
             'types' => fn() => array_map(fn(string $typeName) => $registry->type($typeName), $this->possibleTypes()),
+            'resolveFn' => [static::class, 'resolveToType'],
             'resolveType' => fn($_, OperationContext $context, $info) => $registry->type(
-                $this->resolveToType($_, $context->context, $info)
+                static::resolveToType($_, $context->context, $info)
             ),
         ]);
     }
 
-    abstract protected function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string;
-
-    public function getResolveTypeClosure(): Closure {
-        return $this->resolveToType(...);
-    }
+    abstract public static function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string;
 
     public function getName(): string
     {
