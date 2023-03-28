@@ -19,8 +19,9 @@ abstract class ContextualValidationRule extends ValidationRule implements JsonSe
     /**
      * Determines if the data should be exposed in the result.
      *
+     * @param $context
      * @return bool
      */
-    abstract public function isVisibleInResult(): bool;
+    abstract public function isVisibleInResult($context): bool;
 
 }

@@ -6,6 +6,7 @@ use Closure;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
 use GraphQlTools\Contract\DefinesGraphQlType;
+use GraphQlTools\Data\ValueObjects\RawPhpExpression;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
@@ -22,23 +23,27 @@ class FederatedSchema
     private array $eagerlyLoadedTypes = [];
     private array $typeFieldExtensions = [];
 
-    public function register(DefinesGraphQlType $definition): void {
+    public function register(DefinesGraphQlType $definition): void
+    {
         $this->verifyTypeNameIsUsed($definition->getName());
         $this->types[$definition->getName()] = $definition;
     }
 
-    public function registerType(string $typeName, string|DefinesGraphQlType $typeDeclaration): void {
+    public function registerType(string $typeName, string|DefinesGraphQlType $typeDeclaration): void
+    {
         $this->verifyTypeNameIsUsed($typeName);
         $this->types[$typeName] = $typeDeclaration;
     }
 
-    private function verifyTypeNameIsUsed(string $typeName): void {
+    private function verifyTypeNameIsUsed(string $typeName): void
+    {
         if (isset($this->types[$typeName])) {
             throw new RuntimeException("Type with name '{$typeName}' was already registered. You can not register a type twice.");
         }
     }
 
-    public function registerTypes(array $types): void {
+    public function registerTypes(array $types): void
+    {
         foreach ($types as $possibleName => $declaration) {
             $typeName = match (true) {
                 is_string($possibleName) => $possibleName,
@@ -51,7 +56,8 @@ class FederatedSchema
         }
     }
 
-    public function registerEagerlyLoadedType(string $typeNameOrAlias): void {
+    public function registerEagerlyLoadedType(string $typeNameOrAlias): void
+    {
         $this->eagerlyLoadedTypes[] = $typeNameOrAlias;
     }
 
@@ -83,7 +89,8 @@ class FederatedSchema
         return $extensionFactories;
     }
 
-    protected function createTypeAndAliasesAndFieldExtensions(): array {
+    protected function createTypeAndAliasesAndFieldExtensions(): array
+    {
         $aliases = [];
         foreach ($this->types as $typeName => $declaration) {
             if (is_string($declaration)) {
@@ -96,7 +103,8 @@ class FederatedSchema
         return [$types, $aliases, $fieldExtensions];
     }
 
-    protected function combineFieldExtensionsAndTypes(array $types, array $fieldExtensions): array {
+    protected function combineFieldExtensionsAndTypes(array $types, array $fieldExtensions): array
+    {
         foreach ($fieldExtensions as $typeName => $extensionFactories) {
             if (!isset($types[$typeName])) {
                 throw new DefinitionException("Tried to extend type '{$typeName}' which has not been registered.");
@@ -105,7 +113,7 @@ class FederatedSchema
             $typeClassName = $types[$typeName];
             $types[$typeName] = static function (TypeRegistryContract $registry) use ($typeClassName, $extensionFactories) {
                 /** @var GraphQlType|GraphQlInterface $instance */
-                $instance = new $typeClassName;
+                $instance = $typeClassName instanceof DefinesGraphQlType ? $typeClassName : new $typeClassName;
                 return $instance->toDefinition($registry, $extensionFactories);
             };
         }
@@ -120,88 +128,80 @@ class FederatedSchema
         );
     }
 
-    public function cacheSchema(): string {
+    public function cacheSchema(): string
+    {
         $cacheManager = new TypeCacheManager();
         [$types, $aliases, $fieldExtensions] = $this->createTypeAndAliasesAndFieldExtensions();
         [$types, $dependencies] = $cacheManager->cache($types, $aliases, $fieldExtensions);
 
-        $exportedAliases = var_export($aliases, true);
-        $mappedTypes = Arrays::mapWithKeys($types,fn(string $typeName, string $code): array => [
-            $typeName, Compiling::exportVariable($typeName) . " => {$code}",
+        $eagerlyLoadedTypes = array_map(fn(string $nameOrAlias) => $aliases[$nameOrAlias] ?? $nameOrAlias, $this->eagerlyLoadedTypes);
+
+        $export = Compiling::exportArray([
+            'eagerlyLoaded' => $eagerlyLoadedTypes,
+            'aliases' => $aliases,
+            'types' => array_map(fn(string $code): RawPhpExpression => new RawPhpExpression($code), $types),
         ]);
-        $typesCode = implode(','.PHP_EOL, $mappedTypes);
-        $eagerlyLoadTypes = var_export($this->eagerlyLoadedTypes, true);
 
         return "       
-            return [
-                'eagerlyLoaded' => {$eagerlyLoadTypes},
-                'aliases' => {$exportedAliases},
-                'types' => [
-                    {$typesCode}
-                ]       
-            ];
+            return {$export};
         ";
     }
 
-    public static function fromCachedSchema(array $cache, string $queryTypeName, ?string $mutationTypeName = null): Schema {
-        $registry = new FactoryTypeRegistry(
-            $cache['types'],
-            $cache['aliases']
-        );
-
-        return new Schema(
-            SchemaConfig::create(
-                [
-                    'query' => $registry->eagerlyLoadType($queryTypeName),
-                    'mutation' => $mutationTypeName ? $registry->eagerlyLoadType($mutationTypeName) : null,
-                    'typeLoader' => static function(string $typeNameOrClassName) use ($registry) {
-                        try {
-                            return $registry->eagerlyLoadType($typeNameOrClassName);
-                        } catch (DefinitionException $exception) {
-                            if (Types::isDefaultOperationTypeName($typeNameOrClassName)) {
-                                return null;
-                            }
-                            throw $exception;
-                        }
-                    },
-                    'types' => fn() => array_map(
-                        $registry->eagerlyLoadType(...),
-                        $cache['eagerlyLoaded'],
-                    ),
-                    'assumeValid' => true,
-                ]
-            )
+    public static function fromCachedSchema(array $cache, string $queryTypeName, ?string $mutationTypeName = null): Schema
+    {
+        return self::toSchema(
+            new FactoryTypeRegistry($cache['types'], $cache['aliases']),
+            $queryTypeName,
+            $mutationTypeName,
+            true,
+            $cache['eagerlyLoaded'] ?? []
         );
     }
 
     public function createSchema(
-        string $queryTypeName,
+        string  $queryTypeName,
         ?string $mutationTypeName = null,
-        bool $assumeValid = true,
-    ): Schema {
+        bool    $assumeValid = true,
+    ): Schema
+    {
         [$types, $aliases, $fieldExtensions] = $this->createTypeAndAliasesAndFieldExtensions();
         $typeRegistry = $this->createInstanceOfTypeRegistry(
             $this->combineFieldExtensionsAndTypes($types, $fieldExtensions),
             $aliases
         );
-        $eagerlyLoadedTypes = $this->eagerlyLoadedTypes;
+        return self::toSchema(
+            $typeRegistry,
+            $queryTypeName,
+            $mutationTypeName,
+            $assumeValid,
+            $this->eagerlyLoadedTypes
+        );
+    }
 
+    private static function toSchema(
+        TypeRegistryContract $registry,
+        string               $queryTypeName,
+        ?string              $mutationTypeName = null,
+        bool                 $assumeValid = true,
+        array                $eagerlyLoadedTypes = []
+    ): Schema
+    {
         return new Schema(
             SchemaConfig::create(
                 [
-                    'query' => $typeRegistry->eagerlyLoadType($queryTypeName),
+                    'query' => Schema::resolveType($registry->type($queryTypeName)),
                     'mutation' => $mutationTypeName
-                        ? $typeRegistry->eagerlyLoadType($mutationTypeName)
+                        ? Schema::resolveType($registry->type($mutationTypeName))
                         : null,
-                    'types' => static function() use ($eagerlyLoadedTypes, $typeRegistry) {
+                    'types' => static function () use ($eagerlyLoadedTypes, $registry) {
                         return array_map(
-                            $typeRegistry->eagerlyLoadType(...),
+                            fn(string $name) => Schema::resolveType($registry->type($name)),
                             $eagerlyLoadedTypes,
                         );
                     },
-                    'typeLoader' => static function(string $typeNameOrClassName) use ($typeRegistry) {
+                    'typeLoader' => static function (string $typeNameOrClassName) use ($registry) {
                         try {
-                            return $typeRegistry->eagerlyLoadType($typeNameOrClassName);
+                            return Schema::resolveType($registry->type($typeNameOrClassName));
                         } catch (DefinitionException $exception) {
                             if (Types::isDefaultOperationTypeName($typeNameOrClassName)) {
                                 return null;

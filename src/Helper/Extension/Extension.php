@@ -19,7 +19,7 @@ abstract class Extension implements ExecutionExtension
      *
      * @return bool
      */
-    public function isVisibleInResult(): bool
+    public function isVisibleInResult($context): bool
     {
         return true;
     }

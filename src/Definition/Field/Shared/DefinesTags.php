@@ -16,7 +16,11 @@ trait DefinesTags
         return $this;
     }
 
-    protected function getTags(): array {
+    public function getTags(): array {
         return array_unique($this->tags);
+    }
+
+    public function containsAnyTag(string ...$tags): bool {
+        return !empty(array_intersect($this->tags, $tags));
     }
 }

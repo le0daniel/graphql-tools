@@ -39,7 +39,7 @@ final class Tracing extends Extension
         return 'tracing';
     }
 
-    public function isVisibleInResult(): bool
+    public function isVisibleInResult($context): bool
     {
         return $this->addTraceToResult && !$this->isIntrospectionQuery;
     }

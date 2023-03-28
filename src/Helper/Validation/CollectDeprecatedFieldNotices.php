@@ -65,7 +65,6 @@ class CollectDeprecatedFieldNotices extends ContextualValidationRule
                     );
                 }
             },
-
             NodeKind::ARGUMENT => function (ArgumentNode $node) use ($context) {
                 $argument = $context->getArgument();
                 if (!$argument) {
@@ -87,6 +86,7 @@ class CollectDeprecatedFieldNotices extends ContextualValidationRule
                     $deprecationReason
                 );
             },
+
         ];
     }
 
@@ -95,7 +95,7 @@ class CollectDeprecatedFieldNotices extends ContextualValidationRule
         return 'deprecations';
     }
 
-    public function isVisibleInResult(): bool
+    public function isVisibleInResult($context): bool
     {
         return !empty($this->messages);
     }

@@ -17,6 +17,7 @@ use GraphQlTools\Helper\ProxyResolver;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Compiling;
 use ReflectionClass;
+use RuntimeException;
 
 class FieldCompiler
 {
@@ -84,17 +85,16 @@ class FieldCompiler
             BooleanType::class => "{$typeClassName}::boolean()",
             IntType::class => "{$typeClassName}::int()",
             FloatType::class => "{$typeClassName}::float()",
-            default => throw new \RuntimeException("Can not compile this type.")
+            default => throw new RuntimeException("Can not compile this type.")
         };
     }
 
     private function compileResolver(?ProxyResolver $resolver): ?string
     {
-        if (!$resolver) {
-            return null;
-        }
-
         $className = Compiling::absoluteClassName(ProxyResolver::class);
+        if (!$resolver) {
+            return "new {$className}(null)";
+        }
 
         return $resolver->isDefaultResolveFunction()
             ? "new {$className}(null)"

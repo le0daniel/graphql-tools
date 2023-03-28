@@ -8,11 +8,18 @@ use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;
 use JsonSerializable;
 
+/**
+ * @template T as GraphQlContext
+ */
 interface ExecutionExtension extends JsonSerializable
 {
     public function key(): string;
 
-    public function isVisibleInResult(): bool;
+    /**
+     * @param T $context
+     * @return bool
+     */
+    public function isVisibleInResult($context): bool;
 
     public function priority(): int;
 

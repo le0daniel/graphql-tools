@@ -3,6 +3,7 @@
 namespace GraphQlTools\Test\Unit\Helper;
 
 use GraphQL\Executor\ExecutionResult;
+use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;
@@ -29,7 +30,7 @@ class ExtensionManagerTest extends TestCase
     }
 
     public function testExtensionsEventDispatching() {
-        $startEvent = StartEvent::create('');
+        $startEvent = StartEvent::create('', $this->prophesize(GraphQlContext::class)->reveal());
         $endEvent = EndEvent::create(new ExecutionResult(null));
 
         /** @var Extension|ObjectProphecy $extensionProphecy */

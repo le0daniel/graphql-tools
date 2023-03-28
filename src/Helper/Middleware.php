@@ -20,7 +20,7 @@ class Middleware
     }
 
     /**
-     * @param Closure(mixed, array, GraphQlContext, ResolveInfo, callable): mixed ...$pipes
+     * @param array<callable(mixed, array, GraphQlContext, ResolveInfo, callable): mixed> $pipes
      * @return static
      */
     public static function create(array $pipes): static

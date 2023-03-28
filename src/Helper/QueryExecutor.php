@@ -68,11 +68,11 @@ final class QueryExecutor
         });
     }
 
-    private function collectValidationRuleExtensions(array $validationRules): array
+    private function collectValidationRuleExtensions(array $validationRules, GraphQlContext $context): array
     {
         $serialized = [];
         foreach ($validationRules as $validationRule) {
-            if (!$validationRule instanceof ContextualValidationRule || !$validationRule->isVisibleInResult()) {
+            if (!$validationRule instanceof ContextualValidationRule || !$validationRule->isVisibleInResult($context)) {
                 continue;
             }
 
@@ -92,7 +92,7 @@ final class QueryExecutor
     ): ExecutionResult
     {
         $extensionManager = ExtensionManager::createFromExtensionFactories($this->extensionFactories);
-        $extensionManager->dispatchStartEvent(StartEvent::create($query));
+        $extensionManager->dispatchStartEvent(StartEvent::create($query, $context));
 
         $validationRules = [
             ... $this->validationRules,
@@ -104,7 +104,7 @@ final class QueryExecutor
         } catch (SyntaxError $exception) {
             $result = new ExecutionResult(null, [$exception]);
             $extensionManager->dispatchEndEvent(EndEvent::create($result));
-            $result->extensions = $extensionManager->collect();
+            $result->extensions = $extensionManager->collect($context);
             return $result;
         }
 
@@ -121,8 +121,8 @@ final class QueryExecutor
         $extensionManager->dispatchEndEvent(EndEvent::create($result));
 
         $result->extensions = Arrays::mergeKeyValues(
-            $extensionManager->collect(),
-            $this->collectValidationRuleExtensions($validationRules),
+            $extensionManager->collect($context),
+            $this->collectValidationRuleExtensions($validationRules, $context),
             throwOnKeyConflict: true
         );
 

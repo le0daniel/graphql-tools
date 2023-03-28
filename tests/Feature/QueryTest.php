@@ -10,17 +10,17 @@ use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Helper\Registry\FederatedSchema;
 use GraphQlTools\Test\Dummies\Schema\JsonScalar;
+use GraphQlTools\Test\Dummies\Schema\LionType;
 use GraphQlTools\Test\Dummies\Schema\QueryType;
 use GraphQlTools\Test\Dummies\Schema\UserType;
+use GraphQlTools\Utility\Middleware\Federation;
 use GraphQlTools\Utility\TypeMap;
 
 class QueryTest extends ExecutionTestCase
 {
     protected function federatedSchema(): FederatedSchema {
         $federatedSchema = new FederatedSchema();
-        foreach (TypeMap::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema') as $key => $value) {
-            $federatedSchema->registerType($key, $value);
-        }
+        $federatedSchema->registerTypes(TypeMap::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema'));
 
         $federatedSchema->extendType(
             UserType::class,
@@ -37,7 +37,11 @@ class QueryTest extends ExecutionTestCase
         $federatedSchema->extendType('User',fn(TypeRegistry $registry) => [
             Field::withName('byName')
                 ->ofType(Type::string())
-                ->resolvedBy(fn() => 'byName'),
+                ->tags('name')
+                ->middleware(
+                    Federation::key('id')
+                )
+                ->resolvedBy(fn(string $id) => "byName: {$id}"),
 
             // Ensure circular dependencies work fine
             Field::withName('testCircular')
@@ -47,6 +51,9 @@ class QueryTest extends ExecutionTestCase
                 ->ofType(Type::string())
                 ->resolvedBy(fn() => 'lazy-field')
         ]);
+
+        $federatedSchema->registerEagerlyLoadedType(LionType::class);
+
         return $federatedSchema;
     }
 
@@ -163,7 +170,7 @@ class QueryTest extends ExecutionTestCase
         $result = $this->execute('query { user { byName } }');
         $this->assertNoErrors($result);
         self::assertIsArray($result->data['user']);
-        self::assertEquals('byName', $result->data['user']['byName']);
+        self::assertEquals('byName: MQ==', $result->data['user']['byName']);
     }
 
     public function testQueryWithLazyExtendedUserType(): void

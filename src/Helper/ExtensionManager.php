@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GraphQlTools\Helper;
 
 use Closure;
+use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;
@@ -84,12 +85,12 @@ final class ExtensionManager
         }
     }
 
-    public function collect(): array
+    public function collect(GraphQlContext $context): array
     {
         $extensionData = [];
 
         foreach ($this->extensions as $extension) {
-            if ($extension->isVisibleInResult()) {
+            if ($extension->isVisibleInResult($context)) {
                 try {
                     $extensionData[$extension->key()] = $extension->jsonSerialize();
                 } catch (Throwable) {
