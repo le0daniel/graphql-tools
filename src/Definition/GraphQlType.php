@@ -48,7 +48,10 @@ abstract class GraphQlType implements DefinesGraphQlType
 
     public function getName(): string
     {
-        return static::typeName();
+        $typeName = Classes::baseName(static::class);
+        return str_ends_with($typeName, self::CLASS_POSTFIX)
+            ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))
+            : $typeName;
     }
 
     /**
@@ -58,14 +61,6 @@ abstract class GraphQlType implements DefinesGraphQlType
     protected function interfaces(): array
     {
         return [];
-    }
-
-    public static function typeName(): string
-    {
-        $typeName = Classes::baseName(static::class);
-        return str_ends_with($typeName, self::CLASS_POSTFIX)
-            ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))
-            : $typeName;
     }
 
 }

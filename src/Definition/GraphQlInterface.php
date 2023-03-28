@@ -43,17 +43,11 @@ abstract class GraphQlInterface implements DefinesGraphQlType
 
     public function getName(): string
     {
-        return static::typeName();
-    }
-
-    abstract public static function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string;
-
-    public static function typeName(): string
-    {
         $typeName = Classes::baseName(static::class);
         return str_ends_with($typeName, self::CLASS_POSTFIX)
             ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))
             : $typeName;
     }
 
+    abstract public static function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string;
 }

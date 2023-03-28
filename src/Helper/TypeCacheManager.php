@@ -57,13 +57,12 @@ class TypeCacheManager
         $dependencies = [];
 
         foreach ($typesToCache as $providedTypeName => $declaration) {
-            $declarationTypeName = $declaration instanceof DefinesGraphQlType ? $declaration->getName() : $declaration::typeName();
-            $providedTypeName = is_int($providedTypeName) ? $declarationTypeName : $providedTypeName;
+            $typeInstance = $declaration instanceof DefinesGraphQlType ? $declaration : new $declaration;
+            $declarationTypeName = $typeInstance->getName();
             if ($declarationTypeName !== $providedTypeName) {
                 throw new RuntimeException("Encountered different name for the type {$providedTypeName} = {$declarationTypeName}.");
             }
 
-            $typeInstance = $declaration instanceof DefinesGraphQlType ? $declaration : new $declaration;
             ['name' => $typeName, 'code' => $code, 'typeDependencies' => $typeDependencies] = $this->buildType($typeInstance, $aliases, $extendedFieldsByType[$declarationTypeName] ?? []);
             $types[$typeName] = $code;
             $dependencies[$typeName] = $typeDependencies;

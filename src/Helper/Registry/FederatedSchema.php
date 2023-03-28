@@ -53,7 +53,6 @@ class FederatedSchema
         foreach ($types as $possibleName => $declaration) {
             $typeName = match (true) {
                 is_string($possibleName) => $possibleName,
-                is_string($declaration) => $declaration::typeName(),
                 $declaration instanceof DefinesGraphQlType => $declaration->getName(),
                 default => throw new DefinitionException('Expected the type name to be resolvable, could not resolve name.'),
             };

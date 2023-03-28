@@ -29,7 +29,7 @@ class GraphQlEnumTest extends TestCase
                 return $this->description;
             }
 
-            public static function typeName(): string
+            public function getName(): string
             {
                 return 'Name';
             }
@@ -60,6 +60,6 @@ class GraphQlEnumTest extends TestCase
 
     public function testTypeName()
     {
-        self::assertEquals('Name', $this->instance([], '')::typeName());
+        self::assertEquals('Name', $this->instance([], '')->getName());
     }
 }

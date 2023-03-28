@@ -43,7 +43,7 @@ class GraphQlTypeTest extends TestCase
                 return 'some description';
             }
 
-            public static function typeName(): string
+            public function getName(): string
             {
                 return 'Name';
             }
@@ -66,7 +66,7 @@ class GraphQlTypeTest extends TestCase
     public function testTypeName()
     {
         self::assertEquals(
-            'Name', $this->instance(fn() => [])::typeName()
+            'Name', $this->instance(fn() => [])->getName()
         );
     }
 }

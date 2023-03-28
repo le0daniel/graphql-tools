@@ -19,7 +19,8 @@ abstract class GraphQlEnum implements DefinesGraphQlType
     private const CLASS_POSTFIX = 'Enum';
     use HasDescription, HasDeprecation;
 
-    public function toDefinition(TypeRegistry $registry): EnumType {
+    public function toDefinition(TypeRegistry $registry): EnumType
+    {
         return new EnumType([
             'name' => $this->getName(),
             'description' => $this->addDeprecationToDescription($this->description()),
@@ -33,10 +34,11 @@ abstract class GraphQlEnum implements DefinesGraphQlType
      * @return array<string, array<{key: string, value: mixed}>>
      * @throws DefinitionException
      */
-    private function initValues(): array {
+    private function initValues(): array
+    {
         $valuesOrEnumClassName = $this->values();
         if (is_array($valuesOrEnumClassName)) {
-            return Arrays::mapWithKeys($valuesOrEnumClassName,static function(string|int $key, mixed $value) {
+            return Arrays::mapWithKeys($valuesOrEnumClassName, static function (string|int $key, mixed $value) {
                 if (is_int($key)) {
                     Typing::verifyIsString($value);
                     return [$value, ['name' => $value, 'value' => $value]];
@@ -58,16 +60,19 @@ abstract class GraphQlEnum implements DefinesGraphQlType
 
         return Arrays::mapWithKeys(
             $valuesOrEnumClassName::cases(),
-            fn($index, $enum): array => [(string) $enum->name, [
+            fn($index, $enum): array => [(string)$enum->name, [
                 'value' => $enum,
-                'name' => (string) $enum->name,
+                'name' => (string)$enum->name,
             ]]
         );
     }
 
     public function getName(): string
     {
-        return static::typeName();
+        $typeName = Classes::baseName(static::class);
+        return str_ends_with($typeName, self::CLASS_POSTFIX)
+            ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))
+            : $typeName;
     }
 
     /**
@@ -77,13 +82,4 @@ abstract class GraphQlEnum implements DefinesGraphQlType
      * @return array<string,mixed>|class-string<BackedEnum>
      */
     abstract protected function values(): array|string;
-
-    public static function typeName(): string
-    {
-        $typeName = Classes::baseName(static::class);
-        return str_ends_with($typeName, self::CLASS_POSTFIX)
-            ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))
-            : $typeName;
-    }
-
 }
