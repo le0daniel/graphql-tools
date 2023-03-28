@@ -39,18 +39,6 @@ class FactoryTypeRegistry implements TypeRegistryContract
         );
     }
 
-    /**
-     * @interal
-     * @param string $nameOrAlias
-     * @return Type
-     */
-    public function eagerlyLoadType(string $nameOrAlias): Type
-    {
-        return $this->getType(
-            $this->resolveTypeNameAliases($nameOrAlias)
-        );
-    }
-
     protected function resolveTypeNameAliases(string $nameOrAlias): string
     {
         return $this->aliasesOfTypes[$nameOrAlias] ?? $nameOrAlias;

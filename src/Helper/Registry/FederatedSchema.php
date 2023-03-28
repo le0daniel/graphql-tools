@@ -11,7 +11,6 @@ use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Helper\TypeCacheManager;
-use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Compiling;
 use GraphQlTools\Utility\Types;
 use RuntimeException;

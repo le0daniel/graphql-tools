@@ -33,9 +33,4 @@ final class CompilingTypeRegistry implements TypeRegistry
         return fn() => "\${$this->typeRegistryVariableName}->type({$exportedTypeName})";
     }
 
-    public function eagerlyLoadType(string $nameOrAlias): Type
-    {
-        throw new RuntimeException("This method is internal and should not be used.");
-    }
-
 }

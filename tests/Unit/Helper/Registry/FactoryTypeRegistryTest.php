@@ -38,15 +38,4 @@ class FactoryTypeRegistryTest extends TestCase
         $registry->verifyAliasCollisions();
         self::assertTrue(true);
     }
-
-    public function testEagerlyLoadType()
-    {
-        $type = Type::string();
-        $registry = new FactoryTypeRegistry(
-            ['typeName' => fn() => $type],
-            ['alias' => 'typeName']
-        );
-
-        self::assertSame($registry->eagerlyLoadType('typeName'), $registry->eagerlyLoadType('alias'));
-    }
 }

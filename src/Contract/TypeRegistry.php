@@ -17,14 +17,4 @@ interface TypeRegistry
      * @return Closure(): Type|Type
      */
     public function type(string $nameOrAlias): Closure|Type;
-
-    /**
-     * Given a type name or class name, return an instance of the Type
-     * to a type. This should only be used internally by the framework.
-     *
-     * @interal
-     * @param string|class-string<Type> $nameOrAlias
-     * @return Type
-     */
-    public function eagerlyLoadType(string $nameOrAlias): Type;
 }
