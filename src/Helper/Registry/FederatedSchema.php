@@ -88,18 +88,21 @@ class FederatedSchema
         return $extensionFactories;
     }
 
-    protected function createTypeAndAliasesAndFieldExtensions(): array
-    {
+    protected function getAliases(): array {
         $aliases = [];
         foreach ($this->types as $typeName => $declaration) {
             if (is_string($declaration)) {
                 $aliases[$declaration] = $typeName;
             }
         }
+        return $aliases;
+    }
 
-        $types = $this->types;
+    protected function createAliasesAndExtensions(): array
+    {
+        $aliases = $this->getAliases();
         $fieldExtensions = $this->resolveFieldExtensionAliases($aliases);
-        return [$types, $aliases, $fieldExtensions];
+        return [$aliases, $fieldExtensions];
     }
 
     protected function combineFieldExtensionsAndTypes(array $types, array $fieldExtensions): array
@@ -119,19 +122,11 @@ class FederatedSchema
         return $types;
     }
 
-    protected function createInstanceOfTypeRegistry(array $types, array $aliases): TypeRegistryContract
-    {
-        return new FactoryTypeRegistry(
-            $types,
-            $aliases
-        );
-    }
-
     public function cacheSchema(): string
     {
         $cacheManager = new TypeCacheManager();
-        [$types, $aliases, $fieldExtensions] = $this->createTypeAndAliasesAndFieldExtensions();
-        [$types, $dependencies] = $cacheManager->cache($types, $aliases, $fieldExtensions);
+        [$aliases, $fieldExtensions] = $this->createAliasesAndExtensions();
+        [$types, $dependencies] = $cacheManager->cache($this->types, $aliases, $fieldExtensions);
 
         $eagerlyLoadedTypes = array_map(fn(string $nameOrAlias) => $aliases[$nameOrAlias] ?? $nameOrAlias, $this->eagerlyLoadedTypes);
 
@@ -163,9 +158,9 @@ class FederatedSchema
         bool    $assumeValid = true,
     ): Schema
     {
-        [$types, $aliases, $fieldExtensions] = $this->createTypeAndAliasesAndFieldExtensions();
-        $typeRegistry = $this->createInstanceOfTypeRegistry(
-            $this->combineFieldExtensionsAndTypes($types, $fieldExtensions),
+        [$aliases, $fieldExtensions] = $this->createAliasesAndExtensions();
+        $typeRegistry = new FactoryTypeRegistry(
+            $this->combineFieldExtensionsAndTypes($this->types, $fieldExtensions),
             $aliases
         );
         return self::toSchema(
