@@ -62,7 +62,7 @@ class Compiling
         }
 
         if ($variable instanceof DateTimeInterface) {
-            $className = self::absoluteClassName(DateTimeImmutable::class);
+            $className = self::absoluteClassName($variable::class);
             $dateTimeFormat = self::DATE_TIME_FORMAT;
             $serializedDateTime = var_export($variable->format($dateTimeFormat), true);
             return "{$className}::createFromFormat('{$dateTimeFormat}', {$serializedDateTime})";

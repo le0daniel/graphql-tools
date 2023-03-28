@@ -8,17 +8,15 @@ use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Field\Shared\DefinesArguments;
-use GraphQlTools\Definition\Field\Shared\DefinesDescription;
+use GraphQlTools\Definition\Field\Shared\DefinesBaseProperties;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
-use GraphQlTools\Definition\Field\Shared\DefinesTags;
-use GraphQlTools\Definition\Field\Shared\Deprecatable;
 use GraphQlTools\Helper\Middleware;
 use GraphQlTools\Helper\ProxyResolver;
 
 
 class Field implements DefinesGraphQlType
 {
-    use DefinesDescription, Deprecatable, DefinesReturnType, DefinesArguments, DefinesTags;
+    use DefinesBaseProperties, DefinesReturnType, DefinesArguments;
     private null|Closure $resolveFunction = null;
     private array $middlewares = [];
 
@@ -60,7 +58,7 @@ class Field implements DefinesGraphQlType
             'type' => $this->resolveReturnType($registry),
             'deprecationReason' => $this->deprecationReason,
             'removalDate' => $this->removalDate,
-            'description' => $this->addDeprecationToDescription($this->description ?? ''),
+            'description' => $this->computeDescription(),
             'args' => $this->buildArguments($registry),
             'tags' => $this->getTags(),
         ]);

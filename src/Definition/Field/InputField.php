@@ -6,14 +6,12 @@ use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Field\Shared\DefinesDefaultValue;
-use GraphQlTools\Definition\Field\Shared\DefinesDescription;
+use GraphQlTools\Definition\Field\Shared\DefinesBaseProperties;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
-use GraphQlTools\Definition\Field\Shared\DefinesTags;
-use GraphQlTools\Definition\Field\Shared\Deprecatable;
 
 final class InputField implements DefinesGraphQlType
 {
-    use DefinesDescription, Deprecatable, DefinesReturnType, DefinesDefaultValue, DefinesTags;
+    use DefinesBaseProperties, DefinesReturnType, DefinesDefaultValue;
 
     final public function __construct(public readonly string $name)
     {
@@ -43,7 +41,7 @@ final class InputField implements DefinesGraphQlType
 
         return [
             'name' => $this->name,
-            'description' => $this->addDeprecationToDescription($this->description ?? ''),
+            'description' => $this->computeDescription(),
             'type' => $this->resolveReturnType($typeRegistry),
             'deprecatedReason' => $this->deprecationReason,
             'removalDate' => $this->removalDate,

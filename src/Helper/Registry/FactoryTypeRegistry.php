@@ -59,12 +59,6 @@ class FactoryTypeRegistry implements TypeRegistryContract
         if (!$typeFactory) {
             throw new DefinitionException("Could not resolve type '{$typeName}', no factory provided. Did you register this type?");
         }
-
-        return match (true) {
-            is_callable($typeFactory) => $typeFactory($this),
-            is_string($typeFactory) => (new $typeFactory)->toDefinition($this),
-            $typeFactory instanceof DefinesGraphQlType => $typeFactory->toDefinition($this),
-            default => throw new DefinitionException("Could not create type '{$typeName}', invalid factory provided. Factories must be of type Closure, implement DefinesGraphQlType or a class-string implementing DefinesGraphQlType.")
-        };
+        return $typeFactory($this);
     }
 }

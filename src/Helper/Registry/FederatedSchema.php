@@ -3,6 +3,7 @@
 namespace GraphQlTools\Helper\Registry;
 
 use Closure;
+use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
 use GraphQlTools\Contract\DefinesGraphQlType;
@@ -11,6 +12,7 @@ use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Helper\TypeCacheManager;
+use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Compiling;
 use GraphQlTools\Utility\Types;
 use RuntimeException;
@@ -30,6 +32,11 @@ class FederatedSchema
 
     public function registerType(string $typeName, string|DefinesGraphQlType $typeDeclaration): void
     {
+        if ($typeDeclaration instanceof DefinesGraphQlType) {
+            $this->register($typeDeclaration);
+            return;
+        }
+
         $this->verifyTypeNameIsUsed($typeName);
         $this->types[$typeName] = $typeDeclaration;
     }
@@ -61,16 +68,16 @@ class FederatedSchema
     }
 
     /**
-     * @param string $typeOrClassName
+     * @param string $typeNameOrAlias
      * @param Closure(TypeRegistryContract): array $fieldFactory
      * @return void
      */
-    public function extendType(string $typeOrClassName, Closure $fieldFactory): void
+    public function extendType(string $typeNameOrAlias, Closure $fieldFactory): void
     {
-        if (!isset($this->typeFieldExtensions[$typeOrClassName])) {
-            $this->typeFieldExtensions[$typeOrClassName] = [];
+        if (!isset($this->typeFieldExtensions[$typeNameOrAlias])) {
+            $this->typeFieldExtensions[$typeNameOrAlias] = [];
         }
-        $this->typeFieldExtensions[$typeOrClassName][] = $fieldFactory;
+        $this->typeFieldExtensions[$typeNameOrAlias][] = $fieldFactory;
     }
 
     protected function resolveFieldExtensionAliases(array $aliases): array
@@ -107,19 +114,19 @@ class FederatedSchema
 
     protected function combineFieldExtensionsAndTypes(array $types, array $fieldExtensions): array
     {
-        foreach ($fieldExtensions as $typeName => $extensionFactories) {
-            if (!isset($types[$typeName])) {
-                throw new DefinitionException("Tried to extend type '{$typeName}' which has not been registered.");
-            }
-
-            $typeClassName = $types[$typeName];
-            $types[$typeName] = static function (TypeRegistryContract $registry) use ($typeClassName, $extensionFactories) {
-                /** @var GraphQlType|GraphQlInterface $instance */
-                $instance = $typeClassName instanceof DefinesGraphQlType ? $typeClassName : new $typeClassName;
-                return $instance->toDefinition($registry, $extensionFactories);
+        $typeFactories = [];
+        foreach ($types as $name => $definition) {
+            $fieldFactories = $fieldExtensions[$name] ?? null;
+            $typeFactories[$name] = static function (TypeRegistryContract $typeRegistry) use ($definition, $fieldFactories): Type {
+                /** @var DefinesGraphQlType $instance */
+                $instance = $definition instanceof DefinesGraphQlType ? $definition : new $definition;
+                return $fieldFactories
+                    ? $instance->toDefinition($typeRegistry, $fieldFactories)
+                    : $instance->toDefinition($typeRegistry);
             };
         }
-        return $types;
+
+        return $typeFactories;
     }
 
     public function cacheSchema(): string
