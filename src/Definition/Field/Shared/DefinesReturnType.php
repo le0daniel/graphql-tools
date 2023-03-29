@@ -9,9 +9,9 @@ use GraphQlTools\Contract\TypeRegistry;
 
 trait DefinesReturnType
 {
-    protected Type|string|Closure $ofType;
+    protected Type|Closure $ofType;
 
-    final public function ofType(Type|Closure|string $resolveType): static
+    final public function ofType(Type|Closure $resolveType): static
     {
         $this->ofType = $resolveType;
         return $this;
@@ -22,23 +22,4 @@ trait DefinesReturnType
             throw DefinitionException::fromMissingFieldDeclaration('ofType', $this->name, 'Every field must have a type defined.');
         }
     }
-
-    final protected function resolveReturnType(TypeRegistry $repository): Closure|Type
-    {
-        if ($this->ofType instanceof Type || $this->ofType instanceof Closure) {
-            return $this->ofType;
-        }
-
-        if (is_string($this->ofType)) {
-            return $repository->type($this->ofType);
-        }
-
-        throw DefinitionException::from(
-            $this->ofType,
-            Type::class,
-            Closure::class,
-            'string'
-        );
-    }
-
 }

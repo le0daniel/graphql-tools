@@ -21,10 +21,26 @@ class FederatedSchema
     private array $eagerlyLoadedTypes = [];
     private array $typeFieldExtensions = [];
 
-    public function register(DefinesGraphQlType $definition): void
+    public function register(DefinesGraphQlType|string $definition): void
     {
-        $this->verifyTypeNameIsUsed($definition->getName());
-        $this->types[$definition->getName()] = $definition;
+        $typeName = is_string($definition)
+            ? Types::inferNameFromClassName($definition)
+            : $definition->getName();
+
+        $this->verifyTypeNameIsNotUsed($typeName);
+        $this->types[$typeName] = $definition;
+    }
+
+    public function verifyTypeNames(): void {
+        foreach ($this->types as $name => $definition) {
+            $realTypeName = $definition instanceof DefinesGraphQlType
+                ? $definition->getName()
+                : (new $definition)->getName();
+
+            if ($name !== $realTypeName) {
+                throw new DefinitionException("The registered name `{$name}` does not match the name of the type `{$realTypeName}`");
+            }
+        }
     }
 
     public function registerType(string $typeName, string|DefinesGraphQlType $typeDeclaration): void
@@ -34,11 +50,11 @@ class FederatedSchema
             return;
         }
 
-        $this->verifyTypeNameIsUsed($typeName);
+        $this->verifyTypeNameIsNotUsed($typeName);
         $this->types[$typeName] = $typeDeclaration;
     }
 
-    private function verifyTypeNameIsUsed(string $typeName): void
+    private function verifyTypeNameIsNotUsed(string $typeName): void
     {
         if (isset($this->types[$typeName])) {
             throw new RuntimeException("Type with name '{$typeName}' was already registered. You can not register a type twice.");
@@ -99,13 +115,6 @@ class FederatedSchema
             }
         }
         return $aliases;
-    }
-
-    protected function createAliasesAndExtensions(): array
-    {
-        $aliases = $this->createAliases();
-        $fieldExtensions = $this->resolveFieldExtensions($aliases);
-        return [$aliases, $fieldExtensions];
     }
 
     protected function createTypeFactories(array $types, array $aliases, array $excludeTags): array
@@ -206,10 +215,7 @@ class FederatedSchema
                         try {
                             return Schema::resolveType($registry->type($typeNameOrClassName));
                         } catch (DefinitionException $exception) {
-                            if (Types::isDefaultOperationTypeName($typeNameOrClassName)) {
-                                return null;
-                            }
-                            throw $exception;
+                            return null;
                         }
                     },
                     'assumeValid' => $assumeValid,

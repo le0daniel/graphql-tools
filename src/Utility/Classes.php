@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Utility;
 
+use RuntimeException;
+
 final class Classes
 {
 
@@ -28,7 +30,7 @@ final class Classes
         $classes = [];
         $content = file_get_contents($file);
         if (!$content) {
-            throw new \RuntimeException("Failed to read file: '{$file}'");
+            throw new RuntimeException("Failed to read file: '{$file}'");
         }
 
         $tokens = token_get_all($content);
@@ -56,6 +58,10 @@ final class Classes
                 # otherwise you'll need to handle class constants (Foo::class)
                 break;
             }
+        }
+
+        if (count($classes) !== 1) {
+            throw new RuntimeException("None or more than one class defined in file: {$file}");
         }
 
         return $classes[0] ?? null;

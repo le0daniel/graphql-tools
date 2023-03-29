@@ -8,6 +8,7 @@ use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlScalar;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Definition\GraphQlUnion;
+use ReflectionClass;
 use ReflectionException;
 
 class TypeMap
@@ -34,7 +35,7 @@ class TypeMap
                 continue;
             }
 
-            $reflection = new \ReflectionClass($className);
+            $reflection = new ReflectionClass($className);
             if ($reflection->isAbstract()) {
                 continue;
             }

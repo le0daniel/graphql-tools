@@ -73,7 +73,7 @@ final class QueryType extends GraphQlType
                 ->ofType(Type::string())
                 ->withArguments(
                     InputField::withName('query')
-                        ->ofType(MamelsQueryInputType::class)
+                        ->ofType($registry->type(MamelsQueryInputType::class))
                 )
                 ->resolvedBy(fn($data, array $args) => 'My result: ' . ($args['query']['name'] ?? '-- no query --')),
 
@@ -93,7 +93,8 @@ final class QueryType extends GraphQlType
             Field::withName('createAnimal')
                 ->ofType(Type::string())
                 ->withArguments(
-                    InputField::withName('input')->ofType(CreateAnimalInputType::class)
+                    InputField::withName('input')
+                        ->ofType($registry->type(CreateAnimalInputType::class))
                 )->resolvedBy(
                     fn($data, array $arguments) => "Done: {$arguments['input']['id']}"
                 ),
@@ -103,7 +104,7 @@ final class QueryType extends GraphQlType
                 ->resolvedBy(fn() => ['id' => QueryType::USER_ID]),
 
             Field::withName('jsonInput')
-                ->ofType(JsonScalar::class)
+                ->ofType($registry->type(JsonScalar::class))
                 ->withArguments(
                     InputField::withName('json')
                         ->ofType(new NonNull($registry->type(JsonScalar::class)))

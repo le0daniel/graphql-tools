@@ -2,14 +2,12 @@
 
 namespace GraphQlTools\Definition\Field;
 
-use GraphQlTools\Contract\DefinesGraphQlType;
-use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Field\Shared\DefinesDefaultValue;
 use GraphQlTools\Definition\Field\Shared\DefinesBaseProperties;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
 
-final class InputField implements DefinesGraphQlType
+final class InputField
 {
     use DefinesBaseProperties, DefinesReturnType, DefinesDefaultValue;
 
@@ -29,11 +27,10 @@ final class InputField implements DefinesGraphQlType
 
     /**
      * @internal This is used internally to get the state of the builder. Do not use this.
-     * @param TypeRegistry $typeRegistry
      * @return array
      * @throws DefinitionException
      */
-    final public function toDefinition(TypeRegistry $typeRegistry): array
+    final public function toDefinition(): array
     {
         $defaultValue = isset($this->defaultValue)
             ? ['defaultValue' => $this->defaultValue]
@@ -42,7 +39,7 @@ final class InputField implements DefinesGraphQlType
         return [
             'name' => $this->name,
             'description' => $this->computeDescription(),
-            'type' => $this->resolveReturnType($typeRegistry),
+            'type' => $this->ofType,
             'deprecatedReason' => $this->deprecationReason,
             'removalDate' => $this->removalDate,
             'tags' => $this->getTags(),

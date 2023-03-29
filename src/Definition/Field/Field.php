@@ -4,27 +4,29 @@ namespace GraphQlTools\Definition\Field;
 
 use Closure;
 use GraphQL\Type\Definition\FieldDefinition;
-use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\DefinitionException;
-use GraphQlTools\Definition\Field\Shared\DefinesArguments;
 use GraphQlTools\Definition\Field\Shared\DefinesBaseProperties;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
 use GraphQlTools\Helper\Middleware;
 use GraphQlTools\Helper\ProxyResolver;
 
 
-class Field implements DefinesGraphQlType
+final class Field
 {
-    use DefinesBaseProperties, DefinesReturnType, DefinesArguments;
+    use DefinesBaseProperties, DefinesReturnType;
+
+    /** @var InputField[] */
+    private readonly array $inputFields;
+
     private null|Closure $resolveFunction = null;
     private array $middlewares = [];
 
-    final protected function __construct(public readonly string $name)
+    protected function __construct(public readonly string $name)
     {
     }
 
-    final public static function withName(string $name): static
+    public static function withName(string $name): static
     {
         return new self($name);
     }
@@ -45,7 +47,7 @@ class Field implements DefinesGraphQlType
      * @return FieldDefinition
      * @throws DefinitionException
      */
-    final public function toDefinition(TypeRegistry $registry, array $excludeTags = []): FieldDefinition
+    public function toDefinition(array $excludeTags = []): FieldDefinition
     {
         $resolveFn = empty($this->middlewares)
             ? new ProxyResolver($this->resolveFunction ?? null)
@@ -55,11 +57,11 @@ class Field implements DefinesGraphQlType
         return new FieldDefinition([
             'name' => $this->name,
             'resolve' => $resolveFn,
-            'type' => $this->resolveReturnType($registry),
+            'type' => $this->ofType,
             'deprecationReason' => $this->deprecationReason,
             'removalDate' => $this->removalDate,
             'description' => $this->computeDescription(),
-            'args' => $this->buildArguments($registry, $excludeTags),
+            'args' => $this->initArguments($excludeTags),
             'tags' => $this->getTags(),
         ]);
     }
@@ -73,5 +75,30 @@ class Field implements DefinesGraphQlType
     {
         $this->resolveFunction = $closure;
         return $this;
+    }
+
+    final public function withArguments(InputField ...$arguments): self
+    {
+        $this->inputFields = $arguments;
+        return $this;
+    }
+
+    final protected function initArguments(array $excludeTags = []): ?array
+    {
+        if (!isset($this->inputFields)) {
+            return null;
+        }
+
+        $hasTagsToExclude = !empty($excludeTags);
+        $inputFields = [];
+        foreach ($this->inputFields as $definition) {
+            if ($hasTagsToExclude && $definition->containsAnyOfTags(...$excludeTags)) {
+                continue;
+            }
+
+            $inputFields[] = $definition->toDefinition();
+        }
+
+        return $inputFields;
     }
 }
