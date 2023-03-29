@@ -9,9 +9,9 @@ use GraphQlTools\Helper\Registry\FederatedSchema;
 class CachedSchemaTest extends QueryTest
 {
 
-    protected function schema(): Schema
+    protected function schema(array $excludeTags = []): Schema
     {
-        $code = $this->federatedSchema()->cacheSchema();
+        $code = $this->federatedSchema()->cacheSchema($excludeTags);
 
         file_put_contents(__DIR__ . '/output.php', "<?php {$code}");
 

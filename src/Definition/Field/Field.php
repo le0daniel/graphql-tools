@@ -45,7 +45,7 @@ class Field implements DefinesGraphQlType
      * @return FieldDefinition
      * @throws DefinitionException
      */
-    final public function toDefinition(TypeRegistry $registry): FieldDefinition
+    final public function toDefinition(TypeRegistry $registry, array $excludeTags = []): FieldDefinition
     {
         $resolveFn = empty($this->middlewares)
             ? new ProxyResolver($this->resolveFunction ?? null)
@@ -59,7 +59,7 @@ class Field implements DefinesGraphQlType
             'deprecationReason' => $this->deprecationReason,
             'removalDate' => $this->removalDate,
             'description' => $this->computeDescription(),
-            'args' => $this->buildArguments($registry),
+            'args' => $this->buildArguments($registry, $excludeTags),
             'tags' => $this->getTags(),
         ]);
     }

@@ -57,9 +57,11 @@ class QueryTest extends ExecutionTestCase
         return $federatedSchema;
     }
 
-    protected function schema(): Schema
+    protected function schema(array $excludeTags = []): Schema
     {
-        $schema = $this->federatedSchema()->createSchema(QueryType::class, null);
+        $schema = $this
+            ->federatedSchema()
+            ->createSchema(QueryType::class, excludeTags: $excludeTags);
         $schema->assertValid();
         return $schema;
     }
@@ -179,6 +181,22 @@ class QueryTest extends ExecutionTestCase
         $this->assertNoErrors($result);
         self::assertIsArray($result->data['user']);
         self::assertEquals('lazy-field', $result->data['user']['lazy']);
+    }
+
+    public function testHiddenTaggedField(): void {
+        $result = $this->executeOn(
+            $this->schema(['private']),
+            "query { middlewareWithPrimitiveBinding }"
+        );
+        $this->assertError($result, 'Cannot query field "middlewareWithPrimitiveBinding" on type "Query".');
+    }
+
+    public function testHiddenTaggedInputField(): void {
+        $result = $this->executeOn(
+            $this->schema(['private']),
+            "query { currentUser(name: \"my-name\") }"
+        );
+        $this->assertError($result, 'Unknown argument "name" on field "currentUser" of type "Query".');
     }
 
     // public function testQueryWithBuilderField(): void

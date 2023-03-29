@@ -48,23 +48,25 @@ final class QueryType extends GraphQlType
                 ->ofType(Type::string())
                 ->withArguments(
                     InputField::withName('name')
+                        ->tags('private')
                         ->ofType(Type::string())
                 )
                 ->deprecated('My reason')
                 ->withDescription('')
-                ->resolvedBy(Middleware::create([
+                ->middleware(
                     self::defaultValue('name', '-- No Name Provided --')
-                ])->then(function ($data, $arguments) {
+                )
+                ->resolvedBy(function ($data, $arguments) {
                     if ($arguments['name'] ?? null) {
                         return "Hello {$arguments['name']}";
                     }
 
                     return 'Hello World!';
-                }))
-            ,
+                }),
 
             Field::withName('middlewareWithPrimitiveBinding')
                 ->ofType(Type::string())
+                ->tags('private')
                 ->resolvedBy(fn() => $value),
 
             Field::withName('mamelsQuery')

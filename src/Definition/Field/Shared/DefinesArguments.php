@@ -16,13 +16,22 @@ trait DefinesArguments
         return $this;
     }
 
-    final protected function buildArguments(TypeRegistry $registry): ?array
+    final protected function buildArguments(TypeRegistry $registry, array $excludeTags = []): ?array
     {
         if (!isset($this->inputFields)) {
             return null;
         }
 
-        return array_map(fn(InputField $inputField): array => $inputField->toDefinition($registry), $this->inputFields);
+        $inputFields = [];
+        foreach ($this->inputFields as $definition) {
+            if (!empty($excludeTags) && $definition->containsAnyOfTags(...$excludeTags)) {
+                continue;
+            }
+
+            $inputFields[] = $definition->toDefinition($registry);
+        }
+
+        return $inputFields;
     }
 
 }

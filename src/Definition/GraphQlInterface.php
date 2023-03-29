@@ -23,7 +23,7 @@ abstract class GraphQlInterface implements DefinesGraphQlType
 
     abstract protected function fields(TypeRegistry $registry): array;
 
-    public function toDefinition(TypeRegistry $registry, array $injectedFieldFactories = []): InterfaceType
+    public function toDefinition(TypeRegistry $registry, array $injectedFieldFactories = [], array $excludeFieldsWithTags = []): InterfaceType
     {
         return new InterfaceType([
             'name' => $this->getName(),
@@ -33,6 +33,7 @@ abstract class GraphQlInterface implements DefinesGraphQlType
             'fields' => fn() => $this->initializeFields(
                 $registry,
                 [$this->fields(...), ...$injectedFieldFactories],
+                $excludeFieldsWithTags,
             ),
             'resolveFn' => [static::class, 'resolveToType'],
             'resolveType' => fn($_, OperationContext $context, $info) => $registry->type(

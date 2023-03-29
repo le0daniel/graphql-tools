@@ -51,7 +51,7 @@ class TypeCacheManager
         });
     }
 
-    public function cache(array $typesToCache, array $aliases, array $extendedFieldsByType = []): array
+    public function cache(array $typesToCache, array $aliases, array $extendedFieldsByType, array $excludeTags): array
     {
         $types = [];
         $dependencies = [];
@@ -63,7 +63,12 @@ class TypeCacheManager
                 throw new RuntimeException("Encountered different name for the type {$providedTypeName} = {$declarationTypeName}.");
             }
 
-            ['name' => $typeName, 'code' => $code, 'typeDependencies' => $typeDependencies] = $this->buildType($typeInstance, $aliases, $extendedFieldsByType[$declarationTypeName] ?? []);
+            ['name' => $typeName, 'code' => $code, 'typeDependencies' => $typeDependencies] = $this->buildType(
+                $typeInstance,
+                $aliases,
+                $extendedFieldsByType[$declarationTypeName] ?? [],
+                $excludeTags
+            );
             $types[$typeName] = $code;
             $dependencies[$typeName] = $typeDependencies;
         }
@@ -77,13 +82,14 @@ class TypeCacheManager
     /**
      * @param DefinesGraphQlType $type
      * @param array $aliases
+     * @param array $excludeTags
      * @param array $injectedFields
      * @return array{'name': string, 'code': string, 'typeDependencies': array<string>}
      */
-    public function buildType(DefinesGraphQlType $type, array $aliases, array $injectedFields = []): array
+    public function buildType(DefinesGraphQlType $type, array $aliases, array $injectedFields, array $excludeTags): array
     {
         $registry = new CompilingTypeRegistry($this->typeRegistryName, $aliases);
-        $declaration = $type->toDefinition($registry, $injectedFields);
+        $declaration = $type->toDefinition($registry, $injectedFields, $excludeTags);
 
         $compiled = match (true) {
             $declaration instanceof ObjectType => $this->compileObjectType($declaration),

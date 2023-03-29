@@ -17,15 +17,21 @@ trait InitializesFields
         return $fields;
     }
 
-    protected function initializeFields(TypeRegistry $registry, array $factories): array {
+    protected function initializeFields(TypeRegistry $registry, array $factories, array $excludeFieldsWithTag = []): array {
         $initializedFields = [];
+        $shouldExcludeTags = !empty($excludeFieldsWithTag);
 
         /**
          * @var string|int $key
          * @var <Closure(string, TypeRegistry):Field|InputField>|Field|InputField $fieldDeclaration
          */
         foreach ($this->createFieldsFromFactories($registry, $factories) as $fieldDeclaration) {
-            $initializedFields[$fieldDeclaration->name] = $fieldDeclaration->toDefinition($registry);
+            // Skip based on tags
+            if ($shouldExcludeTags && $fieldDeclaration->containsAnyOfTags(...$excludeFieldsWithTag)) {
+                continue;
+            }
+
+            $initializedFields[$fieldDeclaration->name] = $fieldDeclaration->toDefinition($registry, $excludeFieldsWithTag);
         }
 
         return $initializedFields;
