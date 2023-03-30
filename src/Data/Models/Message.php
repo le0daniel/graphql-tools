@@ -25,7 +25,7 @@ final class Message implements JsonSerializable
 
     public static function deprecatedArgument(string $fieldName, string $parentName, string $argumentName, string $reason): static
     {
-        return new self("Deprecated argument `{$argumentName}` used at `{$parentName}.{$fieldName}`: {$reason}", 'deprecation');
+        return new self("Deprecated argument `{$argumentName}` used at `{$parentName}.{$fieldName}({$argumentName}: ...)`: {$reason}", 'deprecation');
     }
 
     public static function deprecated(string $fieldName, Type|string|null $parent, string $reason): static
