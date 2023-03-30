@@ -64,13 +64,9 @@ class FederatedSchema
     public function registerTypes(array $types): void
     {
         foreach ($types as $possibleName => $declaration) {
-            $typeName = match (true) {
-                is_string($possibleName) => $possibleName,
-                $declaration instanceof DefinesGraphQlType => $declaration->getName(),
-                default => throw new DefinitionException('Expected the type name to be resolvable, could not resolve name.'),
-            };
-
-            $this->registerType($typeName, $declaration);
+            is_string($possibleName)
+                ? $this->registerType($possibleName, $declaration)
+                : $this->register($declaration);
         }
     }
 
