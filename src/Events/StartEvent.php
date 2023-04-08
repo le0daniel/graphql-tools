@@ -7,7 +7,7 @@ use GraphQlTools\Contract\GraphQlContext;
 
 /**
  * @property-read string $query
- * @method static create(string $query)
+ * @method static create(string $query, GraphQlContext $context)
  */
 final class StartEvent extends Event
 {

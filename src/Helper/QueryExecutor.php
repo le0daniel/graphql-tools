@@ -104,7 +104,11 @@ final class QueryExecutor
         } catch (SyntaxError $exception) {
             $result = new ExecutionResult(null, [$exception]);
             $extensionManager->dispatchEndEvent(EndEvent::create($result));
-            $result->extensions = $extensionManager->collect($context);
+            $result->extensions = Arrays::mergeKeyValues(
+                $extensionManager->collect($context),
+                $this->collectValidationRuleExtensions($validationRules, $context),
+                throwOnKeyConflict: true
+            );
             return $result;
         }
 

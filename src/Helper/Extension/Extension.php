@@ -6,11 +6,12 @@ namespace GraphQlTools\Helper\Extension;
 
 use Closure;
 use GraphQlTools\Contract\ExecutionExtension;
+use GraphQlTools\Contract\ExtendsResult;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;
 
-abstract class Extension implements ExecutionExtension
+abstract class Extension implements ExecutionExtension, ExtendsResult
 {
     private const DEFAULT_PRIORITY = 100;
 

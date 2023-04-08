@@ -5,7 +5,7 @@ namespace GraphQlTools\Contract;
 use GraphQL\Validator\Rules\ValidationRule;
 use JsonSerializable;
 
-abstract class ContextualValidationRule extends ValidationRule implements JsonSerializable
+abstract class ContextualValidationRule extends ValidationRule implements ExtendsResult
 {
 
     /**

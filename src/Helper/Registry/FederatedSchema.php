@@ -7,10 +7,7 @@ use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
 use GraphQlTools\Contract\DefinesGraphQlType;
-use GraphQlTools\Data\ValueObjects\RawPhpExpression;
 use GraphQlTools\Definition\DefinitionException;
-use GraphQlTools\Helper\TypeCacheManager;
-use GraphQlTools\Utility\Compiling;
 use GraphQlTools\Utility\Types;
 use RuntimeException;
 use GraphQlTools\Contract\TypeRegistry as TypeRegistryContract;
@@ -130,41 +127,6 @@ class FederatedSchema
         return $typeFactories;
     }
 
-    public function cacheSchema(array $excludeTags = []): string
-    {
-        $cacheManager = new TypeCacheManager();
-        $aliases = $this->createAliases();
-        [$types, $dependencies] = $cacheManager->cache(
-            $this->types,
-            $aliases,
-            $this->resolveFieldExtensions($aliases),
-            $excludeTags
-        );
-
-        $eagerlyLoadedTypes = array_map(fn(string $nameOrAlias) => $aliases[$nameOrAlias] ?? $nameOrAlias, $this->eagerlyLoadedTypes);
-
-        $export = Compiling::exportArray([
-            'eagerlyLoaded' => $eagerlyLoadedTypes,
-            'aliases' => $aliases,
-            'types' => array_map(fn(string $code): RawPhpExpression => new RawPhpExpression($code), $types),
-        ]);
-
-        return "       
-            return {$export};
-        ";
-    }
-
-    public static function fromCachedSchema(array $cache, string $queryTypeName, ?string $mutationTypeName = null): Schema
-    {
-        return self::toSchema(
-            new FactoryTypeRegistry($cache['types'], $cache['aliases']),
-            $queryTypeName,
-            $mutationTypeName,
-            true,
-            $cache['eagerlyLoaded'] ?? []
-        );
-    }
-
     public function createSchema(
         string  $queryTypeName,
         ?string $mutationTypeName = null,
@@ -210,7 +172,7 @@ class FederatedSchema
                     'typeLoader' => static function (string $typeNameOrClassName) use ($registry) {
                         try {
                             return Schema::resolveType($registry->type($typeNameOrClassName));
-                        } catch (DefinitionException $exception) {
+                        } catch (DefinitionException) {
                             return null;
                         }
                     },

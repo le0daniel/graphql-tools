@@ -18,7 +18,6 @@ class DirectoriesTest extends TestCase
         sort($result);
 
         self::assertEquals([
-            'Compilation/ClosureCompilerTest.php',
             'ContextTest.php',
             'DataLoaderTest.php',
             'ExtensionManagerTest.php',

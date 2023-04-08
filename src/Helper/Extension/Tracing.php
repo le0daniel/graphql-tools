@@ -74,11 +74,11 @@ final class Tracing extends Extension
         return $this->toExecutionTrace();
     }
 
-    public function start(StartEvent $startEvent): void
+    public function start(StartEvent $event): void
     {
-        $this->query = $startEvent->query;
-        $this->isIntrospectionQuery = Query::isIntrospection($startEvent->query);
-        $this->startTimeInNanoseconds = $startEvent->eventTimeInNanoSeconds;
+        $this->query = $event->query;
+        $this->isIntrospectionQuery = Query::isIntrospection($event->query);
+        $this->startTimeInNanoseconds = $event->eventTimeInNanoSeconds;
         $this->startDateTime = new DateTimeImmutable();
     }
 
