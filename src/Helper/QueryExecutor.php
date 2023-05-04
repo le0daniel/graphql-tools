@@ -154,8 +154,9 @@ final class QueryExecutor
             return $formatted;
         }
 
+        $previousExtensions = $formatted['extensions'] ?? [];
+
         if ($previous instanceof ExceptionWithExtensions) {
-            $previousExtensions = $formatted['extensions'] ?? [];
             $formatted['extensions'] = $previous->getExtensions() + $previousExtensions;
             return $formatted;
         }
@@ -164,7 +165,7 @@ final class QueryExecutor
             return $formatted;
         }
 
-        $formatted['extensions'] = $previous->jsonSerialize();
+        $formatted['extensions'] = [$previous->key() => $previous->jsonSerialize()] + $previousExtensions;
         return $formatted;
     }
 
