@@ -16,12 +16,6 @@ use GraphQlTools\Test\Dummies\Enum\Eating;
 
 final class LionType extends GraphQlType {
 
-    public function __construct()
-    {
-        $this->removalDate = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', '2023-01-10 00:00:00');
-        $this->deprecationReason = 'Because it is deprecated! Deal with it!';
-    }
-
     protected function fields(TypeRegistry $registry): array {
         return [
             Field::withName('sound')

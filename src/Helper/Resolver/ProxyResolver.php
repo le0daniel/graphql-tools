@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace GraphQlTools\Helper;
+namespace GraphQlTools\Helper\Resolver;
 
 use ArrayAccess;
 use Closure;
@@ -10,16 +10,14 @@ use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Events\VisitFieldEvent;
+use GraphQlTools\Helper\Context;
+use GraphQlTools\Helper\OperationContext;
 use Throwable;
 
-final class ProxyResolver
+class ProxyResolver
 {
-    public function __construct(public readonly ?Closure $resolveFunction = null)
+    public function __construct(private readonly ?Closure $resolveFunction = null)
     {
-    }
-
-    public function isDefaultResolveFunction(): bool {
-        return !$this->resolveFunction;
     }
 
     /**
@@ -32,13 +30,16 @@ final class ProxyResolver
      * @param ResolveInfo $info
      * @return mixed
      */
-    private function resolveToValue(mixed $typeData, array $arguments, GraphQlContext $context, ResolveInfo $info): mixed
+    protected function resolveToValue(mixed $typeData, array $arguments, GraphQlContext $context, ResolveInfo $info): mixed
     {
         if ($this->resolveFunction) {
             return ($this->resolveFunction)($typeData, $arguments, $context, $info);
         }
 
-        $fieldName = $info->fieldName;
+        return $this->resolveDefault($info->fieldName, $typeData);
+    }
+
+    protected function resolveDefault(string $fieldName, mixed $typeData): mixed {
         if (is_array($typeData) || $typeData instanceof ArrayAccess) {
             return $typeData[$fieldName] ?? null;
         }
@@ -63,7 +64,7 @@ final class ProxyResolver
      * @return mixed
      * @throws Throwable
      */
-    public function __invoke(mixed $typeData, ?array $arguments, OperationContext $operationContext, ResolveInfo $info): mixed
+    final public function __invoke(mixed $typeData, ?array $arguments, OperationContext $operationContext, ResolveInfo $info): mixed
     {
         // Ensure arguments are always an array, as the framework does not guarantee that
         $arguments ??= [];

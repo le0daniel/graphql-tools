@@ -9,7 +9,8 @@ use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Field\Shared\DefinesBaseProperties;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
 use GraphQlTools\Helper\Middleware;
-use GraphQlTools\Helper\ProxyResolver;
+use GraphQlTools\Helper\Resolver\MiddlewareResolver;
+use GraphQlTools\Helper\Resolver\ProxyResolver;
 
 
 final class Field
@@ -51,7 +52,7 @@ final class Field
     {
         $resolveFn = empty($this->middlewares)
             ? new ProxyResolver($this->resolveFunction ?? null)
-            : new ProxyResolver(Middleware::create($this->middlewares)->then($this->resolveFunction));
+            : new MiddlewareResolver($this->resolveFunction, $this->middlewares);
 
         $this->verifyTypeIsSet();
         return new FieldDefinition([

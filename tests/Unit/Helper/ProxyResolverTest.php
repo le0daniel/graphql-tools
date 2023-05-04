@@ -11,7 +11,7 @@ use GraphQlTools\Helper\Context;
 use GraphQlTools\Helper\Extension\Extension;
 use GraphQlTools\Helper\ExtensionManager;
 use GraphQlTools\Helper\OperationContext;
-use GraphQlTools\Helper\ProxyResolver;
+use GraphQlTools\Helper\Resolver\ProxyResolver;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
