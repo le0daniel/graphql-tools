@@ -12,11 +12,12 @@ use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
+use GraphQL\Validator\Rules\ValidationRule;
 use GraphQL\Validator\ValidationContext;
-use GraphQlTools\Contract\ContextualValidationRule;
+use GraphQlTools\Contract\ExtendsResult;
 use GraphQlTools\Data\Models\Message;
 
-class CollectDeprecatedFieldNotices extends ContextualValidationRule
+class CollectDeprecatedFieldNotices extends ValidationRule implements ExtendsResult
 {
     /** @var array<Message>  */
     private array $messages = [];

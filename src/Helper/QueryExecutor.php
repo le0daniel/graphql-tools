@@ -13,11 +13,7 @@ use GraphQL\GraphQL;
 use GraphQL\Language\Parser;
 use GraphQL\Type\Schema;
 use GraphQL\Validator\DocumentValidator;
-use GraphQL\Validator\Rules\DisableIntrospection;
-use GraphQL\Validator\Rules\QueryComplexity;
-use GraphQL\Validator\Rules\QueryDepth;
 use GraphQL\Validator\Rules\ValidationRule;
-use GraphQlTools\Contract\ContextualValidationRule;
 use GraphQlTools\Contract\ExceptionWithExtensions;
 use GraphQlTools\Contract\ExtendsResult;
 use GraphQlTools\Contract\GraphQlContext;
@@ -25,7 +21,6 @@ use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Helper\Validation\CollectDeprecatedFieldNotices;
 use GraphQlTools\Utility\Arrays;
-use GraphQlTools\Utility\Typing;
 
 final class QueryExecutor
 {
@@ -125,7 +120,7 @@ final class QueryExecutor
             throwOnKeyConflict: true
         );
 
-        $result->setErrorFormatter($this->formatErrorsWithExtensions(...));
+        $result->setErrorFormatter(fn(GraphQlError $error) => $this->formatErrorsWithExtensions($error, $context));
         $result->setErrorsHandler($this->handleErrors(...));
 
         return $result;
@@ -151,18 +146,25 @@ final class QueryExecutor
         return $formattedErrors;
     }
 
-    private function formatErrorsWithExtensions(GraphQlError $error): array {
+    private function formatErrorsWithExtensions(GraphQlError $error, GraphQlContext $context): array {
         $formatted = FormattedError::createFromException($error);
         $previous = $error->getPrevious();
 
-        if (!$previous instanceof ExceptionWithExtensions) {
+        if (!$previous instanceof ExceptionWithExtensions && !$previous instanceof ExtendsResult) {
             return $formatted;
         }
 
-        $previousExtensions = $formatted['extensions'] ?? [];
+        if ($previous instanceof ExceptionWithExtensions) {
+            $previousExtensions = $formatted['extensions'] ?? [];
+            $formatted['extensions'] = $previous->getExtensions() + $previousExtensions;
+            return $formatted;
+        }
 
-        // Overwrite the extensions
-        $formatted['extensions'] = $previous->getExtensions() + $previousExtensions;
+        if (!$previous->isVisibleInResult($context)) {
+            return $formatted;
+        }
+
+        $formatted['extensions'] = $previous->jsonSerialize();
         return $formatted;
     }
 

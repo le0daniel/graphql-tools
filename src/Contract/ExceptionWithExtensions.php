@@ -2,6 +2,9 @@
 
 namespace GraphQlTools\Contract;
 
+/**
+ * @deprecated use ExtendsResult instead
+ */
 interface ExceptionWithExtensions
 {
     /**
