@@ -14,6 +14,9 @@ use GraphQlTools\Contract\TypeRegistry as TypeRegistryContract;
 
 class FederatedSchema
 {
+    /**
+     * @var array<string,DefinesGraphQlType|string>
+     */
     private array $types = [];
     private array $eagerlyLoadedTypes = [];
     private array $typeFieldExtensions = [];

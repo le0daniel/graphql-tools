@@ -11,13 +11,11 @@ use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Shared\HasDeprecation;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\InitializesFields;
-use GraphQlTools\Utility\Classes;
+use GraphQlTools\Utility\Types;
 
 abstract class GraphQlType implements DefinesGraphQlType
 {
     use HasDescription, HasDeprecation, InitializesFields;
-
-    private const CLASS_POSTFIX = 'Type';
 
     /**
      * Return an array of fields of that specific type. The fields
@@ -49,10 +47,7 @@ abstract class GraphQlType implements DefinesGraphQlType
 
     public function getName(): string
     {
-        $typeName = Classes::baseName(static::class);
-        return str_ends_with($typeName, self::CLASS_POSTFIX)
-            ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))
-            : $typeName;
+        return Types::inferNameFromClassName(static::class);
     }
 
     /**

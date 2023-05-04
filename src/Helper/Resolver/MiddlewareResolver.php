@@ -17,10 +17,7 @@ final class MiddlewareResolver extends ProxyResolver
     }
 
     private function getResolveFunction(): Closure {
-        if (!isset($this->resolver)) {
-            $this->resolver = Middleware::create($this->pipes)->then($this->middle);
-        }
-        return $this->resolver;
+        return $this->resolver ??= Middleware::create($this->pipes)->then($this->middle);
     }
 
     protected function resolveToValue(mixed $typeData, array $arguments, GraphQlContext $context, ResolveInfo $info): mixed

@@ -13,14 +13,11 @@ use GraphQlTools\Definition\Shared\HasDeprecation;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\InitializesFields;
 use GraphQlTools\Helper\OperationContext;
-use GraphQlTools\Utility\Classes;
+use GraphQlTools\Utility\Types;
 
 abstract class GraphQlInterface implements DefinesGraphQlType
 {
     use InitializesFields, HasDescription, HasDeprecation;
-
-    private const CLASS_POSTFIX = 'Interface';
-
     abstract protected function fields(TypeRegistry $registry): array;
 
     public function toDefinition(TypeRegistry $registry, array $injectedFieldFactories = [], array $excludeFieldsWithTags = []): InterfaceType
@@ -44,10 +41,7 @@ abstract class GraphQlInterface implements DefinesGraphQlType
 
     public function getName(): string
     {
-        $typeName = Classes::baseName(static::class);
-        return str_ends_with($typeName, self::CLASS_POSTFIX)
-            ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))
-            : $typeName;
+        return Types::inferNameFromClassName(static::class);
     }
 
     abstract public static function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string;

@@ -10,13 +10,11 @@ use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Shared\HasDeprecation;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\InitializesFields;
-use GraphQlTools\Utility\Classes;
+use GraphQlTools\Utility\Types;
 
 abstract class GraphQlInputType implements DefinesGraphQlType
 {
     use InitializesFields, HasDescription, HasDeprecation;
-
-    private const CLASS_POSTFIX = 'Type';
 
     abstract protected function fields(TypeRegistry $registry): array;
 
@@ -32,9 +30,6 @@ abstract class GraphQlInputType implements DefinesGraphQlType
 
     public function getName(): string
     {
-        $typeName = Classes::baseName(static::class);
-        return str_ends_with($typeName, self::CLASS_POSTFIX)
-            ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))
-            : $typeName;
+        return Types::inferNameFromClassName(static::class);
     }
 }

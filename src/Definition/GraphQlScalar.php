@@ -7,13 +7,10 @@ namespace GraphQlTools\Definition;
 use GraphQL\Type\Definition\ScalarType;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
-use GraphQlTools\Utility\Classes;
+use GraphQlTools\Utility\Types;
 
 abstract class GraphQlScalar extends ScalarType implements DefinesGraphQlType
 {
-
-    private const CLASS_POSTFIX = 'Scalar';
-
     final public function __construct()
     {
         parent::__construct(
@@ -26,10 +23,7 @@ abstract class GraphQlScalar extends ScalarType implements DefinesGraphQlType
 
     public function getName(): string
     {
-        $typeName = Classes::baseName(static::class);
-        return str_ends_with($typeName, self::CLASS_POSTFIX)
-            ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))
-            : $typeName;
+        return Types::inferNameFromClassName(static::class);
     }
 
     public function toDefinition(TypeRegistry $registry): static {

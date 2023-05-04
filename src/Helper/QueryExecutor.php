@@ -13,9 +13,13 @@ use GraphQL\GraphQL;
 use GraphQL\Language\Parser;
 use GraphQL\Type\Schema;
 use GraphQL\Validator\DocumentValidator;
+use GraphQL\Validator\Rules\DisableIntrospection;
+use GraphQL\Validator\Rules\QueryComplexity;
+use GraphQL\Validator\Rules\QueryDepth;
 use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Contract\ContextualValidationRule;
 use GraphQlTools\Contract\ExceptionWithExtensions;
+use GraphQlTools\Contract\ExtendsResult;
 use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
@@ -25,10 +29,9 @@ use GraphQlTools\Utility\Typing;
 
 final class QueryExecutor
 {
-    public const DEFAULT_CONTEXTUAL_VALIDATION_RULE = [CollectDeprecatedFieldNotices::class];
-
-    /** @var ValidationRule[] */
-    private readonly array $validationRules;
+    public const DEFAULT_CONTEXTUAL_VALIDATION_RULE = [
+        CollectDeprecatedFieldNotices::class
+    ];
 
     /**
      * Extensions must be an array of factories or class names which can be constructed
@@ -40,39 +43,36 @@ final class QueryExecutor
      * Signature: fn(Throwable $exception, Error $graphQlError): void
      *
      * @param class-string[]|Closure[] $extensionFactories
-     * @param ValidationRule[] $validationRules
+     * @param array<ValidationRule|Closure|string> $validationRules
      * @param ?Closure $errorLogger
      */
     public function __construct(
         private readonly array $extensionFactories = [],
-        array                  $validationRules = [],
+        private readonly array $validationRules = self::DEFAULT_CONTEXTUAL_VALIDATION_RULE,
         private readonly ?Closure $errorLogger = null,
     )
-    {
-        $this->validationRules = empty($validationRules)
-            ? DocumentValidator::allRules()
-            : $validationRules;
-    }
+    {}
 
-    private function initializeContextualValidationRules(array $validationRules): array
-    {
-        return Arrays::mapWithKeys($validationRules, static function ($key, Closure|string|ValidationRule $factory): array {
-            if ($factory instanceof ValidationRule) {
-                return [$factory->getName(), $factory];
-            }
+    private function initializeValidationRules(GraphQlContext $context): array {
+        $rules = DocumentValidator::defaultRules();
+        foreach ($this->validationRules as $ruleOrFactory) {
+            /** @var ValidationRule $rule */
+            $rule = match (true) {
+                $ruleOrFactory instanceof ValidationRule => $ruleOrFactory,
+                is_string($ruleOrFactory) => new $ruleOrFactory,
+                $ruleOrFactory instanceof Closure => $ruleOrFactory($context),
+            };
+            $rules[$rule->getName()] = $rule;
+        }
 
-            /** @var ValidationRule $instance */
-            $instance = is_string($factory) ? new $factory : $factory();
-            Typing::verifyOfType(ValidationRule::class, $instance);
-            return [$instance->getName(), $instance];
-        });
+        return $rules;
     }
 
     private function collectValidationRuleExtensions(array $validationRules, GraphQlContext $context): array
     {
         $serialized = [];
         foreach ($validationRules as $validationRule) {
-            if (!$validationRule instanceof ContextualValidationRule || !$validationRule->isVisibleInResult($context)) {
+            if (!$validationRule instanceof ExtendsResult || !$validationRule->isVisibleInResult($context)) {
                 continue;
             }
 
@@ -88,16 +88,11 @@ final class QueryExecutor
         ?array  $variables = null,
         mixed   $rootValue = null,
         ?string $operationName = null,
-        array   $contextualValidationRules = self::DEFAULT_CONTEXTUAL_VALIDATION_RULE,
     ): ExecutionResult
     {
         $extensionManager = ExtensionManager::createFromExtensionFactories($this->extensionFactories);
         $extensionManager->dispatchStartEvent(StartEvent::create($query, $context));
-
-        $validationRules = [
-            ... $this->validationRules,
-            ... $this->initializeContextualValidationRules($contextualValidationRules),
-        ];
+        $validationRules = $this->initializeValidationRules($context);
 
         try {
             $source = Parser::parse($query);

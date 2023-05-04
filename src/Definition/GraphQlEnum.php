@@ -11,7 +11,7 @@ use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Shared\HasDeprecation;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Utility\Arrays;
-use GraphQlTools\Utility\Classes;
+use GraphQlTools\Utility\Types;
 use GraphQlTools\Utility\Typing;
 
 abstract class GraphQlEnum implements DefinesGraphQlType
@@ -69,10 +69,7 @@ abstract class GraphQlEnum implements DefinesGraphQlType
 
     public function getName(): string
     {
-        $typeName = Classes::baseName(static::class);
-        return str_ends_with($typeName, self::CLASS_POSTFIX)
-            ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))
-            : $typeName;
+        return Types::inferNameFromClassName(static::class);
     }
 
     /**

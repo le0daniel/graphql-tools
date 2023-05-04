@@ -12,13 +12,11 @@ use GraphQlTools\Definition\Shared\HasDeprecation;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Helper\OperationContext;
-use GraphQlTools\Utility\Classes;
+use GraphQlTools\Utility\Types;
 
 abstract class GraphQlUnion implements DefinesGraphQlType
 {
     use HasDescription, HasDeprecation;
-
-    private const CLASS_POSTFIX = 'Union';
 
     public function toDefinition(TypeRegistry $registry): UnionType {
         return new UnionType([
@@ -38,10 +36,7 @@ abstract class GraphQlUnion implements DefinesGraphQlType
 
     public function getName(): string
     {
-        $typeName = Classes::baseName(static::class);
-        return str_ends_with($typeName, self::CLASS_POSTFIX)
-            ? substr($typeName, 0, -strlen(self::CLASS_POSTFIX))
-            : $typeName;
+        return Types::inferNameFromClassName(static::class);
     }
 
     abstract protected function possibleTypes(): array;
