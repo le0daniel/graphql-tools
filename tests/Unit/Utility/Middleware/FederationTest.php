@@ -28,6 +28,21 @@ class FederationTest extends TestCase
         self::assertEquals('string', $this->executeMiddlewareWith(Federation::key('name'), $object));
     }
 
+    public function testWithDynamicObjectProperty(): void {
+        $object = new class {
+            public function __isset(string $name): bool
+            {
+                return $name === 'id';
+            }
+            public function __get(string $name)
+            {
+                return $name === 'id' ? 12 : null;
+            }
+        };
+
+        self::assertEquals(12, $this->executeMiddlewareWith(Federation::key('id'), $object));
+    }
+
     public function testWithGetterMethod() {
         $instance = new class () {
             public function getName(): string {

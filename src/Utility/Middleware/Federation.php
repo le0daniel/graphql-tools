@@ -29,7 +29,7 @@ final class Federation
 
             $typeClass = $data::class;
             return match (true) {
-                property_exists($data, $name) => $next($data->{$name}, $args, $context, $info),
+                isset($data->{$name}) => $next($data->{$name}, $args, $context, $info),
                 method_exists($data, $name) => $next($data->{$name}(), $args, $context, $info),
                 default => new RuntimeException("Could not resolve federated key `{$name}` on {$typeClass}. Hint: Federation::key(name) requires the data to be an array (& ArrayAccessible) or an object with properties or getter methods")
             };
