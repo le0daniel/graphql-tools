@@ -132,11 +132,21 @@ class FederatedSchema
         return $typeFactories;
     }
 
+    /**
+     * @template T of Schema
+     * @param string|null $queryTypeName
+     * @param string|null $mutationTypeName
+     * @param bool $assumeValid
+     * @param array $excludeTags
+     * @param class-string<T> $schemaClassName
+     * @return Schema
+     */
     public function createSchema(
         ?string $queryTypeName = null,
         ?string $mutationTypeName = null,
         bool    $assumeValid = true,
         array   $excludeTags = [],
+        string  $schemaClassName = Schema::class,
     ): Schema
     {
         $aliases = $this->createAliases();
@@ -146,7 +156,7 @@ class FederatedSchema
             $aliases
         );
 
-        return new Schema(
+        return new $schemaClassName(
             SchemaConfig::create(
                 [
                     'query' => $queryTypeName
