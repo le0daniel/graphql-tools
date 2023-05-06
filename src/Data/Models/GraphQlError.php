@@ -22,7 +22,7 @@ class GraphQlError
         Typing::verifyListOfType(GraphQlErrorLocation::class, $this->locations);
     }
 
-    public static function fromGraphQlError(Error $error)
+    public static function fromGraphQlError(Error $error): GraphQlError
     {
         return new self(
             $error->getMessage(),

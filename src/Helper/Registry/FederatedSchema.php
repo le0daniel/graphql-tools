@@ -31,7 +31,8 @@ class FederatedSchema
         $this->types[$typeName] = $definition;
     }
 
-    public function verifyTypeNames(): void {
+    public function verifyTypeNames(): void
+    {
         foreach ($this->types as $name => $definition) {
             $realTypeName = $definition instanceof DefinesGraphQlType
                 ? $definition->getName()
@@ -103,7 +104,8 @@ class FederatedSchema
         return $extensionFactories;
     }
 
-    protected function createAliases(): array {
+    protected function createAliases(): array
+    {
         $aliases = [];
         foreach ($this->types as $typeName => $declaration) {
             if (is_string($declaration)) {
@@ -131,38 +133,25 @@ class FederatedSchema
     }
 
     public function createSchema(
-        string  $queryTypeName,
+        ?string $queryTypeName = null,
         ?string $mutationTypeName = null,
         bool    $assumeValid = true,
         array   $excludeTags = [],
     ): Schema
     {
         $aliases = $this->createAliases();
-        $typeRegistry = new FactoryTypeRegistry(
+        $eagerlyLoadedTypes = $this->eagerlyLoadedTypes;
+        $registry = new FactoryTypeRegistry(
             $this->createTypeFactories($this->types, $aliases, $excludeTags),
             $aliases
         );
-        return self::toSchema(
-            $typeRegistry,
-            $queryTypeName,
-            $mutationTypeName,
-            $assumeValid,
-            $this->eagerlyLoadedTypes
-        );
-    }
 
-    private static function toSchema(
-        TypeRegistryContract $registry,
-        string               $queryTypeName,
-        ?string              $mutationTypeName = null,
-        bool                 $assumeValid = true,
-        array                $eagerlyLoadedTypes = []
-    ): Schema
-    {
         return new Schema(
             SchemaConfig::create(
                 [
-                    'query' => Schema::resolveType($registry->type($queryTypeName)),
+                    'query' => $queryTypeName
+                        ? Schema::resolveType($registry->type($queryTypeName))
+                        : null,
                     'mutation' => $mutationTypeName
                         ? Schema::resolveType($registry->type($mutationTypeName))
                         : null,

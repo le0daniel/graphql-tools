@@ -3,6 +3,7 @@
 namespace GraphQlTools\Utility;
 
 use GraphQlTools\Definition\DefinitionException;
+use RuntimeException;
 
 class Typing
 {
@@ -33,7 +34,7 @@ class Typing
     public static function verifyListOfType(string $className, array $list): void
     {
         if (!array_is_list($list)) {
-            throw new \RuntimeException('Expected list got array with keys');
+            throw new RuntimeException('Expected list got array with keys');
         }
 
         foreach ($list as $instance) {

@@ -17,6 +17,7 @@ use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Contract\ExceptionWithExtensions;
 use GraphQlTools\Contract\ExtendsResult;
 use GraphQlTools\Contract\GraphQlContext;
+use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Helper\Validation\CollectDeprecatedFieldNotices;
@@ -38,7 +39,7 @@ final class QueryExecutor
      * Signature: fn(Throwable $exception, Error $graphQlError): void
      *
      * @param class-string[]|Closure[] $extensionFactories
-     * @param array<ValidationRule|Closure|string> $validationRules
+     * @param array<ValidationRule|Closure|class-string> $validationRules
      * @param ?Closure $errorLogger
      */
     public function __construct(
@@ -50,12 +51,15 @@ final class QueryExecutor
 
     private function initializeValidationRules(GraphQlContext $context): array {
         $rules = DocumentValidator::defaultRules();
+
+        /** @var ValidationRule|class-string|Closure $ruleOrFactory */
         foreach ($this->validationRules as $ruleOrFactory) {
             /** @var ValidationRule $rule */
             $rule = match (true) {
                 $ruleOrFactory instanceof ValidationRule => $ruleOrFactory,
                 is_string($ruleOrFactory) => new $ruleOrFactory,
                 $ruleOrFactory instanceof Closure => $ruleOrFactory($context),
+                default => throw new DefinitionException("Expected class-string|Closure|ValidationRule, got: " . gettype($ruleOrFactory)),
             };
             $rules[$rule->getName()] = $rule;
         }

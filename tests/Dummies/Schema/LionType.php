@@ -41,9 +41,9 @@ final class LionType extends GraphQlType {
                 )
                 ->deprecated('Some reason', DateTime::createFromFormat('Y-m-d H:i:s', '2023-01-09 10:00:10')),
 
-            // Field::withName('myEnum')
-            //     ->ofType($registry->type(EatingEnum::class))
-            //     ->resolvedBy(fn() => Eating::MEAT),
+            Field::withName('depth')
+                ->ofType($registry->type(DepthType::class))
+                ->resolvedBy(fn() => ['some-data'])
         ];
     }
 
