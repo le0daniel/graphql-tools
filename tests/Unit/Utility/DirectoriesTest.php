@@ -23,8 +23,9 @@ class DirectoriesTest extends TestCase
             'ExtensionManagerTest.php',
             'MiddlewareTest.php',
             'ProxyResolverTest.php',
+            'QueryExecutorTest.php',
             'Registry/FactoryTypeRegistryTest.php',
-            'Registry/FederatedSchemaTest.php'
+            'Registry/FederatedSchemaTest.php',
         ], $result);
 
         foreach ($result as $relativePath) {
