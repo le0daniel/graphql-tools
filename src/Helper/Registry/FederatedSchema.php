@@ -132,22 +132,12 @@ class FederatedSchema
         return $typeFactories;
     }
 
-    /**
-     * @template T of Schema
-     * @param string|null $queryTypeName
-     * @param string|null $mutationTypeName
-     * @param bool $assumeValid
-     * @param array $excludeTags
-     * @param class-string<T> $schemaClassName
-     * @return Schema
-     */
-    public function createSchema(
+    public function createSchemaConfig(
         ?string $queryTypeName = null,
         ?string $mutationTypeName = null,
         bool    $assumeValid = true,
         array   $excludeTags = [],
-        string  $schemaClassName = Schema::class,
-    ): Schema
+    ): SchemaConfig
     {
         $aliases = $this->createAliases();
         $eagerlyLoadedTypes = $this->eagerlyLoadedTypes;
@@ -156,30 +146,52 @@ class FederatedSchema
             $aliases
         );
 
-        return new $schemaClassName(
-            SchemaConfig::create(
-                [
-                    'query' => $queryTypeName
-                        ? Schema::resolveType($registry->type($queryTypeName))
-                        : null,
-                    'mutation' => $mutationTypeName
-                        ? Schema::resolveType($registry->type($mutationTypeName))
-                        : null,
-                    'types' => static function () use ($eagerlyLoadedTypes, $registry) {
-                        return array_map(
-                            fn(string $name) => Schema::resolveType($registry->type($name)),
-                            $eagerlyLoadedTypes,
-                        );
-                    },
-                    'typeLoader' => static function (string $typeNameOrClassName) use ($registry) {
-                        try {
-                            return Schema::resolveType($registry->type($typeNameOrClassName));
-                        } catch (DefinitionException) {
-                            return null;
-                        }
-                    },
-                    'assumeValid' => $assumeValid,
-                ]
+        return SchemaConfig::create(
+            [
+                'query' => $queryTypeName
+                    ? Schema::resolveType($registry->type($queryTypeName))
+                    : null,
+                'mutation' => $mutationTypeName
+                    ? Schema::resolveType($registry->type($mutationTypeName))
+                    : null,
+                'types' => static function () use ($eagerlyLoadedTypes, $registry) {
+                    return array_map(
+                        fn(string $name) => Schema::resolveType($registry->type($name)),
+                        $eagerlyLoadedTypes,
+                    );
+                },
+                'typeLoader' => static function (string $typeNameOrClassName) use ($registry) {
+                    try {
+                        return Schema::resolveType($registry->type($typeNameOrClassName));
+                    } catch (DefinitionException) {
+                        return null;
+                    }
+                },
+                'assumeValid' => $assumeValid,
+            ]
+        );
+    }
+
+    /**
+     * @param string|null $queryTypeName
+     * @param string|null $mutationTypeName
+     * @param bool $assumeValid
+     * @param array $excludeTags
+     * @return Schema
+     */
+    public function createSchema(
+        ?string $queryTypeName = null,
+        ?string $mutationTypeName = null,
+        bool    $assumeValid = true,
+        array   $excludeTags = [],
+    ): Schema
+    {
+        return new Schema(
+            $this->createSchemaConfig(
+                $queryTypeName,
+                $mutationTypeName,
+                $assumeValid,
+                $excludeTags
             )
         );
     }
