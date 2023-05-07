@@ -4,6 +4,7 @@ namespace GraphQlTools\Test\Unit\Utility;
 
 use GraphQlTools\Utility\Directories;
 use PHPUnit\Framework\TestCase;
+use SplFileInfo;
 
 class DirectoriesTest extends TestCase
 {
@@ -14,7 +15,7 @@ class DirectoriesTest extends TestCase
 
         $files = iterator_to_array(Directories::fileIteratorWithRegex($directoryToIterate, '/\.php$/'));
 
-        $result = array_map(fn(\SplFileInfo $info) => str_replace($directoryToIterate . '/', '', $info->getRealPath()), $files);
+        $result = array_map(fn(SplFileInfo $info) => str_replace($directoryToIterate . '/', '', $info->getRealPath()), $files);
         sort($result);
 
         self::assertEquals([
