@@ -52,6 +52,10 @@ class ProxyResolver
         return $typeData->{$fieldName} ?? null;
     }
 
+    public function prependMiddlewares(Closure ...$middlewares): MiddlewareResolver {
+        return new MiddlewareResolver($this->resolveFunction, $middlewares);
+    }
+
     /**
      * This method is invoked when a field gets resolved. It is responsible to delegate the resolution and
      * call the necessary extensions.

@@ -4,11 +4,9 @@ namespace GraphQlTools\Definition\Field;
 
 use Closure;
 use GraphQL\Type\Definition\FieldDefinition;
-use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Field\Shared\DefinesBaseProperties;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
-use GraphQlTools\Helper\Middleware;
 use GraphQlTools\Helper\Resolver\MiddlewareResolver;
 use GraphQlTools\Helper\Resolver\ProxyResolver;
 
@@ -22,6 +20,7 @@ final class Field
 
     private null|Closure $resolveFunction = null;
     private array $middlewares = [];
+    private null|Closure $costFunction = null;
 
     protected function __construct(public readonly string $name)
     {
@@ -42,11 +41,21 @@ final class Field
         return $this;
     }
 
+    public function cost(int|Closure $priceOrFunction): self {
+        if ($priceOrFunction instanceof Closure) {
+            $this->costFunction = $priceOrFunction;
+            return $this;
+        }
+
+        $this->costFunction = static fn(int $childrenComplexity): int => $childrenComplexity + $priceOrFunction;
+        return $this;
+    }
+
     /**
-     * @internal
-     * @param TypeRegistry $registry
+     * @param array $excludeTags
      * @return FieldDefinition
      * @throws DefinitionException
+     * @internal
      */
     public function toDefinition(array $excludeTags = []): FieldDefinition
     {
@@ -64,6 +73,7 @@ final class Field
             'description' => $this->computeDescription(),
             'args' => $this->initArguments($excludeTags),
             'tags' => $this->getTags(),
+            'complexity' => $this->costFunction ?? self::freeCost(...),
         ]);
     }
 
@@ -101,5 +111,9 @@ final class Field
         }
 
         return $inputFields;
+    }
+
+    public static function freeCost(int $childrenComplexity): int {
+        return $childrenComplexity;
     }
 }

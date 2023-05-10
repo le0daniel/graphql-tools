@@ -20,6 +20,11 @@ final class MiddlewareResolver extends ProxyResolver
         return $this->resolver ??= Middleware::create($this->pipes)->then($this->middle);
     }
 
+    public function prependMiddlewares(Closure ...$middlewares): MiddlewareResolver
+    {
+        return new MiddlewareResolver($this->middle, [$middlewares, ...$this->pipes]);
+    }
+
     protected function resolveToValue(mixed $typeData, array $arguments, GraphQlContext $context, ResolveInfo $info): mixed
     {
         return $this->getResolveFunction()($typeData, $arguments, $context, $info);
