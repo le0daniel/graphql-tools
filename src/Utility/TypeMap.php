@@ -2,6 +2,8 @@
 
 namespace GraphQlTools\Utility;
 
+use GraphQlTools\Contract\DefinesGraphQlType;
+use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\GraphQlEnum;
 use GraphQlTools\Definition\GraphQlInputType;
 use GraphQlTools\Definition\GraphQlInterface;
@@ -36,18 +38,22 @@ class TypeMap
             }
 
             $reflection = new ReflectionClass($className);
-            if ($reflection->isAbstract()) {
+            if ($reflection->isAbstract() || $reflection->isInterface()) {
                 continue;
             }
 
-            $parentClassNames = Reflections::getAllParentClasses($reflection);
-            foreach ($parentClassNames as $parentClassName) {
-                if (in_array($parentClassName, self::CLASS_MAP_INSTANCES, true)) {
-                    $typeName = (new $className)->getName();
-                    $typeMap[$typeName] = $className;
-                    break;
-                }
+            if (!$reflection->implementsInterface(DefinesGraphQlType::class)) {
+                continue;
             }
+
+            if ($reflection->getConstructor() && $reflection->getConstructor()->getNumberOfParameters() !== 0) {
+                throw new DefinitionException("A type should not have a constructor or only have a constructor without any parameters. This ensures that there are no side effects when a resolver is called multiple times.");
+            }
+
+            /** @var DefinesGraphQlType $instance */
+            $instance = (new $className);
+            $typeName = $instance->getName();
+            $typeMap[$typeName] = $className;
         }
 
         return $typeMap;
