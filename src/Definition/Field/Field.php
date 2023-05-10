@@ -52,6 +52,17 @@ final class Field
     }
 
     /**
+     * Clones and adds a middleware at the beginning. Ensures the state is not mutated from the outside if reused.
+     * @param Closure $closure
+     * @return $this
+     */
+    public function prependMiddleware(Closure $closure): self {
+        $instance = clone $this;
+        array_unshift($instance->middlewares, $closure);
+        return $instance;
+    }
+
+    /**
      * @param array $excludeTags
      * @return FieldDefinition
      * @throws DefinitionException
