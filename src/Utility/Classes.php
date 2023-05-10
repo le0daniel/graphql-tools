@@ -60,6 +60,10 @@ final class Classes
             }
         }
 
+        if (empty($classes)) {
+            return null;
+        }
+
         if (count($classes) !== 1) {
             throw new RuntimeException("None or more than one class defined in file: {$file}");
         }
