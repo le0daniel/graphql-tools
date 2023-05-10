@@ -92,14 +92,14 @@ class QueryComplexityRuleTest extends TestCase
     private function cost(string $query): int {
         $result = $this->query($query, 100000);
         /** @var QueryComplexityRule $queryComplexity */
-        $queryComplexity = $result->extensions['queryComplexity'];
+        $queryComplexity = $result->extensions['complexity'];
         return $queryComplexity->getActualComplexity();
     }
 
     public function testMaxQueryScore(): void {
         $result = $this->query('query { currentUser }', 10);
         /** @var QueryComplexityRule $queryComplexity */
-        $queryComplexity = $result->extensions['queryComplexity'];
+        $queryComplexity = $result->extensions['complexity'];
 
         self::assertEquals(5, $queryComplexity->getActualComplexity());
         self::assertEquals(10, $queryComplexity->getMaxQueryComplexity());
@@ -109,7 +109,7 @@ class QueryComplexityRuleTest extends TestCase
     public function testMaxQueryScoreExceeded(): void {
         $result = $this->query('query { currentUser }', 4);
         /** @var QueryComplexityRule $queryComplexity */
-        $queryComplexity = $result->extensions['queryComplexity'];
+        $queryComplexity = $result->extensions['complexity'];
 
         self::assertEquals(5, $queryComplexity->getActualComplexity());
         self::assertEquals(4, $queryComplexity->getMaxQueryComplexity());

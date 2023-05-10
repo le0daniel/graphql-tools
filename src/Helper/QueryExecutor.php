@@ -17,6 +17,7 @@ use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Contract\ExceptionWithExtensions;
 use GraphQlTools\Contract\ExtendsResult;
 use GraphQlTools\Contract\GraphQlContext;
+use GraphQlTools\Data\ValueObjects\ValidationResult;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
@@ -78,6 +79,29 @@ final class QueryExecutor
             $serialized[$validationRule->key()] = $validationRule;
         }
         return $serialized;
+    }
+
+    /**
+     * Used to validate a query without running it. This is done be default when using execute.
+     *
+     * @param Schema $schema
+     * @param string $query
+     * @param GraphQlContext|null $context
+     * @return ValidationResult
+     * @throws DefinitionException
+     * @throws SyntaxError
+     * @throws \JsonException
+     */
+    public function validateQuery(
+        Schema $schema,
+        string $query,
+        ?GraphQlContext $context = null,
+    ): ValidationResult {
+        $context ??= new Context();
+        $source = Parser::parse($query);
+        $validationRules = $this->initializeValidationRules($context);
+        $validationErrors = DocumentValidator::validate($schema, $source, $validationRules);
+        return new ValidationResult($validationErrors, $validationRules);
     }
 
     public function execute(

@@ -25,7 +25,7 @@ class QueryComplexityRule extends QueryComplexity implements ExtendsResult
 
     public function key(): string
     {
-        return 'queryComplexity';
+        return 'complexity';
     }
 
     public function getVisitor(QueryValidationContext $context): array
@@ -62,7 +62,6 @@ class QueryComplexityRule extends QueryComplexity implements ExtendsResult
                         $this->actualComplexity = $this->fieldComplexity($operationDefinition->selectionSet);
 
                         if ($this->actualComplexity <= $this->maxQueryComplexity) {
-                            $this->handleConsumedComplexity($this->actualComplexity);
                             return;
                         }
 
@@ -74,15 +73,6 @@ class QueryComplexityRule extends QueryComplexity implements ExtendsResult
                 ],
             ]
         );
-    }
-
-    public function getName(): string
-    {
-        return QueryComplexity::class;
-    }
-
-    protected function handleConsumedComplexity(int $actualComplexity): void {
-        // Use this method to update complexity in a session for example
     }
 
     protected function handleComplexityExceedingAvailableComplexity(int $actualComplexity, int $maxComplexity): void {
@@ -106,7 +96,7 @@ class QueryComplexityRule extends QueryComplexity implements ExtendsResult
         return $this->actualComplexity;
     }
 
-    public function jsonSerialize(): mixed
+    public function jsonSerialize(): array
     {
         return [
             'allowed' => $this->maxQueryComplexity,
