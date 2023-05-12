@@ -4,13 +4,20 @@ namespace GraphQlTools\Test\Unit\Utility\Middleware;
 
 use ArrayAccess;
 use Closure;
+use GraphQL\Type\Definition\FieldDefinition;
+use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\ResolveInfo;
+use GraphQlTools\Helper\Context;
+use GraphQlTools\Helper\Resolver\ProxyResolver;
 use GraphQlTools\Utility\Middleware\Federation;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 use RuntimeException;
 use stdClass;
 
 class FederationTest extends TestCase
 {
+    use ProphecyTrait;
 
     private function executeMiddlewareWith(Closure $middleware, $carry): mixed {
         return $middleware($carry, null, null, null, fn($value) => $value);
@@ -112,5 +119,19 @@ class FederationTest extends TestCase
         $exception = $this->executeMiddlewareWith(Federation::key('name'), $instance);
         self::assertInstanceOf(RuntimeException::class, $exception);
         self::assertStringStartsWith('Could not resolve federated key `name`', $exception->getMessage());
+    }
+
+    public function testFederationField() {
+
+        $resolveInfo = $this->prophesize(ResolveInfo::class)->reveal();
+        $parentType = $this->prophesize(ObjectType::class);
+        $field = $this->prophesize(FieldDefinition::class)->reveal();
+        $field->resolveFn = new ProxyResolver(fn() => 'value');
+        $parentType->getField('fieldName')->willReturn($field);
+        $resolveInfo->parentType = $parentType->reveal();
+
+        $pipe = Federation::field('fieldName');
+        $result = $pipe(null, [], new Context(), $resolveInfo, fn($val) => $val);
+        self::assertEquals('value', $result);
     }
 }

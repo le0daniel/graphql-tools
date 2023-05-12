@@ -5,6 +5,7 @@ namespace GraphQlTools\Utility\Middleware;
 use ArrayAccess;
 use Closure;
 use GraphQL\Type\Definition\ResolveInfo;
+use GraphQlTools\Helper\Resolver\ProxyResolver;
 use RuntimeException;
 
 final class Federation
@@ -39,9 +40,10 @@ final class Federation
 
     public static function field(string $name): Closure {
         return static function(mixed $data, $args, $context, ResolveInfo $info, Closure $next) use ($name) {
-            $field = $info->parentType->getField($name);
+            /** @var ProxyResolver $resolveFunction */
+            $resolveFunction = $info->parentType->getField($name)->resolveFn;
             return $next(
-                ($field->resolveFn)->resolveToValue($data, $args, $context, $info),
+                $resolveFunction->resolveToValue($data, $args, $context, $info),
                 $args,
                 $context,
                 $info
