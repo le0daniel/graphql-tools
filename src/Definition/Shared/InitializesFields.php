@@ -2,7 +2,6 @@
 
 namespace GraphQlTools\Definition\Shared;
 
-use Closure;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Field\InputField;

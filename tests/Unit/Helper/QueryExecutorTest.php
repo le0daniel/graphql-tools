@@ -22,7 +22,9 @@ class QueryExecutorTest extends TestCase
         );
 
         $federatedSchema = new FederatedSchema();
-        $federatedSchema->registerTypes(TypeMap::createTypeMapFromDirectory(__DIR__ . '/../../Dummies/Schema'));
+        [$types, $extendedTypes] = TypeMap::createTypeMapFromDirectory(__DIR__ . '/../../Dummies/Schema');
+        $federatedSchema->registerTypes($types);
+        $federatedSchema->extendTypes($extendedTypes);
         $schema = $federatedSchema->createSchema('Query');
 
         $query = 'query { mamels { sound, ... on Lion { depth { deeper { id } } } } }';
@@ -49,7 +51,9 @@ class QueryExecutorTest extends TestCase
         );
 
         $federatedSchema = new FederatedSchema();
-        $federatedSchema->registerTypes(TypeMap::createTypeMapFromDirectory(__DIR__ . '/../../Dummies/Schema'));
+        [$types, $extendedTypes] = TypeMap::createTypeMapFromDirectory(__DIR__ . '/../../Dummies/Schema');
+        $federatedSchema->registerTypes($types);
+        $federatedSchema->extendTypes($extendedTypes);
         $schema = $federatedSchema->createSchema('Query');
 
         $result = $queryExecutor->execute(
@@ -85,7 +89,9 @@ class QueryExecutorTest extends TestCase
         );
 
         $federatedSchema = new FederatedSchema();
-        $federatedSchema->registerTypes(TypeMap::createTypeMapFromDirectory(__DIR__ . '/../../Dummies/Schema'));
+        [$types, $extendedTypes] = TypeMap::createTypeMapFromDirectory(__DIR__ . '/../../Dummies/Schema');
+        $federatedSchema->registerTypes($types);
+        $federatedSchema->extendTypes($extendedTypes);
         $schema = $federatedSchema->createSchema('Query');
 
         $result = $queryExecutor->execute(

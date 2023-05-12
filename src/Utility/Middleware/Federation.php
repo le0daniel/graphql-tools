@@ -4,6 +4,7 @@ namespace GraphQlTools\Utility\Middleware;
 
 use ArrayAccess;
 use Closure;
+use GraphQL\Type\Definition\ResolveInfo;
 use RuntimeException;
 
 final class Federation
@@ -33,6 +34,18 @@ final class Federation
                 method_exists($data, $name) => $next($data->{$name}(), $args, $context, $info),
                 default => new RuntimeException("Could not resolve federated key `{$name}` on {$typeClass}. Hint: Federation::key(name) requires the data to be an array (& ArrayAccessible) or an object with properties or getter methods")
             };
+        };
+    }
+
+    public static function field(string $name): Closure {
+        return static function(mixed $data, $args, $context, ResolveInfo $info, Closure $next) use ($name) {
+            $field = $info->parentType->getField($name);
+            return $next(
+                ($field->resolveFn)->resolveToValue($data, $args, $context, $info),
+                $args,
+                $context,
+                $info
+            );
         };
     }
 }

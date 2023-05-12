@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition;
 
+use Closure;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
@@ -11,11 +12,16 @@ use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Shared\HasDeprecation;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\InitializesFields;
+use GraphQlTools\Definition\Shared\MergesFields;
 use GraphQlTools\Utility\Types;
 
 abstract class GraphQlType implements DefinesGraphQlType
 {
-    use HasDescription, HasDeprecation, InitializesFields;
+    use HasDescription, HasDeprecation, InitializesFields, MergesFields;
+
+    protected function middleware(): array|null {
+        return null;
+    }
 
     /**
      * Return an array of fields of that specific type. The fields
@@ -25,7 +31,17 @@ abstract class GraphQlType implements DefinesGraphQlType
      */
     abstract protected function fields(TypeRegistry $registry): array;
 
-    public function toDefinition(TypeRegistry $registry, array $injectedFieldFactories = [], array $excludeFieldsWithTags = []): ObjectType {
+    private function getDefinedFields(TypeRegistry $registry): array {
+        if (empty($this->middleware())) {
+            return $this->fields($registry);
+        }
+
+        /** @var array<Closure> $middleware */
+        $middleware = $this->middleware();
+        return array_map(fn(Field $field) => $field->prependMiddleware(...$middleware), $this->fields($registry));
+    }
+
+    public function toDefinition(TypeRegistry $registry, array $excludeFieldsWithTags = []): ObjectType {
         return new ObjectType(
             [
                 'name' => $this->getName(),
@@ -34,7 +50,7 @@ abstract class GraphQlType implements DefinesGraphQlType
                 'removalDate' => $this->removalDate(),
                 'fields' => fn() => $this->initializeFields(
                     $registry,
-                    [$this->fields(...), ...$injectedFieldFactories],
+                    [$this->getDefinedFields(...), ...$this->mergedFieldFactories],
                     $excludeFieldsWithTags
                 ),
                 'interfaces' => fn() => array_map(
@@ -43,6 +59,10 @@ abstract class GraphQlType implements DefinesGraphQlType
                 ),
             ]
         );
+    }
+
+    final public function getInterfaces(): array {
+        return $this->interfaces();
     }
 
     public function getName(): string

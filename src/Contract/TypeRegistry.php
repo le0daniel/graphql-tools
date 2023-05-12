@@ -4,8 +4,6 @@ namespace GraphQlTools\Contract;
 
 use Closure;
 use GraphQL\Type\Definition\Type;
-use GraphQlTools\Definition\Field\Field;
-use GraphQlTools\Definition\Field\InputField;
 
 interface TypeRegistry
 {

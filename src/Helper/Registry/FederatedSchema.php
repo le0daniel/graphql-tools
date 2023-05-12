@@ -8,6 +8,7 @@ use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Definition\DefinitionException;
+use GraphQlTools\Definition\Extending\ExtendGraphQlType;
 use GraphQlTools\Utility\Types;
 use RuntimeException;
 use GraphQlTools\Contract\TypeRegistry as TypeRegistryContract;
@@ -19,6 +20,10 @@ class FederatedSchema
      */
     private array $types = [];
     private array $eagerlyLoadedTypes = [];
+
+    /**
+     * @var array<string, array<string|Closure|ExtendGraphQlType>>
+     */
     private array $typeFieldExtensions = [];
 
     public function register(DefinesGraphQlType|string $definition): void
@@ -81,12 +86,18 @@ class FederatedSchema
      * @param Closure(TypeRegistryContract): array $fieldFactory
      * @return void
      */
-    public function extendType(string $typeNameOrAlias, Closure $fieldFactory): void
+    public function extendType(string $typeNameOrAlias, Closure|string|ExtendGraphQlType ... $fieldFactories): void
     {
         if (!isset($this->typeFieldExtensions[$typeNameOrAlias])) {
             $this->typeFieldExtensions[$typeNameOrAlias] = [];
         }
-        $this->typeFieldExtensions[$typeNameOrAlias][] = $fieldFactory;
+        array_push($this->typeFieldExtensions[$typeNameOrAlias], ...$fieldFactories);
+    }
+
+    public function extendTypes(array $extensions): void {
+        foreach ($extensions as $typeName => $definitions) {
+            $this->extendType($typeName, ...$definitions);
+        }
     }
 
     protected function resolveFieldExtensions(array $aliases): array
@@ -115,23 +126,6 @@ class FederatedSchema
         return $aliases;
     }
 
-    protected function createTypeFactories(array $types, array $aliases, array $excludeTags): array
-    {
-        $typeFactories = [];
-        $fieldExtensions = $this->resolveFieldExtensions($aliases);
-
-        foreach ($types as $name => $definition) {
-            $fieldFactories = $fieldExtensions[$name] ?? null;
-            $typeFactories[$name] = static function (TypeRegistryContract $typeRegistry) use ($definition, $fieldFactories, $excludeTags): Type {
-                /** @var DefinesGraphQlType $instance */
-                $instance = $definition instanceof DefinesGraphQlType ? $definition : new $definition;
-                return $instance->toDefinition($typeRegistry, $fieldFactories ?? [], $excludeTags);
-            };
-        }
-
-        return $typeFactories;
-    }
-
     public function createSchemaConfig(
         ?string $queryTypeName = null,
         ?string $mutationTypeName = null,
@@ -142,8 +136,10 @@ class FederatedSchema
         $aliases = $this->createAliases();
         $eagerlyLoadedTypes = $this->eagerlyLoadedTypes;
         $registry = new FactoryTypeRegistry(
-            $this->createTypeFactories($this->types, $aliases, $excludeTags),
-            $aliases
+            $this->types,
+            $aliases,
+            $this->resolveFieldExtensions($aliases),
+            $excludeTags,
         );
 
         return SchemaConfig::create(

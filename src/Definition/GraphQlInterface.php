@@ -12,15 +12,16 @@ use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Shared\HasDeprecation;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Definition\Shared\InitializesFields;
+use GraphQlTools\Definition\Shared\MergesFields;
 use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Utility\Types;
 
 abstract class GraphQlInterface implements DefinesGraphQlType
 {
-    use InitializesFields, HasDescription, HasDeprecation;
+    use InitializesFields, HasDescription, HasDeprecation, MergesFields;
     abstract protected function fields(TypeRegistry $registry): array;
 
-    public function toDefinition(TypeRegistry $registry, array $injectedFieldFactories = [], array $excludeFieldsWithTags = []): InterfaceType
+    public function toDefinition(TypeRegistry $registry, array $excludeFieldsWithTags = []): InterfaceType
     {
         return new InterfaceType([
             'name' => $this->getName(),
@@ -29,7 +30,7 @@ abstract class GraphQlInterface implements DefinesGraphQlType
             'removalDate' => $this->removalDate(),
             'fields' => fn() => $this->initializeFields(
                 $registry,
-                [$this->fields(...), ...$injectedFieldFactories],
+                [$this->fields(...), ...$this->mergedFieldFactories],
                 $excludeFieldsWithTags,
             ),
             'resolveFn' => [static::class, 'resolveToType'],

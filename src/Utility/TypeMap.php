@@ -4,32 +4,22 @@ namespace GraphQlTools\Utility;
 
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Definition\DefinitionException;
-use GraphQlTools\Definition\GraphQlEnum;
-use GraphQlTools\Definition\GraphQlInputType;
-use GraphQlTools\Definition\GraphQlInterface;
-use GraphQlTools\Definition\GraphQlScalar;
-use GraphQlTools\Definition\GraphQlType;
-use GraphQlTools\Definition\GraphQlUnion;
+use GraphQlTools\Definition\Extending\ExtendGraphQlType;
 use ReflectionClass;
 use ReflectionException;
 
 class TypeMap
 {
-    private const CLASS_MAP_INSTANCES = [
-        GraphQlType::class,
-        GraphQlEnum::class,
-        GraphQlInputType::class,
-        GraphQlInterface::class,
-        GraphQlScalar::class,
-        GraphQlUnion::class,
-    ];
-
     /**
+     * @param string $directory
+     * @return array{0:array<string, string>, 1:array<string,array<string>>}
+     * @throws DefinitionException
      * @throws ReflectionException
      */
     final public static function createTypeMapFromDirectory(string $directory): array
     {
         $typeMap = [];
+        $extendedTypes = [];
 
         foreach (Directories::fileIteratorWithRegex($directory, '/\.php$/') as $phpFile) {
             $className = Classes::getDeclaredClassInFile($phpFile->getRealPath());
@@ -39,6 +29,13 @@ class TypeMap
 
             $reflection = new ReflectionClass($className);
             if ($reflection->isAbstract() || $reflection->isInterface()) {
+                continue;
+            }
+
+            if ($reflection->isSubclassOf(ExtendGraphQlType::class)) {
+                /** @var ExtendGraphQlType $instance */
+                $instance = (new $className);
+                $extendedTypes[$instance->typeName()][] = $className;
                 continue;
             }
 
@@ -56,18 +53,22 @@ class TypeMap
             $typeMap[$typeName] = $className;
         }
 
-        return $typeMap;
+        return [$typeMap, $extendedTypes];
     }
 
     /**
-     * @throws ReflectionException
+     * @throws ReflectionException|DefinitionException
      */
     final public static function createTypeMapFromDirectories(string ... $directories): array {
-        $typeMap = [];
+        $combinedTypeMap = [];
+        $combinedExtendedTypes = [];
+
         foreach ($directories as $directory) {
-            $typeMap = Arrays::mergeKeyValues($typeMap, self::createTypeMapFromDirectory($directory));
+            [$typeMap, $extendedTypes] = self::createTypeMapFromDirectory($directory);
+            $combinedTypeMap = Arrays::mergeKeyValues($combinedTypeMap, $typeMap);
+            $combinedExtendedTypes = Arrays::mergeKeyValues($combinedExtendedTypes, $extendedTypes);
         }
-        return $typeMap;
+        return [$combinedTypeMap, $combinedExtendedTypes];
     }
 
 }

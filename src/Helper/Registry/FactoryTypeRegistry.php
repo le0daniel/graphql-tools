@@ -7,6 +7,9 @@ use GraphQL\Type\Definition\Type;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\TypeRegistry as TypeRegistryContract;
 use GraphQlTools\Definition\DefinitionException;
+use GraphQlTools\Definition\Extending\ExtendGraphQlType;
+use GraphQlTools\Definition\GraphQlInterface;
+use GraphQlTools\Definition\GraphQlType;
 use RuntimeException;
 
 class FactoryTypeRegistry implements TypeRegistryContract
@@ -16,10 +19,13 @@ class FactoryTypeRegistry implements TypeRegistryContract
     /**
      * @param array<string, callable|class-string> $types
      * @param array<string, string> $aliasesOfTypes
+     * @param array<string, array<ExtendGraphQlType|class-string|Closure>> $extendedTypes
      */
     public function __construct(
         private readonly array $types,
-        private readonly array $aliasesOfTypes = []
+        private readonly array $aliasesOfTypes = [],
+        private readonly array $extendedTypes = [],
+        private readonly array $tagsToExclude = [],
     )
     {
     }
@@ -46,11 +52,41 @@ class FactoryTypeRegistry implements TypeRegistryContract
 
     protected function getType(string $typeName): Type
     {
-        if (!isset($this->typeInstances[$typeName])) {
-            $this->typeInstances[$typeName] = $this->createInstanceOfType($typeName);
+        return $this->typeInstances[$typeName] ??= $this->createInstanceOfType($typeName);
+    }
+
+    private function getTypeFieldExtensions(GraphQlInterface|GraphQlType $type): array {
+        $factories = $this->getFieldExtensionsForTypeName($type->getName());
+
+        if ($type instanceof GraphQlType) {
+            foreach ($type->getInterfaces() as $interfaceNameOrAlias) {
+                $factories = [
+                    ...$factories,
+                    ...$this->getFieldExtensionsForTypeName($this->resolveAliasToName($interfaceNameOrAlias))
+                ];
+            }
         }
 
-        return $this->typeInstances[$typeName];
+        return $factories;
+    }
+
+    private function getFieldExtensionsForTypeName(string $typeName): array {
+        if (!isset($this->extendedTypes[$typeName])) {
+            return [];
+        }
+
+        $factories = [];
+        /** @var class-string<ExtendGraphQlType>|Closure|ExtendGraphQlType $extension */
+        foreach ($this->extendedTypes[$typeName] as $extension) {
+            $factories[] = match (true) {
+                is_string($extension) => (new $extension)->getFields(...),
+                $extension instanceof ExtendGraphQlType => $extension->getFields(...),
+                $extension instanceof Closure => $extension,
+                default => throw new DefinitionException("Invalid type field extension given. Expected Closure or class-string<ExtendGraphQlType>."),
+            };
+        }
+
+        return $factories;
     }
 
     protected function createInstanceOfType(string $typeName): Type
@@ -59,6 +95,23 @@ class FactoryTypeRegistry implements TypeRegistryContract
         if (!$typeFactory) {
             throw new DefinitionException("Could not resolve type '{$typeName}', no factory provided. Did you register this type?");
         }
-        return $typeFactory($this);
+
+        /** @var DefinesGraphQlType $instance */
+        $instance = match (true) {
+            is_string($typeFactory) => new $typeFactory,
+            $typeFactory instanceof Closure => $typeFactory(),
+            $typeFactory instanceof DefinesGraphQlType => $typeFactory,
+            default => throw new DefinitionException("Invalid type factory provided for '{$typeName}'. Expected class-string, closure, or instance of DefinesGraphQlType got: " . gettype($typeFactory))
+        };
+
+        $hasFields = $instance instanceof GraphQlType || $instance instanceof GraphQlInterface;
+        if (!$hasFields) {
+            return $instance->toDefinition($this);
+        }
+
+        $extendedFields = $this->getTypeFieldExtensions($instance);
+        return empty($extendedFields)
+            ? $instance->toDefinition($this, $this->tagsToExclude)
+            : $instance->mergeFieldFactories(...$extendedFields)->toDefinition($this, $this->tagsToExclude);
     }
 }

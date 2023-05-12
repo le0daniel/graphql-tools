@@ -29,8 +29,9 @@ class ProxyResolver
      * @param Context $context
      * @param ResolveInfo $info
      * @return mixed
+     * @internal
      */
-    protected function resolveToValue(mixed $typeData, array $arguments, GraphQlContext $context, ResolveInfo $info): mixed
+    public function resolveToValue(mixed $typeData, array $arguments, GraphQlContext $context, ResolveInfo $info): mixed
     {
         if ($this->resolveFunction) {
             return ($this->resolveFunction)($typeData, $arguments, $context, $info);
@@ -50,10 +51,6 @@ class ProxyResolver
 
         /** @var $typeData object */
         return $typeData->{$fieldName} ?? null;
-    }
-
-    public function prependMiddlewares(Closure ...$middlewares): MiddlewareResolver {
-        return new MiddlewareResolver($this->resolveFunction, $middlewares);
     }
 
     /**

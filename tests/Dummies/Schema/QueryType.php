@@ -14,6 +14,7 @@ use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Helper\Middleware;
 use GraphQlTools\Test\Dummies\Schema\Input\MamelsQueryInputType;
+use GraphQlTools\Utility\Middleware\Federation;
 
 final class QueryType extends GraphQlType
 {
@@ -64,6 +65,11 @@ final class QueryType extends GraphQlType
                     return 'Hello World!';
                 }),
 
+            Field::withName('testFieldMiddleware')
+                ->ofType(Type::nonNull(Type::string()))
+                ->middleware(Federation::field('currentUser'))
+                ->resolvedBy(fn(string $data): string => $data),
+
             Field::withName('middlewareWithPrimitiveBinding')
                 ->ofType(Type::string())
                 ->tags('private')
@@ -85,6 +91,9 @@ final class QueryType extends GraphQlType
                     return QueryType::ANIMALS;
                 }),
 
+            Field::withName('protectedUser')
+                ->ofType($registry->type('ProtectedUser'))
+                ->resolvedBy(fn() => 'some data'),
 
             Field::withName('whoami')
                 ->ofType(Type::string())

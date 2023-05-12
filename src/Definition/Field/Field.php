@@ -53,12 +53,12 @@ final class Field
 
     /**
      * Clones and adds a middleware at the beginning. Ensures the state is not mutated from the outside if reused.
-     * @param Closure $closure
+     * @param array<Closure> $middleware
      * @return $this
      */
-    public function prependMiddleware(Closure $closure): self {
+    public function prependMiddleware(...$middleware): self {
         $instance = clone $this;
-        array_unshift($instance->middlewares, $closure);
+        array_unshift($instance->middlewares, ...$middleware);
         return $instance;
     }
 
@@ -124,7 +124,7 @@ final class Field
         return $inputFields;
     }
 
-    public static function freeCost(int $childrenComplexity): int {
+    private static function freeCost(int $childrenComplexity): int {
         return $childrenComplexity;
     }
 }

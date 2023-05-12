@@ -74,14 +74,14 @@ abstract class ExecutionTestCase extends TestCase {
         self::assertEquals($expectedCount, $count);
     }
 
-    protected function executeOn(Schema $schema, string $query): mixed {
+    protected function executeOn(Schema $schema, string $query): ExecutionResult {
         $executor = new QueryExecutor(
             $this->extensions()
         );
         return $executor->execute($schema, $query, new Context());
     }
 
-    protected function execute(string $query) {
+    protected function execute(string $query): ExecutionResult {
         return $this->executeOn($this->schema(), $query);
     }
 

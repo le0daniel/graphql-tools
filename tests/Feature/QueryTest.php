@@ -18,9 +18,13 @@ use GraphQlTools\Utility\TypeMap;
 
 class QueryTest extends ExecutionTestCase
 {
-    protected function federatedSchema(): FederatedSchema {
+    protected function federatedSchema(): FederatedSchema
+    {
         $federatedSchema = new FederatedSchema();
-        $federatedSchema->registerTypes(TypeMap::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema'));
+
+        [$types, $extendedTypes] = TypeMap::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema');
+        $federatedSchema->registerTypes($types);
+        $federatedSchema->extendTypes($extendedTypes);
 
         $federatedSchema->extendType(
             UserType::class,
@@ -34,7 +38,7 @@ class QueryTest extends ExecutionTestCase
             ],
         );
 
-        $federatedSchema->extendType('User',fn(TypeRegistry $registry) => [
+        $federatedSchema->extendType('User', fn(TypeRegistry $registry) => [
             Field::withName('byName')
                 ->ofType(Type::string())
                 ->tags('name')
@@ -150,6 +154,19 @@ class QueryTest extends ExecutionTestCase
         $this->assertColumnCount(3, $result->data['mamels'], 'sound');
     }
 
+    public function testQueryExtendedInterface(): void
+    {
+        $result = $this->execute('query { mamels { added } }');
+        $this->assertNoErrors($result);
+        self::assertCount(3, $result->data['mamels']);
+        self::assertCount(3, $result->data['mamels']);
+        $this->assertColumnCount(3, $result->data['mamels'], 'added');
+
+        foreach ($result->data['mamels'] as $mamel) {
+            self::assertEquals('this is a value', $mamel['added']);
+        }
+    }
+
 
     public function testQueryWithExtendedUserType(): void
     {
@@ -183,7 +200,8 @@ class QueryTest extends ExecutionTestCase
         self::assertEquals('lazy-field', $result->data['user']['lazy']);
     }
 
-    public function testHiddenTaggedField(): void {
+    public function testHiddenTaggedField(): void
+    {
         $result = $this->executeOn(
             $this->schema(['private']),
             "query { middlewareWithPrimitiveBinding }"
@@ -191,12 +209,25 @@ class QueryTest extends ExecutionTestCase
         $this->assertError($result, 'Cannot query field "middlewareWithPrimitiveBinding" on type "Query".');
     }
 
-    public function testHiddenTaggedInputField(): void {
+    public function testGlobalTypeMiddleware(): void
+    {
+        $result = $this->execute('{ protectedUser {secret} }');
+        self::assertEquals('not allowed', $result->data['protectedUser']['secret']);
+    }
+
+    public function testHiddenTaggedInputField(): void
+    {
         $result = $this->executeOn(
             $this->schema(['private']),
             "query { currentUser(name: \"my-name\") }"
         );
         $this->assertError($result, 'Unknown argument "name" on field "currentUser" of type "Query".');
+    }
+
+    public function testFederationFieldMiddleware(): void
+    {
+        $result = $this->execute('query {testFieldMiddleware}');
+        self::assertEquals('Hello -- No Name Provided --', $result->data['testFieldMiddleware']);
     }
 
     // public function testQueryWithBuilderField(): void

@@ -2,13 +2,12 @@
 
 namespace GraphQlTools\Utility;
 
-use Closure;
-use GraphQL\Type\Definition\Type;
 use GraphQlTools\Definition\DefinitionException;
 
 final class Types
 {
-    public static function inferNameFromClassName(string $className): string {
+    public static function inferNameFromClassName(string $className): string
+    {
         $baseName = Classes::baseName($className);
         return match (true) {
             str_ends_with($baseName, 'Type'), str_ends_with($baseName, 'Enum') => substr($baseName, 0, -4),
