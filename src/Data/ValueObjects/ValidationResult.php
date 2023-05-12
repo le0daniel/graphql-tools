@@ -24,6 +24,10 @@ final class ValidationResult
         return !empty($this->errors);
     }
 
+    public function hasRule(string $name): bool {
+        return array_key_exists($name, $this->validationRules);
+    }
+
     /**
      * @template T of ValidationRule
      * @param class-string<T> $name

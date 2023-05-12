@@ -21,6 +21,7 @@ final class Field
     private null|Closure $resolveFunction = null;
     private array $middlewares = [];
     private null|Closure $costFunction = null;
+    private int $cost = 0;
 
     protected function __construct(public readonly string $name)
     {
@@ -41,13 +42,17 @@ final class Field
         return $this;
     }
 
-    public function cost(int|Closure $priceOrFunction): self {
-        if ($priceOrFunction instanceof Closure) {
-            $this->costFunction = $priceOrFunction;
+    public function cost(int $price, ?Closure $multiplyChildrenCostBy = null): self {
+        $this->cost = $price;
+        if (!$multiplyChildrenCostBy) {
+            $this->costFunction = static fn(int $childrenComplexity): int => $childrenComplexity + $price;
             return $this;
         }
 
-        $this->costFunction = static fn(int $childrenComplexity): int => $childrenComplexity + $priceOrFunction;
+        $this->costFunction = static function (int $childrenComplexity, ?array $args) use ($multiplyChildrenCostBy, $price): int {
+            $factor = $multiplyChildrenCostBy($args ?? []);
+            return ($factor * $childrenComplexity) + $price;
+        };
         return $this;
     }
 
@@ -55,6 +60,7 @@ final class Field
      * Clones and adds a middleware at the beginning. Ensures the state is not mutated from the outside if reused.
      * @param array<Closure> $middleware
      * @return $this
+     * @internal
      */
     public function prependMiddleware(...$middleware): self {
         $instance = clone $this;
@@ -85,6 +91,7 @@ final class Field
             'args' => $this->initArguments($excludeTags),
             'tags' => $this->getTags(),
             'complexity' => $this->costFunction ?? self::freeCost(...),
+            'cost' => $this->cost
         ]);
     }
 

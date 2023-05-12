@@ -7,6 +7,7 @@ use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
+use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Helper\QueryExecutor;
@@ -32,7 +33,23 @@ class QueryComplexityRuleTest extends TestCase
                         ->resolvedBy(fn() => 'something'),
                     Field::withName('freeUser')
                         ->ofType($registry->type('User'))
+                        ->resolvedBy(fn() => 'something'),
+                    Field::withName('multiplied')
+                        ->withArguments(
+                            InputField::withName('limit')
+                                ->ofType(Type::nonNull(Type::int()))
+                        )
+                        ->ofType($registry->type('User'))
                         ->resolvedBy(fn() => 'something')
+                        ->cost(5, fn(array $args) => $args['limit']),
+                    Field::withName('multipliedZero')
+                        ->withArguments(
+                            InputField::withName('limit')
+                                ->ofType(Type::nonNull(Type::int()))
+                        )
+                        ->ofType($registry->type('User'))
+                        ->resolvedBy(fn() => 'something')
+                        ->cost(0, fn(array $args) => $args['limit'])
                 ];
             }
 
@@ -122,6 +139,8 @@ class QueryComplexityRuleTest extends TestCase
         self::assertEquals(11, $this->cost('query { user {id, name} }'));
         self::assertEquals(8, $this->cost('query { freeUser {id, name} }'));
         self::assertEquals(5, $this->cost('query { freeUser {id} }'));
+        self::assertEquals(30, $this->cost('query { multiplied(limit: 5) { id } }'));
+        self::assertEquals(25, $this->cost('query { multipliedZero(limit: 5) { id } }'));
     }
 
 }
