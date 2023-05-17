@@ -8,7 +8,7 @@ use Closure;
 use DateTimeImmutable;
 use GraphQlTools\Data\Models\ExecutionTrace;
 use GraphQlTools\Data\Models\GraphQlError;
-use GraphQlTools\Data\Models\ResolverTrace;
+use GraphQlTools\Data\ValueObjects\Tracing\ResolverTrace;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;
@@ -49,9 +49,15 @@ final class Tracing extends Extension
      */
     public function __construct(
         private readonly bool     $addTraceToResult = true,
-        private readonly ?Closure $storeTraceFunction = null
+        private readonly ?Closure $storeTraceFunction = null,
+        private readonly bool $enabled = true,
     )
     {
+    }
+
+    public function isEnabled(): bool
+    {
+        return $this->enabled;
     }
 
     public function toExecutionTrace(): ExecutionTrace

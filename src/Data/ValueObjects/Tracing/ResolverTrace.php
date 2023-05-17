@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 
-namespace GraphQlTools\Data\Models;
+namespace GraphQlTools\Data\ValueObjects\Tracing;
 
 
 use GraphQlTools\Events\VisitFieldEvent;

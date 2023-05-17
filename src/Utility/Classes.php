@@ -8,12 +8,6 @@ use RuntimeException;
 
 final class Classes
 {
-
-    public static function isClassName(string $possibleClassName): bool
-    {
-        return str_contains($possibleClassName, '\\');
-    }
-
     public static function baseName(string $className): string
     {
         $parts = explode('\\', $className);

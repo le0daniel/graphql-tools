@@ -55,7 +55,7 @@ trait DefinesBaseProperties
                 : "**Deprecated**: {$this->deprecationReason}. No removal date specified. {$baseDescription}";
         }
 
-        if (isset($this->tags) && !empty($this->tags)) {
+        if (!empty($this->tags)) {
             $baseDescription .= ' Tags: ' . implode(', ', $this->tags);
         }
 

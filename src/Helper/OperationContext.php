@@ -9,7 +9,7 @@ use GraphQlTools\Contract\GraphQlContext;
 final class OperationContext
 {
     public function __construct(
-        public readonly GraphQlContext          $context,
+        public readonly GraphQlContext   $context,
         public readonly ExtensionManager $extensionManager
     )
     {

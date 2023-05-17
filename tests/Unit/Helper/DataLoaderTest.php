@@ -47,27 +47,27 @@ class DataLoaderTest extends TestCase
     {
         $dataLoader = new DataLoader(fn() => [1 => 'test', 2 => 'other']);
 
-        $promise1 = $dataLoader->loadMany(1, 2);
-        $promise2 = $dataLoader->loadMany(1, 3);
+        $promises1 = $dataLoader->loadMany(1, 2);
+        $promises2 = $dataLoader->loadMany(1, 3);
         Deferred::runQueue();
 
-        self::assertEquals('test', $promise1->result[0]->result);
-        self::assertEquals('other', $promise1->result[1]->result);
+        self::assertEquals('test', $promises1[0]->result);
+        self::assertEquals('other', $promises1[1]->result);
 
-        self::assertEquals('test', $promise2->result[0]->result);
-        self::assertEquals(null, $promise2->result[1]->result);
+        self::assertEquals('test', $promises2[0]->result);
+        self::assertEquals(null, $promises2[1]->result);
     }
 
     public function testLoadWithExceptions()
     {
         $dataLoader = new DataLoader(fn() => [1 => 'test', 2 => new RuntimeException('')]);
 
-        $promise1 = $dataLoader->loadMany(1, 2);
+        $promises1 = $dataLoader->loadMany(1, 2);
         Deferred::runQueue();
 
-        self::assertEquals('test', $promise1->result[0]->result);
-        self::assertInstanceOf(RuntimeException::class, $promise1->result[1]->result);
-        self::assertTrue($promise1->result[1]->state === SyncPromise::REJECTED);
+        self::assertEquals('test', $promises1[0]->result);
+        self::assertInstanceOf(RuntimeException::class, $promises1[1]->result);
+        self::assertTrue($promises1[1]->state === SyncPromise::REJECTED);
     }
 
     public function testLoad()

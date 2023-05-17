@@ -11,7 +11,7 @@ trait HasDataloaders
     /**
      * All instances of Data loaders created.
      *
-     * @var array
+     * @var array<string, DataLoader>
      */
     protected array $dataLoaderInstances = [];
 

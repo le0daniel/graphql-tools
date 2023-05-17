@@ -85,10 +85,9 @@ final class DataLoader implements DataLoaderContract
             : $item;
     }
 
-    public function loadMany(mixed ...$items): SyncPromise
+    public function loadMany(mixed ...$items): array
     {
-        $promises = array_map(fn(mixed $item): SyncPromise => $this->load($item), $items);
-        return new SyncPromise(static fn() => $promises);
+        return array_map(fn(mixed $item): SyncPromise => $this->load($item), $items);
     }
 
     private function traceDataLoading(int $duration): void

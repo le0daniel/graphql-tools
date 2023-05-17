@@ -3,7 +3,6 @@
 namespace GraphQlTools\Helper\Registry;
 
 use Closure;
-use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
 use GraphQlTools\Contract\DefinesGraphQlType;

@@ -35,6 +35,10 @@ abstract class Extension implements ExecutionExtension, ExtendsResult
         return self::DEFAULT_PRIORITY;
     }
 
+    public function isEnabled(): bool {
+        return true;
+    }
+
     /**
      * React to Start Event, when GraphQL execution is started.
      *

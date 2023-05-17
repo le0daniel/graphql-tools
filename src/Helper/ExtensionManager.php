@@ -22,6 +22,10 @@ final class ExtensionManager
         $this->extensions = $extensions;
     }
 
+    public function getExtensionsCount(): int {
+        return count($this->extensions);
+    }
+
     /**
      * This is used internally to build and order extensions
      * The extensions array must consist of class names or factories
@@ -41,6 +45,10 @@ final class ExtensionManager
         /** @var Extension|Closure(): Extension $instance */
         foreach ($extensionFactories as $classNameOrCallable) {
             $instance = $classNameOrCallable instanceof Closure ? $classNameOrCallable() : new $classNameOrCallable;
+            if (!$instance->isEnabled()) {
+                continue;
+            }
+
             $columnToSort[] = $instance->priority();
             $instances[] = $instance;
         }

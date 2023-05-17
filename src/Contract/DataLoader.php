@@ -20,5 +20,5 @@ interface DataLoader
      * @param mixed ...$items
      * @return T
      */
-    public function loadMany(mixed ...$items): SyncPromise;
+    public function loadMany(mixed ...$items): mixed;
 }

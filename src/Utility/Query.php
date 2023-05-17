@@ -199,7 +199,7 @@ final class Query
 
             NodeKind::LST => function (ListValueNode $node): ListValueNode {
                 $clone = clone $node;
-                $clone->values = new NodeList(self::OBJECT_LITERAL_VALUE);
+                $clone->values = new NodeList(self::LIST_LITERAL_VALUE);
                 return $clone;
             },
 

@@ -9,17 +9,17 @@ use GraphQL\Language\AST\NodeKind;
 use GraphQL\Type\Definition\EnumType;
 use GraphQL\Type\Definition\EnumValueDefinition;
 use GraphQL\Type\Definition\FieldDefinition;
-use GraphQL\Type\Definition\InterfaceType;
-use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Validator\Rules\ValidationRule;
 use GraphQL\Validator\ValidationContext;
 use GraphQlTools\Contract\ExtendsResult;
-use GraphQlTools\Data\Models\Message;
+use GraphQlTools\Data\ValueObjects\Deprecations\DeprecatedArgument;
+use GraphQlTools\Data\ValueObjects\Deprecations\DeprecatedEnumValue;
+use GraphQlTools\Data\ValueObjects\Deprecations\DeprecatedField;
 
 class CollectDeprecatedFieldNotices extends ValidationRule implements ExtendsResult
 {
-    /** @var array<Message>  */
+    /** @var array<DeprecatedArgument|DeprecatedField|DeprecatedEnumValue>  */
     private array $messages = [];
 
     public function __construct()
@@ -42,10 +42,12 @@ class CollectDeprecatedFieldNotices extends ValidationRule implements ExtendsRes
                 }
 
                 if ($field->isDeprecated()) {
-                    /** @var ObjectType|InterfaceType $parentType */
-                    $parentType = $context->getParentType();
-                    $reason = $field->deprecationReason ?? '-- No specific Reason Provided --';
-                    $this->messages[] = Message::deprecated($field->name, $parentType, $reason);
+                    $this->messages[] = new DeprecatedField(
+                        $field->name,
+                        $context->getParentType()->name,
+                        $field->deprecationReason ?? '-- No specific Reason Provided --',
+                        $field->config['removalDate'] ?? null,
+                    );
                 }
             },
             NodeKind::ENUM => function (EnumValueNode $node) use ($context): void {
@@ -60,8 +62,11 @@ class CollectDeprecatedFieldNotices extends ValidationRule implements ExtendsRes
                 }
 
                 if ($value->isDeprecated()) {
-                    $this->messages[] = Message::deprecated(
-                        $enum->name, $value->name, $value->deprecationReason ?? '-- No specific Reason Provided --'
+                    $this->messages[] = new DeprecatedEnumValue(
+                        $enum->name,
+                        $value->name,
+                        $value->deprecationReason ?? '-- No specific Reason Provided --',
+                        $value->config['removalDate'] ?? null,
                     );
                 }
             },
@@ -79,11 +84,12 @@ class CollectDeprecatedFieldNotices extends ValidationRule implements ExtendsRes
 
                 $field = $context->getFieldDef();
                 $parentName = self::getParentName($context->getParentType());
-                $this->messages[] = Message::deprecatedArgument(
+                $this->messages[] = new DeprecatedArgument(
                     $field->name,
                     $parentName,
                     $argument->name,
-                    $deprecationReason
+                    $deprecationReason,
+                    $argument->config['removalDate'] ?? null
                 );
             },
 
@@ -101,7 +107,7 @@ class CollectDeprecatedFieldNotices extends ValidationRule implements ExtendsRes
     }
 
     /**
-     * @return Message[]
+     * @return array<DeprecatedArgument|DeprecatedField|DeprecatedEnumValue>
      */
     public function jsonSerialize(): array
     {

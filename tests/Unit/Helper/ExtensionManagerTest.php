@@ -22,11 +22,12 @@ class ExtensionManagerTest extends TestCase
 
     public function testCreate()
     {
-        ExtensionManager::createFromExtensionFactories([
+        $manager = ExtensionManager::createFromExtensionFactories([
             Tracing::class,
             fn() => new Tracing()
         ]);
         self::assertTrue(true);
+        self::assertEquals(2, $manager->getExtensionsCount());
     }
 
     public function testExtensionsEventDispatching() {
@@ -48,12 +49,28 @@ class ExtensionManagerTest extends TestCase
         $extensionManager->dispatchEndEvent($endEvent);
     }
 
+    public function testDisabledExtension(): void {
+        $enabledExtension = $this->prophesize(Extension::class);
+        $enabledExtension->isEnabled()->willReturn(true);
+        $enabledExtension->priority()->willReturn(1);
+
+        $disabledExtension = $this->prophesize(Extension::class);
+        $disabledExtension->isEnabled()->willReturn(false);
+
+        $extensions = ExtensionManager::createFromExtensionFactories([
+            fn() => $disabledExtension->reveal(),
+            fn() => $enabledExtension->reveal(),
+        ]);
+        self::assertEquals(1, $extensions->getExtensionsCount());
+    }
+
     public function testMiddlewareFieldResolution()
     {
         /** @var Extension $extension */
         $extension = $this->prophesize(Extension::class);
         $extension->visitField(Argument::type(VisitFieldEvent::class))->willReturn(fn() => 'value');
         $extension->priority()->willReturn(1);
+        $extension->isEnabled()->willReturn(true);
 
         $extensions = ExtensionManager::createFromExtensionFactories([
             fn() => $extension->reveal()

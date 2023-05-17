@@ -11,7 +11,7 @@ trait MergesFields
     final public function mergeFieldFactories(Closure ... $factories): static {
         $instance = clone $this;
         $instance->mergedFieldFactories = [
-            ...$instance->mergedFieldFactories,
+            ...$this->mergedFieldFactories,
             ...$factories
         ];
         return $instance;

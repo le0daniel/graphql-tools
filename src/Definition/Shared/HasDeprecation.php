@@ -21,7 +21,7 @@ trait HasDeprecation
         }
 
         if ($this->removalDate()) {
-            return "**Deprecated**: {$this->deprecationReason()}. Removal Date: {$this->removalDate()->format('Y-m-d H:i:s')}. {$baseDescription}";
+            return "**Deprecated**: {$this->deprecationReason()} | Removal Date: {$this->removalDate()->format('Y-m-d')}. {$baseDescription}";
         }
 
         return "**Deprecated**: {$this->deprecationReason()}. No removal date specified. {$baseDescription}";

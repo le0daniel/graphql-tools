@@ -60,7 +60,6 @@ final class Field
      * Clones and adds a middleware at the beginning. Ensures the state is not mutated from the outside if reused.
      * @param array<Closure> $middleware
      * @return $this
-     * @internal
      */
     public function prependMiddleware(...$middleware): self {
         $instance = clone $this;

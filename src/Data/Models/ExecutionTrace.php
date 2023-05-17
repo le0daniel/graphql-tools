@@ -5,6 +5,7 @@ namespace GraphQlTools\Data\Models;
 use DateInterval;
 use DateTime;
 use DateTimeImmutable;
+use GraphQlTools\Data\ValueObjects\Tracing\ResolverTrace;
 use GraphQlTools\Utility\Time;
 use GraphQlTools\Utility\Typing;
 use JsonSerializable;

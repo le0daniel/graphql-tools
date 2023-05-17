@@ -27,6 +27,7 @@ abstract class GraphQlScalar extends ScalarType implements DefinesGraphQlType
     }
 
     public function toDefinition(TypeRegistry $registry): static {
+        // Ensure that there is no side effect with internal state
         return clone $this;
     }
 }

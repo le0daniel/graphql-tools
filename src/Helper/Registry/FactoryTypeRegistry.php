@@ -52,9 +52,12 @@ class FactoryTypeRegistry implements TypeRegistryContract
 
     protected function getType(string $typeName): Type
     {
-        return $this->typeInstances[$typeName] ??= $this->createInstanceOfType($typeName);
+        return $this->typeInstances[$typeName] ??= $this->createType($typeName);
     }
 
+    /**
+     * @throws DefinitionException
+     */
     private function getTypeFieldExtensions(GraphQlInterface|GraphQlType $type): array {
         $factories = $this->getFieldExtensionsForTypeName($type->getName());
 
@@ -62,7 +65,9 @@ class FactoryTypeRegistry implements TypeRegistryContract
             foreach ($type->getInterfaces() as $interfaceNameOrAlias) {
                 $factories = [
                     ...$factories,
-                    ...$this->getFieldExtensionsForTypeName($this->resolveAliasToName($interfaceNameOrAlias))
+                    ...$this->getFieldExtensionsForTypeName(
+                        $this->resolveAliasToName($interfaceNameOrAlias)
+                    )
                 ];
             }
         }
@@ -89,29 +94,39 @@ class FactoryTypeRegistry implements TypeRegistryContract
         return $factories;
     }
 
-    protected function createInstanceOfType(string $typeName): Type
-    {
+    protected function createInstanceOfGraphQlType(string $typeName): DefinesGraphQlType {
         $typeFactory = $this->types[$typeName] ?? null;
         if (!$typeFactory) {
             throw new DefinitionException("Could not resolve type '{$typeName}', no factory provided. Did you register this type?");
         }
 
-        /** @var DefinesGraphQlType $instance */
-        $instance = match (true) {
+        return match (true) {
             is_string($typeFactory) => new $typeFactory,
             $typeFactory instanceof Closure => $typeFactory(),
             $typeFactory instanceof DefinesGraphQlType => $typeFactory,
             default => throw new DefinitionException("Invalid type factory provided for '{$typeName}'. Expected class-string, closure, or instance of DefinesGraphQlType got: " . gettype($typeFactory))
         };
+    }
 
-        $hasFields = $instance instanceof GraphQlType || $instance instanceof GraphQlInterface;
-        if (!$hasFields) {
-            return $instance->toDefinition($this);
+    /**
+     * @param string $typeName
+     * @return Type
+     * @throws DefinitionException
+     */
+    protected function createType(string $typeName): Type
+    {
+        $instance = $this->createInstanceOfGraphQlType($typeName);
+
+        $isExtendableType = $instance instanceof GraphQlType || $instance instanceof GraphQlInterface;
+        if (!$isExtendableType) {
+            return $instance->toDefinition($this, $this->tagsToExclude);
         }
 
         $extendedFields = $this->getTypeFieldExtensions($instance);
         return empty($extendedFields)
             ? $instance->toDefinition($this, $this->tagsToExclude)
-            : $instance->mergeFieldFactories(...$extendedFields)->toDefinition($this, $this->tagsToExclude);
+            : $instance
+                ->mergeFieldFactories(...$extendedFields)
+                ->toDefinition($this, $this->tagsToExclude);
     }
 }

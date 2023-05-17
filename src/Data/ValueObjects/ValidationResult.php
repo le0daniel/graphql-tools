@@ -30,7 +30,7 @@ final class ValidationResult
 
     /**
      * @template T of ValidationRule
-     * @param class-string<T> $name
+     * @param class-string<ValidationRule> $name
      * @return T|null
      */
     public function getRule(string $name): ?ValidationRule {

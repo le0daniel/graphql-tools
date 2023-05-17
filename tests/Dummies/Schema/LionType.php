@@ -11,7 +11,6 @@ use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlType;
-use GraphQlTools\Helper\Context;
 use GraphQlTools\Test\Dummies\Enum\Eating;
 
 final class LionType extends GraphQlType {

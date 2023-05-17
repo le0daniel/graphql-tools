@@ -6,7 +6,6 @@ namespace GraphQlTools\Test\Dummies;
 
 use GraphQL\Type\Definition\FieldDefinition;
 use \GraphQL\Type\Definition\ResolveInfo as BaseResolveInfo;
-use GraphQlTools\Utility\Reflections;
 use ReflectionClass;
 
 final class ResolveInfoDummy
@@ -31,11 +30,9 @@ final class ResolveInfoDummy
 
         /** @var BaseResolveInfo $instance */
         $instance = $reflection->newInstanceWithoutConstructor();
-
-        // Set the properties via reflection, in case the framework changes to readonly
-        Reflections::setProperty($instance, 'path', $path);
-        Reflections::setProperty($instance, 'fieldName', 'TestFieldName');
-        Reflections::setProperty($instance, 'fieldDefinition', $fieldDefinition);
+        $instance->path = $path;
+        $instance->fieldName = 'TestFieldName';
+        $instance->fieldDefinition = $fieldDefinition;
 
         return $instance;
     }

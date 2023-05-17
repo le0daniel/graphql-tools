@@ -8,13 +8,6 @@ use PHPUnit\Framework\TestCase;
 class ClassesTest extends TestCase
 {
 
-    public function testIsClassName()
-    {
-        self::assertTrue(Classes::isClassName('\\Test\\MyClass'));
-        self::assertTrue(Classes::isClassName(self::class));
-        self::assertFalse(Classes::isClassName('Test'));
-    }
-
     public function testGetDeclaredClassInFile()
     {
         self::assertEquals(self::class, Classes::getDeclaredClassInFile(__FILE__));

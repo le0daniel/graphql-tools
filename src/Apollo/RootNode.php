@@ -3,7 +3,7 @@
 namespace GraphQlTools\Apollo;
 
 use GraphQlTools\Data\Models\GraphQlErrorLocation;
-use GraphQlTools\Data\Models\ResolverTrace;
+use GraphQlTools\Data\ValueObjects\Tracing\ResolverTrace;
 use GraphQlTools\Data\Models\GraphQlError;
 use GraphQlTools\Protobuf\Trace\Error;
 use GraphQlTools\Protobuf\Trace\Location;

@@ -3,8 +3,10 @@
 namespace GraphQlTools\Test\Unit\Definition;
 
 use GraphQlTools\Contract\TypeRegistry;
+use GraphQlTools\Definition\Field\EnumValue;
 use GraphQlTools\Definition\GraphQlEnum;
 use GraphQlTools\Test\Dummies\Enum\Eating;
+use GraphQlTools\Test\Dummies\Enum\NotBackedEnum;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 
@@ -54,7 +56,20 @@ class GraphQlEnumTest extends TestCase
             'with array values' => [['one', 'two', 'three']],
             'with key values pairs' => [['one' => ['value' => true]]],
             'with deprecated' => [['one' => ['value' => true, 'deprecatedReason' => 'something']]],
-            'with enum values' => [Eating::class],
+            'with enum as value' => [Eating::class],
+            'with enum values' => [
+                [Eating::MEAT, Eating::WOOD, Eating::VEGAN]
+            ],
+            'with unbacked enum' => [NotBackedEnum::class],
+            'with unbacked enum values' => [NotBackedEnum::cases()],
+            'with defined enum values' => [
+                [
+                    EnumValue::fromEnum(Eating::MEAT),
+                    EnumValue::fromEnum(NotBackedEnum::ONE),
+                    EnumValue::withName('TEST')->deprecated('because it is'),
+                    EnumValue::withName('TEST2')->value('else')
+                ]
+            ]
         ];
     }
 
