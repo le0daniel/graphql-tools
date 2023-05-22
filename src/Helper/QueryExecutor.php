@@ -23,6 +23,7 @@ use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Helper\Validation\CollectDeprecatedFieldNotices;
 use GraphQlTools\Utility\Arrays;
+use GraphQlTools\Utility\ValidationRules;
 
 final class QueryExecutor
 {
@@ -49,24 +50,6 @@ final class QueryExecutor
         private readonly ?Closure $errorLogger = null,
     )
     {}
-
-    private function initializeValidationRules(GraphQlContext $context): array {
-        $rules = DocumentValidator::defaultRules();
-
-        /** @var ValidationRule|class-string|Closure $ruleOrFactory */
-        foreach ($this->validationRules as $ruleOrFactory) {
-            /** @var ValidationRule $rule */
-            $rule = match (true) {
-                $ruleOrFactory instanceof ValidationRule => $ruleOrFactory,
-                is_string($ruleOrFactory) => new $ruleOrFactory,
-                $ruleOrFactory instanceof Closure => $ruleOrFactory($context),
-                default => throw new DefinitionException("Expected class-string|Closure|ValidationRule, got: " . gettype($ruleOrFactory)),
-            };
-            $rules[$rule->getName()] = $rule;
-        }
-
-        return $rules;
-    }
 
     private function collectValidationRuleExtensions(array $validationRules, GraphQlContext $context): array
     {
@@ -99,7 +82,7 @@ final class QueryExecutor
     ): ValidationResult {
         $context ??= new Context();
         $source = Parser::parse($query);
-        $validationRules = $this->initializeValidationRules($context);
+        $validationRules = ValidationRules::initialize($this->validationRules, $context);
         $validationErrors = DocumentValidator::validate($schema, $source, $validationRules);
         return new ValidationResult($validationErrors, $validationRules);
     }
@@ -115,18 +98,14 @@ final class QueryExecutor
     {
         $extensionManager = ExtensionManager::createFromExtensionFactories($this->extensionFactories);
         $extensionManager->dispatchStartEvent(StartEvent::create($query, $context));
-        $validationRules = $this->initializeValidationRules($context);
+        $validationRules = ValidationRules::initialize($this->validationRules, $context);
 
         try {
             $source = Parser::parse($query);
         } catch (SyntaxError $exception) {
             $result = new ExecutionResult(null, [$exception]);
             $extensionManager->dispatchEndEvent(EndEvent::create($result));
-            $result->extensions = Arrays::mergeKeyValues(
-                $extensionManager->collect($context),
-                $this->collectValidationRuleExtensions($validationRules, $context),
-                throwOnKeyConflict: true
-            );
+            $result->extensions = $extensionManager->collect($context);
             return $result;
         }
 
@@ -161,12 +140,12 @@ final class QueryExecutor
      */
     private function handleErrors(array $errors, callable $formatter): array {
         $formattedErrors = [];
-        $hasErrorLogger = !!$this->errorLogger;
+        $hasCustomErrorLogger = !!$this->errorLogger;
 
         foreach ($errors as $graphQlError) {
-            // Optionally log the error if configured correctly
-            if ($hasErrorLogger && $originalException = $graphQlError->getPrevious()) {
-                ($this->errorLogger)($originalException, $graphQlError);
+            $hasPreviousError = !!$graphQlError->getPrevious();
+            if ($hasCustomErrorLogger && $hasPreviousError) {
+                ($this->errorLogger)($graphQlError->getPrevious(), $graphQlError);
             }
 
             $formattedErrors[] = $formatter($graphQlError);
@@ -178,22 +157,12 @@ final class QueryExecutor
         $formatted = FormattedError::createFromException($error);
         $previous = $error->getPrevious();
 
-        if (!$previous instanceof ExceptionWithExtensions && !$previous instanceof ExtendsResult) {
+        if (!$previous instanceof ExceptionWithExtensions) {
             return $formatted;
         }
 
         $previousExtensions = $formatted['extensions'] ?? [];
-
-        if ($previous instanceof ExceptionWithExtensions) {
-            $formatted['extensions'] = $previous->getExtensions() + $previousExtensions;
-            return $formatted;
-        }
-
-        if (!$previous->isVisibleInResult($context)) {
-            return $formatted;
-        }
-
-        $formatted['extensions'] = [$previous->key() => $previous->jsonSerialize()] + $previousExtensions;
+        $formatted['extensions'] = $previous->getExtensions() + $previousExtensions;
         return $formatted;
     }
 

@@ -7,8 +7,8 @@ use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;
+use GraphQlTools\Helper\Extension\ActualCostExtension;
 use GraphQlTools\Helper\Extension\Extension;
-use GraphQlTools\Helper\Extension\Tracing;
 use GraphQlTools\Helper\ExtensionManager;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use PHPUnit\Framework\TestCase;
@@ -23,8 +23,8 @@ class ExtensionManagerTest extends TestCase
     public function testCreate()
     {
         $manager = ExtensionManager::createFromExtensionFactories([
-            Tracing::class,
-            fn() => new Tracing()
+            ActualCostExtension::class,
+            fn() => new ActualCostExtension()
         ]);
         self::assertTrue(true);
         self::assertEquals(2, $manager->getExtensionsCount());

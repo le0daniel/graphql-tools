@@ -4,6 +4,7 @@ namespace GraphQlTools\Events;
 
 use GraphQlTools\Contract\Event;
 use GraphQlTools\Contract\GraphQlContext;
+use GraphQlTools\Utility\Query;
 
 /**
  * @property-read string $query
@@ -14,6 +15,10 @@ final class StartEvent extends Event
 
     protected function __construct(public readonly string $query, public readonly GraphQlContext $context)
     {
+    }
+
+    public function isIntrospectionQuery(): bool {
+        return Query::isIntrospection($this->query);
     }
 
 }

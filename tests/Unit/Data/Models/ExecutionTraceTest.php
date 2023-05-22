@@ -3,7 +3,7 @@
 namespace GraphQlTools\Test\Unit\Data\Models;
 
 use DateTimeImmutable;
-use GraphQlTools\Data\Models\ExecutionTrace;
+use GraphQlTools\Data\ValueObjects\Tracing\ExecutionTrace;
 use GraphQlTools\Utility\Time;
 use PHPUnit\Framework\TestCase;
 
@@ -25,8 +25,8 @@ class ExecutionTraceTest extends TestCase
     public function testDurationNs()
     {
         $trace = $this->createTrace();
-        self::assertEquals(2000000000, $trace->durationNs());
-        self::assertEquals(2.0, Time::nanoSecondsToSeconds($trace->durationNs(), 2));
+        self::assertEquals(2000000000, $trace->durationInNanoseconds());
+        self::assertEquals(2.0, Time::nanoSecondsToSeconds($trace->durationInNanoseconds(), 2));
     }
 
     public function testEndDateTime()

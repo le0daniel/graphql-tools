@@ -6,15 +6,15 @@ namespace GraphQlTools\Helper\Extension;
 
 use Closure;
 use DateTimeImmutable;
-use GraphQlTools\Data\Models\ExecutionTrace;
-use GraphQlTools\Data\Models\GraphQlError;
+use GraphQlTools\Data\ValueObjects\Tracing\ExecutionTrace;
+use GraphQlTools\Data\ValueObjects\Tracing\GraphQlError;
 use GraphQlTools\Data\ValueObjects\Tracing\ResolverTrace;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Utility\Query;
 
-final class Tracing extends Extension
+abstract class Tracing extends Extension
 {
     private bool $isIntrospectionQuery = false;
     private string $query;
@@ -24,7 +24,7 @@ final class Tracing extends Extension
     private int $endTimeInNanoseconds;
 
     /** @var ResolverTrace[] */
-    private array $fieldTraces = [];
+    private array $resolverTraces = [];
 
     /** @var GraphQlError[] */
     private array $errors = [];
@@ -41,24 +41,15 @@ final class Tracing extends Extension
 
     public function isVisibleInResult($context): bool
     {
-        return $this->addTraceToResult && !$this->isIntrospectionQuery;
-    }
-
-    /**
-     * @param bool $addTraceToResult
-     */
-    public function __construct(
-        private readonly bool     $addTraceToResult = true,
-        private readonly ?Closure $storeTraceFunction = null,
-        private readonly bool $enabled = true,
-    )
-    {
+        return !$this->isIntrospectionQuery;
     }
 
     public function isEnabled(): bool
     {
-        return $this->enabled;
+        return true;
     }
+
+    abstract protected function storeTrace(ExecutionTrace $trace): void;
 
     public function toExecutionTrace(): ExecutionTrace
     {
@@ -66,7 +57,7 @@ final class Tracing extends Extension
             $this->query,
             $this->startTimeInNanoseconds,
             $this->endTimeInNanoseconds,
-            $this->fieldTraces,
+            $this->resolverTraces,
             $this->errors,
             $this->startDateTime,
         );
@@ -83,7 +74,7 @@ final class Tracing extends Extension
     public function start(StartEvent $event): void
     {
         $this->query = $event->query;
-        $this->isIntrospectionQuery = Query::isIntrospection($event->query);
+        $this->isIntrospectionQuery = $event->isIntrospectionQuery();
         $this->startTimeInNanoseconds = $event->eventTimeInNanoSeconds;
         $this->startDateTime = new DateTimeImmutable();
     }
@@ -103,7 +94,7 @@ final class Tracing extends Extension
         }
 
         return function () use ($event) {
-            $this->fieldTraces[] = ResolverTrace::fromEvent(
+            $this->resolverTraces[] = ResolverTrace::fromEvent(
                 $event,
                 $this->startTimeInNanoseconds
             );
@@ -116,8 +107,6 @@ final class Tracing extends Extension
             return;
         }
 
-        if ($this->storeTraceFunction) {
-            ($this->storeTraceFunction)($this->toExecutionTrace());
-        }
+        $this->storeTrace($this->toExecutionTrace());
     }
 }

@@ -7,7 +7,6 @@ namespace GraphQlTools\Test\Feature;
 use GraphQL\Executor\ExecutionResult;
 use GraphQL\Type\Schema;
 use GraphQlTools\Helper\Context;
-use GraphQlTools\Helper\Extension\Tracing;
 use GraphQlTools\Helper\QueryExecutor;
 use PHPUnit\Framework\TestCase;
 
@@ -23,7 +22,7 @@ abstract class ExecutionTestCase extends TestCase {
     abstract protected function queryType(): string;
 
     protected function extensions(): array {
-        return [Tracing::class];
+        return [];
     }
 
     protected function mutationType(): ?string {
@@ -54,6 +53,10 @@ abstract class ExecutionTestCase extends TestCase {
 
             $errorClass = $error->getPrevious() ? get_class($error->getPrevious()) : get_class($error);
             $errorMessages[] = "{$errorClass}: {$error->getMessage()}";
+        }
+
+        if (empty($errorMessages)) {
+            self::fail("Expected error message: '{$expectedMessage}', did not get any errors");
         }
 
         self::fail(implode(PHP_EOL, $errorMessages));

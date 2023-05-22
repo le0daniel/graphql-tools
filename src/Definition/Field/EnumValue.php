@@ -26,6 +26,21 @@ final class EnumValue
         ];
     }
 
+    public static function fromDeprecatedConfigArray(string $name, array $config): self {
+        $instance = new self($name);
+        $instance->value($config['value']);
+
+        if (isset($config['deprecationReason'])) {
+            $instance->deprecated($config['deprecationReason']);
+        }
+
+        if (isset($config['description'])) {
+            $instance->withDescription($config['description']);
+        }
+
+        return $instance;
+    }
+
     public function value(mixed $value): self {
         $this->value = $value;
         return $this;

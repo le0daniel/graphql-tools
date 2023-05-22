@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Definition;
 
-use BackedEnum;
 use GraphQL\Type\Definition\EnumType;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
@@ -13,7 +12,6 @@ use GraphQlTools\Definition\Shared\HasDeprecation;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Types;
-use GraphQlTools\Utility\Typing;
 use UnitEnum;
 
 abstract class GraphQlEnum implements DefinesGraphQlType
@@ -43,40 +41,23 @@ abstract class GraphQlEnum implements DefinesGraphQlType
         }
 
         $values = [];
-        foreach ($definedValues as $name => $value) {
-            if ($value instanceof EnumValue) {
-                $values[$value->name] = $value->toDefinition();
-                continue;
-            }
-
-            if ($value instanceof UnitEnum) {
-                $enumValue = EnumValue::fromEnum($value);
-                $values[$enumValue->name] = $enumValue->toDefinition();
-                continue;
-            }
-
-            if (is_array($value)) {
-                $value['name'] = $value['name'] ?? $name;
-                Typing::verifyIsString($value['name']);
-                $values[$value['name']] = $value;
-                continue;
-            }
-
-            if (is_int($name)) {
-                $values[$value] = ['name' => $value, 'value' => $value];
-                continue;
-            }
-
-            if (is_string($name)) {
-                $values[$name] = ['name' => $name, 'value' => $value];
-                continue;
-            }
-
-            // Legacy Case with array
-            throw DefinitionException::from($value, 'class-string<UnitEnum>|array<string>|array<EnumValue>|array<array{name: string, (...)}>');
+        foreach ($definedValues as $key => $definition) {
+            $value = $this->initValue($key, $definition);
+            $values[$value->name] = $value->toDefinition();
         }
 
         return $values;
+    }
+
+    private function initValue(int|string $name, mixed $value): EnumValue {
+        return match (true) {
+            $value instanceof EnumValue => $value,
+            $value instanceof UnitEnum => EnumValue::fromEnum($value),
+            is_array($value) => EnumValue::fromDeprecatedConfigArray($value['name'] ?? $name, $value),
+            is_int($name) => EnumValue::withName($value)->value($value),
+            is_string($name) => EnumValue::withName($name)->value($value),
+            default => throw DefinitionException::from($value, 'class-string<UnitEnum>|array<string>|array<EnumValue>|array<array{name: string, (...)}>')
+        };
     }
 
     /**
@@ -105,7 +86,7 @@ abstract class GraphQlEnum implements DefinesGraphQlType
      * Return a key value array or a serial array containing
      * either the key and the internal value or the keys only.
      *
-     * @return array<string,mixed>|class-string<BackedEnum>
+     * @return array<string,mixed>|class-string<UnitEnum>
      */
     abstract protected function values(): array|string;
 }

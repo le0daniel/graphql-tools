@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Data\Models;
+namespace GraphQlTools\Data\ValueObjects\Tracing;
 
 use GraphQL\Error\Error;
 use GraphQlTools\Utility\Typing;

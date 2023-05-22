@@ -6,7 +6,7 @@ use DateTime;
 use DateTimeImmutable;
 use Exception;
 use Google\Protobuf\Timestamp;
-use GraphQlTools\Data\Models\ExecutionTrace;
+use GraphQlTools\Data\ValueObjects\Tracing\ExecutionTrace;
 use GraphQlTools\Protobuf\Trace;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Query;
@@ -30,10 +30,10 @@ final class Formatter
         $fullApolloSignature = "#{$apolloQueryName}" . PHP_EOL . $querySignature;
 
         $trace = (new Trace())
-            ->setDurationNs($executionTrace->durationNs())
+            ->setDurationNs($executionTrace->durationInNanoseconds())
             ->setStartTime(self::toTimestamp($executionTrace->startDateTime))
             ->setEndTime(self::toTimestamp($executionTrace->endDateTime()))
-            ->setRoot((new RootNode($executionTrace->fieldTraces, $executionTrace->errors))->toProtobuf())
+            ->setRoot((new RootNode($executionTrace->resolverTraces, $executionTrace->errors))->toProtobuf())
         ;
 
         // if ($information) {

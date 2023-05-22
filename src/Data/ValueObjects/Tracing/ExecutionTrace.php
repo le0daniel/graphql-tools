@@ -1,36 +1,40 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Data\Models;
+namespace GraphQlTools\Data\ValueObjects\Tracing;
 
 use DateInterval;
 use DateTime;
 use DateTimeImmutable;
-use GraphQlTools\Data\ValueObjects\Tracing\ResolverTrace;
 use GraphQlTools\Utility\Time;
-use GraphQlTools\Utility\Typing;
 use JsonSerializable;
 
 final class ExecutionTrace implements JsonSerializable
 {
+    /**
+     * @param string $query
+     * @param int $startTimeInNanoSeconds
+     * @param int $endTimeInNanoSeconds
+     * @param array<ResolverTrace> $resolverTraces
+     * @param array<GraphQlError> $errors
+     * @param DateTimeImmutable $startDateTime
+     */
     public function __construct(
         public readonly string            $query,
         public readonly int               $startTimeInNanoSeconds,
         public readonly int               $endTimeInNanoSeconds,
-        public readonly array             $fieldTraces,
+        public readonly array             $resolverTraces,
         public readonly array             $errors,
         public readonly DateTimeImmutable $startDateTime,
     )
     {
-        Typing::verifyListOfType(ResolverTrace::class, $this->fieldTraces);
-        Typing::verifyListOfType(GraphQlError::class, $this->errors);
     }
 
     public function endDateTime(): DateTimeImmutable {
-        $durationInMicroseconds = (int) Time::nanoSecondsToMicroseconds($this->durationNs(), 0);
+        $durationInMicroseconds = (int) Time::nanoSecondsToMicroseconds($this->durationInNanoseconds(), 0);
         return $this->startDateTime->add(DateInterval::createFromDateString("{$durationInMicroseconds} microseconds"));
     }
 
-    public function durationNs(): int
+    public function durationInNanoseconds(): int
     {
         return $this->endTimeInNanoSeconds - $this->startTimeInNanoSeconds;
     }
@@ -40,10 +44,10 @@ final class ExecutionTrace implements JsonSerializable
         return [
             'version' => 1,
             'startTime' => $this->startDateTime->format(DateTime::RFC3339_EXTENDED),
-            'endTime' => '',
-            'duration' => $this->durationNs(),
+            'endTime' => $this->endDateTime()->format(DateTime::RFC3339_EXTENDED),
+            'duration' => $this->durationInNanoseconds(),
             'execution' => [
-                'resolvers' => $this->fieldTraces,
+                'resolvers' => $this->resolverTraces,
             ]
         ];
     }

@@ -17,16 +17,16 @@ final class ResolverTrace
      * @param string $parentType
      * @param string $fieldName
      * @param string $returnType
-     * @param int $duration
-     * @param int $startOffset
+     * @param int $durationInNanoseconds
+     * @param int $startOffsetInNanoseconds
      */
     public function __construct(
         public readonly array  $path,
         public readonly string $parentType,
         public readonly string $fieldName,
         public readonly string $returnType,
-        public readonly int    $duration,
-        public readonly int    $startOffset,
+        public readonly int    $durationInNanoseconds,
+        public readonly int    $startOffsetInNanoseconds,
     )
     {
     }

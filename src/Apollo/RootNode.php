@@ -2,9 +2,9 @@
 
 namespace GraphQlTools\Apollo;
 
-use GraphQlTools\Data\Models\GraphQlErrorLocation;
+use GraphQlTools\Data\ValueObjects\Tracing\GraphQlErrorLocation;
 use GraphQlTools\Data\ValueObjects\Tracing\ResolverTrace;
-use GraphQlTools\Data\Models\GraphQlError;
+use GraphQlTools\Data\ValueObjects\Tracing\GraphQlError;
 use GraphQlTools\Protobuf\Trace\Error;
 use GraphQlTools\Protobuf\Trace\Location;
 use GraphQlTools\Protobuf\Trace\Node;
@@ -131,8 +131,8 @@ final class RootNode
         Typing::verifyOfType(ResolverTrace::class, $fieldTrace);
 
         $node->setType($fieldTrace->returnType);
-        $node->setStartTime((string)$fieldTrace->startOffset);
-        $node->setEndTime((string)($fieldTrace->startOffset + $fieldTrace->duration));
+        $node->setStartTime((string)$fieldTrace->startOffsetInNanoseconds);
+        $node->setEndTime((string)($fieldTrace->startOffsetInNanoseconds + $fieldTrace->durationInNanoseconds));
         $node->setParentType($fieldTrace->parentType);
         $node->setResponseName($fieldTrace->lastPathElement());
 

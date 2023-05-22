@@ -102,7 +102,7 @@ final class ExtensionManager
                 try {
                     $extensionData[$extension->key()] = $extension->jsonSerialize();
                 } catch (Throwable) {
-                    $extensionData[$extension->key()] = 'Failed to collect data.';
+                    $extensionData[$extension->key()] = "Error collecting data form extension.";
                 }
             }
         }
