@@ -33,9 +33,8 @@ abstract class GraphQlInterface implements DefinesGraphQlType
                 [$this->fields(...), ...$this->mergedFieldFactories],
                 $excludeFieldsWithTags,
             ),
-            'resolveFn' => [static::class, 'resolveToType'],
             'resolveType' => fn($_, OperationContext $context, $info) => $registry->type(
-                static::resolveToType($_, $context->context, $info)
+                $this->resolveToType($_, $context->context, $info)
             ),
         ]);
     }
@@ -45,5 +44,5 @@ abstract class GraphQlInterface implements DefinesGraphQlType
         return Types::inferNameFromClassName(static::class);
     }
 
-    abstract public static function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string;
+    abstract public function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string;
 }

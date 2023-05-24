@@ -24,7 +24,7 @@ final class MamelInterface extends GraphQlInterface {
         return '';
     }
 
-    public static function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string {
+    public function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string {
         switch ($typeValue['type']) {
             case 'lion':
                 return LionType::class;

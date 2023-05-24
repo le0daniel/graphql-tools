@@ -25,14 +25,13 @@ abstract class GraphQlUnion implements DefinesGraphQlType
             'deprecationReason' => $this->deprecationReason(),
             'removalDate' => $this->removalDate(),
             'types' => fn() => array_map(fn(string $typeName) => $registry->type($typeName), $this->possibleTypes()),
-            'resolveFn' => [static::class, 'resolveToType'],
             'resolveType' => fn($_, OperationContext $context, $info) => $registry->type(
-                static::resolveToType($_, $context->context, $info)
+                $this->resolveToType($_, $context->context, $info)
             ),
         ]);
     }
 
-    abstract public static function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string;
+    abstract public function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string;
 
     public function getName(): string
     {

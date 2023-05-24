@@ -18,22 +18,23 @@ abstract class GraphQlEnum implements DefinesGraphQlType
 {
     use HasDescription, HasDeprecation;
 
-    public function toDefinition(TypeRegistry $registry): EnumType
+    public function toDefinition(TypeRegistry $registry, array $tagsToExclude = []): EnumType
     {
         return new EnumType([
             'name' => $this->getName(),
             'description' => $this->addDeprecationToDescription($this->description()),
-            'values' => fn() => $this->initValues(),
+            'values' => fn() => $this->initValues($tagsToExclude),
             'deprecationReason' => $this->deprecationReason(),
             'removalDate' => $this->removalDate(),
         ]);
     }
 
     /**
-     * @return array<string, array<{key: string, value: mixed}>>
+     * @param array $tagsToExclude
+     * @return array
      * @throws DefinitionException
      */
-    private function initValues(): array
+    private function initValues(array $tagsToExclude): array
     {
         $definedValues = $this->values();
         if (is_string($definedValues)) {
@@ -43,6 +44,10 @@ abstract class GraphQlEnum implements DefinesGraphQlType
         $values = [];
         foreach ($definedValues as $key => $definition) {
             $value = $this->initValue($key, $definition);
+            if (!empty($tagsToExclude) && $value->containsAnyOfTags(...$tagsToExclude)) {
+                continue;
+            }
+
             $values[$value->name] = $value->toDefinition();
         }
 
