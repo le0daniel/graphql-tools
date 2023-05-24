@@ -27,6 +27,7 @@ class DirectoriesTest extends TestCase
             'QueryExecutorTest.php',
             'Registry/FactoryTypeRegistryTest.php',
             'Registry/FederatedSchemaTest.php',
+            'Registry/TagBasedSchemaRulesTest.php',
             'Validation/QueryComplexityRuleTest.php'
         ], $result);
 

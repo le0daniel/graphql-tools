@@ -4,6 +4,7 @@ namespace GraphQlTools\Test\Unit\Helper\Registry;
 
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Contract\DefinesGraphQlType;
+use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Helper\Registry\FactoryTypeRegistry;
 use PHPUnit\Framework\TestCase;
@@ -13,7 +14,6 @@ class FactoryTypeRegistryTest extends TestCase
 
     public function testType()
     {
-        $type = Type::string();
         $registry = new FactoryTypeRegistry(
             ['typeName' => new class () implements DefinesGraphQlType {
 
@@ -22,7 +22,7 @@ class FactoryTypeRegistryTest extends TestCase
                     return 'typeName';
                 }
 
-                public function toDefinition(TypeRegistry $registry): mixed
+                public function toDefinition(TypeRegistry $registry, SchemaRules $schemaRules): mixed
                 {
                     return clone Type::string();
                 }

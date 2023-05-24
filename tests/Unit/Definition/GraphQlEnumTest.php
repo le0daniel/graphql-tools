@@ -5,6 +5,7 @@ namespace GraphQlTools\Test\Unit\Definition;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\EnumValue;
 use GraphQlTools\Definition\GraphQlEnum;
+use GraphQlTools\Helper\Registry\AllVisibleSchemaRule;
 use GraphQlTools\Test\Dummies\Enum\Eating;
 use GraphQlTools\Test\Dummies\Enum\NotBackedEnum;
 use PHPUnit\Framework\TestCase;
@@ -45,7 +46,7 @@ class GraphQlEnumTest extends TestCase
     {
         $description ??= 'some description';
         $instance = $this->instance($values, $description);
-        $definition = $instance->toDefinition($this->prophesize(TypeRegistry::class)->reveal());
+        $definition = $instance->toDefinition($this->prophesize(TypeRegistry::class)->reveal(), new AllVisibleSchemaRule());
         $definition->assertValid();
 
         self::assertEquals($description, $definition->description);

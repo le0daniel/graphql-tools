@@ -9,6 +9,7 @@ use GraphQL\Type\Schema;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Helper\Registry\FederatedSchema;
+use GraphQlTools\Helper\Registry\TagBasedSchemaRules;
 use GraphQlTools\Test\Dummies\Schema\JsonScalar;
 use GraphQlTools\Test\Dummies\Schema\LionType;
 use GraphQlTools\Test\Dummies\Schema\QueryType;
@@ -65,7 +66,7 @@ class QueryTest extends ExecutionTestCase
     {
         $schema = $this
             ->federatedSchema()
-            ->createSchema(QueryType::class, excludeTags: $excludeTags);
+            ->createSchema(QueryType::class, schemaRules: new TagBasedSchemaRules($excludeTags));
         $schema->assertValid();
         return $schema;
     }

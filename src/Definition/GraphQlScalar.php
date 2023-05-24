@@ -6,6 +6,7 @@ namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\ScalarType;
 use GraphQlTools\Contract\DefinesGraphQlType;
+use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Utility\Types;
 
@@ -26,7 +27,7 @@ abstract class GraphQlScalar extends ScalarType implements DefinesGraphQlType
         return Types::inferNameFromClassName(static::class);
     }
 
-    public function toDefinition(TypeRegistry $registry): static {
+    public function toDefinition(TypeRegistry $registry, SchemaRules $schemaRules): static {
         // Ensure that there is no side effect with internal state
         return clone $this;
     }

@@ -4,6 +4,7 @@ namespace GraphQlTools\Definition\Field;
 
 use Closure;
 use GraphQL\Type\Definition\FieldDefinition;
+use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Field\Shared\DefinesBaseProperties;
 use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
@@ -73,7 +74,7 @@ final class Field
      * @throws DefinitionException
      * @internal
      */
-    public function toDefinition(array $excludeTags = []): FieldDefinition
+    public function toDefinition(?SchemaRules $schemaRules): FieldDefinition
     {
         $resolveFn = empty($this->middlewares)
             ? new ProxyResolver($this->resolveFunction ?? null)
@@ -87,7 +88,7 @@ final class Field
             'deprecationReason' => $this->deprecationReason,
             'removalDate' => $this->removalDate,
             'description' => $this->computeDescription(),
-            'args' => $this->initArguments($excludeTags),
+            'args' => $this->initArguments($schemaRules),
             'tags' => $this->getTags(),
             'complexity' => $this->costFunction ?? self::freeCost(...),
             'cost' => $this->cost
@@ -111,20 +112,17 @@ final class Field
         return $this;
     }
 
-    final protected function initArguments(array $excludeTags = []): ?array
+    final protected function initArguments(?SchemaRules $schemaRules): ?array
     {
         if (!isset($this->inputFields)) {
             return null;
         }
 
-        $hasTagsToExclude = !empty($excludeTags);
         $inputFields = [];
         foreach ($this->inputFields as $definition) {
-            if ($hasTagsToExclude && $definition->containsAnyOfTags(...$excludeTags)) {
-                continue;
+            if (!$schemaRules || $schemaRules->isVisible($definition)) {
+                $inputFields[] = $definition->toDefinition();
             }
-
-            $inputFields[] = $definition->toDefinition();
         }
 
         return $inputFields;

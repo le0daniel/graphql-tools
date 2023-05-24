@@ -7,10 +7,14 @@ use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQlTools\Contract\DefinesGraphQlType;
+use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Shared\DefinesBaseProperties;
 use GraphQlTools\Definition\Shared\InitializesFields;
 
+/**
+ * @deprecated do not use
+ */
 final class Builder implements DefinesGraphQlType
 {
     use DefinesBaseProperties, InitializesFields;
@@ -38,7 +42,7 @@ final class Builder implements DefinesGraphQlType
         return $this;
     }
 
-    public function toDefinition(TypeRegistry $registry, array $injectedFields = []): ObjectType|InterfaceType|InputObjectType {
+    public function toDefinition(TypeRegistry $registry, SchemaRules $schemaRules, array $injectedFields = []): ObjectType|InterfaceType|InputObjectType {
         $allFields = [$this->fieldDefinitionClosure, ...$injectedFields];
 
 
@@ -47,7 +51,7 @@ final class Builder implements DefinesGraphQlType
             'description' => $this->computeDescription(),
             'deprecationReason' => $this->deprecationReason,
             'removalDate' => $this->removalDate,
-            'fields' => $this->initializeFields($registry, $allFields),
+            'fields' => $this->initializeFields($registry, $allFields, $schemaRules),
             'interfaces' => array_map(fn(string $typeName) => $registry->type($typeName), $this->interfaces),
         ]);
     }

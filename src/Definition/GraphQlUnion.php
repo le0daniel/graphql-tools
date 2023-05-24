@@ -8,6 +8,7 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\UnionType;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\GraphQlContext;
+use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Definition\Shared\HasDeprecation;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Contract\TypeRegistry;
@@ -18,7 +19,7 @@ abstract class GraphQlUnion implements DefinesGraphQlType
 {
     use HasDescription, HasDeprecation;
 
-    public function toDefinition(TypeRegistry $registry): UnionType {
+    public function toDefinition(TypeRegistry $registry, SchemaRules $schemaRules): UnionType {
         return new UnionType([
             'name' => $this->getName(),
             'description' => $this->addDeprecationToDescription($this->description()),

@@ -6,6 +6,7 @@ use Closure;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
 use GraphQlTools\Contract\DefinesGraphQlType;
+use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Extending\ExtendGraphQlType;
 use GraphQlTools\Utility\Types;
@@ -129,7 +130,7 @@ class FederatedSchema
         ?string $queryTypeName = null,
         ?string $mutationTypeName = null,
         bool    $assumeValid = true,
-        array   $excludeTags = [],
+        ?SchemaRules $schemaRules = null,
     ): SchemaConfig
     {
         $aliases = $this->createAliases();
@@ -138,7 +139,7 @@ class FederatedSchema
             $this->types,
             $aliases,
             $this->resolveFieldExtensions($aliases),
-            $excludeTags,
+            $schemaRules,
         );
 
         return SchemaConfig::create(
@@ -178,7 +179,7 @@ class FederatedSchema
         ?string $queryTypeName = null,
         ?string $mutationTypeName = null,
         bool    $assumeValid = true,
-        array   $excludeTags = [],
+        ?SchemaRules $schemaRules = null,
     ): Schema
     {
         return new Schema(
@@ -186,7 +187,7 @@ class FederatedSchema
                 $queryTypeName,
                 $mutationTypeName,
                 $assumeValid,
-                $excludeTags
+                $schemaRules
             )
         );
     }

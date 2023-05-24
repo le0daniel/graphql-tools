@@ -10,5 +10,5 @@ interface DefinesGraphQlType
      * Returns the definition of the type
      * @internal
      */
-    public function toDefinition(TypeRegistry $registry): mixed;
+    public function toDefinition(TypeRegistry $registry, SchemaRules $schemaRules): mixed;
 }

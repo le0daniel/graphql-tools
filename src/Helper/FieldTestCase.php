@@ -9,6 +9,7 @@ use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\DefinesGraphQlType;
+use GraphQlTools\Helper\Registry\AllVisibleSchemaRule;
 use GraphQlTools\Helper\Registry\FactoryTypeRegistry;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use Throwable;
@@ -25,7 +26,7 @@ class FieldTestCase
         $definition = is_string($typeDefinition) ? new $typeDefinition : $typeDefinition;
 
         /** @var ObjectType|InputObjectType $type */
-        $type = $definition->toDefinition($this->mockedTypeRegistry());
+        $type = $definition->toDefinition($this->mockedTypeRegistry(), new AllVisibleSchemaRule());
         $this->fieldDefinition = $type->findField($fieldName);
     }
 

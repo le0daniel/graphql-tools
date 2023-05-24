@@ -7,6 +7,7 @@ namespace GraphQlTools\Definition;
 use Closure;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQlTools\Contract\DefinesGraphQlType;
+use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Shared\HasDeprecation;
@@ -41,7 +42,7 @@ abstract class GraphQlType implements DefinesGraphQlType
         return array_map(fn(Field $field) => $field->prependMiddleware(...$middleware), $this->fields($registry));
     }
 
-    public function toDefinition(TypeRegistry $registry, array $excludeFieldsWithTags = []): ObjectType {
+    public function toDefinition(TypeRegistry $registry, SchemaRules $schemaRules): ObjectType {
         return new ObjectType(
             [
                 'name' => $this->getName(),
@@ -51,7 +52,7 @@ abstract class GraphQlType implements DefinesGraphQlType
                 'fields' => fn() => $this->initializeFields(
                     $registry,
                     [$this->getDefinedFields(...), ...$this->mergedFieldFactories],
-                    $excludeFieldsWithTags
+                    $schemaRules
                 ),
                 'interfaces' => fn() => array_map(
                     fn(string $interfaceName) => $registry->type($interfaceName),

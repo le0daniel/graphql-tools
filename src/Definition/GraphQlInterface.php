@@ -8,6 +8,7 @@ use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\GraphQlContext;
+use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Shared\HasDeprecation;
 use GraphQlTools\Definition\Shared\HasDescription;
@@ -21,7 +22,7 @@ abstract class GraphQlInterface implements DefinesGraphQlType
     use InitializesFields, HasDescription, HasDeprecation, MergesFields;
     abstract protected function fields(TypeRegistry $registry): array;
 
-    public function toDefinition(TypeRegistry $registry, array $excludeFieldsWithTags = []): InterfaceType
+    public function toDefinition(TypeRegistry $registry, SchemaRules $schemaRules): InterfaceType
     {
         return new InterfaceType([
             'name' => $this->getName(),
@@ -31,7 +32,7 @@ abstract class GraphQlInterface implements DefinesGraphQlType
             'fields' => fn() => $this->initializeFields(
                 $registry,
                 [$this->fields(...), ...$this->mergedFieldFactories],
-                $excludeFieldsWithTags,
+                $schemaRules,
             ),
             'resolveType' => fn($_, OperationContext $context, $info) => $registry->type(
                 $this->resolveToType($_, $context->context, $info)

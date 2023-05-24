@@ -7,6 +7,7 @@ use GraphQL\Type\Definition\Type;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlType;
+use GraphQlTools\Helper\Registry\AllVisibleSchemaRule;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -57,7 +58,7 @@ class GraphQlTypeTest extends TestCase
                 ->ofType(Type::id()),
             Field::withName('lazy')
                 ->ofType(Type::id()),
-        ])->toDefinition($this->registry->reveal());
+        ])->toDefinition($this->registry->reveal(), new AllVisibleSchemaRule());
 
         $definition->assertValid();
         self::assertTrue(true);

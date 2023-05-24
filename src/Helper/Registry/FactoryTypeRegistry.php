@@ -5,6 +5,7 @@ namespace GraphQlTools\Helper\Registry;
 use Closure;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Contract\DefinesGraphQlType;
+use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry as TypeRegistryContract;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Extending\ExtendGraphQlType;
@@ -15,6 +16,7 @@ use RuntimeException;
 class FactoryTypeRegistry implements TypeRegistryContract
 {
     private array $typeInstances = [];
+    private readonly SchemaRules $schemaRules;
 
     /**
      * @param array<string, callable|class-string> $types
@@ -25,9 +27,10 @@ class FactoryTypeRegistry implements TypeRegistryContract
         private readonly array $types,
         private readonly array $aliasesOfTypes = [],
         private readonly array $extendedTypes = [],
-        private readonly array $tagsToExclude = [],
+        ?SchemaRules $schemaRules = null,
     )
     {
+        $this->schemaRules = $schemaRules ?? new AllVisibleSchemaRule();
     }
 
     public function verifyAliasCollisions(): void {
@@ -119,14 +122,14 @@ class FactoryTypeRegistry implements TypeRegistryContract
 
         $isExtendableType = $instance instanceof GraphQlType || $instance instanceof GraphQlInterface;
         if (!$isExtendableType) {
-            return $instance->toDefinition($this, $this->tagsToExclude);
+            return $instance->toDefinition($this, $this->schemaRules);
         }
 
         $extendedFields = $this->getTypeFieldExtensions($instance);
         return empty($extendedFields)
-            ? $instance->toDefinition($this, $this->tagsToExclude)
+            ? $instance->toDefinition($this, $this->schemaRules)
             : $instance
                 ->mergeFieldFactories(...$extendedFields)
-                ->toDefinition($this, $this->tagsToExclude);
+                ->toDefinition($this,  $this->schemaRules);
     }
 }

@@ -6,6 +6,7 @@ namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\EnumType;
 use GraphQlTools\Contract\DefinesGraphQlType;
+use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\EnumValue;
 use GraphQlTools\Definition\Shared\HasDeprecation;
@@ -18,23 +19,18 @@ abstract class GraphQlEnum implements DefinesGraphQlType
 {
     use HasDescription, HasDeprecation;
 
-    public function toDefinition(TypeRegistry $registry, array $tagsToExclude = []): EnumType
+    public function toDefinition(TypeRegistry $registry, SchemaRules $schemaRules): EnumType
     {
         return new EnumType([
             'name' => $this->getName(),
             'description' => $this->addDeprecationToDescription($this->description()),
-            'values' => fn() => $this->initValues($tagsToExclude),
+            'values' => fn() => $this->initValues($schemaRules),
             'deprecationReason' => $this->deprecationReason(),
             'removalDate' => $this->removalDate(),
         ]);
     }
 
-    /**
-     * @param array $tagsToExclude
-     * @return array
-     * @throws DefinitionException
-     */
-    private function initValues(array $tagsToExclude): array
+    private function initValues(SchemaRules $schemaRules): array
     {
         $definedValues = $this->values();
         if (is_string($definedValues)) {
