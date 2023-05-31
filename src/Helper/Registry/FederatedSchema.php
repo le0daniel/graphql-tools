@@ -3,6 +3,7 @@
 namespace GraphQlTools\Helper\Registry;
 
 use Closure;
+use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
 use GraphQlTools\Contract\DefinesGraphQlType;
@@ -151,10 +152,15 @@ class FederatedSchema
                     ? Schema::resolveType($registry->type($mutationTypeName))
                     : null,
                 'types' => static function () use ($eagerlyLoadedTypes, $registry) {
-                    return array_map(
-                        fn(string $name) => Schema::resolveType($registry->type($name)),
-                        $eagerlyLoadedTypes,
-                    );
+                    $types = [];
+                    foreach ($eagerlyLoadedTypes as $name) {
+                        /** @var ObjectType $type */
+                        $type = Schema::resolveType($registry->type($name));
+                        if (!empty($type->getFields())) {
+                            $types[] = $type;
+                        }
+                    }
+                    return $types;
                 },
                 'typeLoader' => static function (string $typeNameOrClassName) use ($registry) {
                     try {
