@@ -7,6 +7,7 @@ namespace GraphQlTools\Utility;
 
 
 use GraphQL\Error\SyntaxError;
+use GraphQL\Language\AST\DefinitionNode;
 use GraphQL\Language\AST\DirectiveNode;
 use GraphQL\Language\AST\DocumentNode;
 use GraphQL\Language\AST\FieldNode;
@@ -30,7 +31,6 @@ use Traversable;
 
 final class Query
 {
-    private const QUERY_NAME_REGEX = '/(?:query|mutation)\s+(?<queryName>[a-zA-Z\d_]+)\s*(?:{|\()/m';
     private const INT_LITERAL_VALUE = '0';
     private const FLOAT_LITERAL_VALUE = '0';
     private const STRING_LITERAL_VALUE = '';
@@ -61,11 +61,10 @@ final class Query
     }
 
     public static function getQueryName(string $query): ?string {
-        if (!preg_match(self::QUERY_NAME_REGEX, $query, $matches)) {
-            return null;
-        }
-
-        return $matches['queryName'] ?? null;
+        $document = Parser::parse($query);
+        /** @var DefinitionNode $operationNode */
+        $definition = $document->definitions[0];
+        return $definition->name?->value ?? null;
     }
 
     public static function isIntrospection(string $query): bool {

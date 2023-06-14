@@ -110,7 +110,7 @@ class QueryTest extends ExecutionTestCase
     public function testMultiple() {
         $result = $this->executeMultiple(
             $this->schemaWithExportDirective(),
-            'query First { middlewareWithPrimitiveBinding @export(as: "firstName") } query Second($firstName: String) { currentUser(name: $firstName) @export(as: "test", isList: true) }'
+            'query First { middlewareWithPrimitiveBinding @export(as: "firstName") @include(if: true) } query Second($firstName: String) { currentUser(name: $firstName) @export(as: "test", isList: true) }'
         );
         $this->assertNoErrors($result);
         self::assertEquals('test', $result->data['middlewareWithPrimitiveBinding']);

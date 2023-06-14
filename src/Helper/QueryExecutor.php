@@ -12,6 +12,7 @@ use GraphQL\Error\SyntaxError;
 use GraphQL\Executor\ExecutionResult;
 use GraphQL\GraphQL;
 use GraphQL\Language\AST\DocumentNode;
+use GraphQL\Language\AST\NodeList;
 use GraphQL\Language\Parser;
 use GraphQL\Type\Schema;
 use GraphQL\Validator\DocumentValidator;
@@ -137,10 +138,16 @@ final class QueryExecutor
         $results = new MultiExecutionResult();
         $operationContext = new OperationContext($context, $extensionManager);
 
-        foreach ($operationNames as $operationName) {
+        foreach ($operationNames as $index => $operationName) {
+            // Run against the isolated query.
+            // This is needed for validation rules to work correctly.
+            $queryDocument = new DocumentNode([
+                'definitions' => new NodeList([$source->definitions[$index]->cloneDeep()])
+            ]);
+
             $result = GraphQL::executeQuery(
                 schema: $schema,
-                source: $source,
+                source: $queryDocument,
                 rootValue: $rootValue,
                 contextValue: $operationContext,
                 variableValues: $variables ?? [],
