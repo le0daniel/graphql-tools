@@ -7,7 +7,7 @@ use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Contract\ExtendsResult;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Helper\QueryExecutor;
-use GraphQlTools\Helper\Registry\FederatedSchema;
+use GraphQlTools\Helper\Registry\SchemaRegistry;
 use GraphQlTools\Utility\TypeMap;
 use PHPUnit\Framework\TestCase;
 
@@ -21,11 +21,11 @@ class QueryExecutorTest extends TestCase
             [fn() => $instance]
         );
 
-        $federatedSchema = new FederatedSchema();
+        $schemaRegistry = new SchemaRegistry();
         [$types, $extendedTypes] = TypeMap::createTypeMapFromDirectory(__DIR__ . '/../../Dummies/Schema');
-        $federatedSchema->registerTypes($types);
-        $federatedSchema->extendTypes($extendedTypes);
-        $schema = $federatedSchema->createSchema('Query');
+        $schemaRegistry->registerTypes($types);
+        $schemaRegistry->extendTypes($extendedTypes);
+        $schema = $schemaRegistry->createSchema('Query');
 
         $query = 'query { mamels { sound, ... on Lion { depth { deeper { id } } } } }';
         $result = $queryExecutor->execute(
@@ -50,11 +50,11 @@ class QueryExecutorTest extends TestCase
             [new QueryDepth(1)]
         );
 
-        $federatedSchema = new FederatedSchema();
+        $schemaRegistry = new SchemaRegistry();
         [$types, $extendedTypes] = TypeMap::createTypeMapFromDirectory(__DIR__ . '/../../Dummies/Schema');
-        $federatedSchema->registerTypes($types);
-        $federatedSchema->extendTypes($extendedTypes);
-        $schema = $federatedSchema->createSchema('Query');
+        $schemaRegistry->registerTypes($types);
+        $schemaRegistry->extendTypes($extendedTypes);
+        $schema = $schemaRegistry->createSchema('Query');
 
         $result = $queryExecutor->execute(
             $schema,
@@ -88,11 +88,11 @@ class QueryExecutorTest extends TestCase
             [$rule::class]
         );
 
-        $federatedSchema = new FederatedSchema();
+        $schemaRegistry = new SchemaRegistry();;
         [$types, $extendedTypes] = TypeMap::createTypeMapFromDirectory(__DIR__ . '/../../Dummies/Schema');
-        $federatedSchema->registerTypes($types);
-        $federatedSchema->extendTypes($extendedTypes);
-        $schema = $federatedSchema->createSchema('Query');
+        $schemaRegistry->registerTypes($types);
+        $schemaRegistry->extendTypes($extendedTypes);
+        $schema = $schemaRegistry->createSchema('Query');
 
         $result = $queryExecutor->execute(
             $schema,

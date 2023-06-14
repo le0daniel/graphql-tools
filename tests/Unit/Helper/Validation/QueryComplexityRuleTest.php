@@ -11,14 +11,14 @@ use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Helper\QueryExecutor;
-use GraphQlTools\Helper\Registry\FederatedSchema;
+use GraphQlTools\Helper\Registry\SchemaRegistry;
 use GraphQlTools\Helper\Validation\QueryComplexityRule;
 use PHPUnit\Framework\TestCase;
 
 class QueryComplexityRuleTest extends TestCase
 {
     private function getSchema(): Schema {
-        $federatedSchema = new FederatedSchema();
+        $federatedSchema = new SchemaRegistry();
         $federatedSchema->register(new class () extends GraphQlType {
             protected function fields(TypeRegistry $registry): array
             {

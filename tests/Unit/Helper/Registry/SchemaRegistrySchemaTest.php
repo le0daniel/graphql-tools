@@ -6,19 +6,18 @@ use GraphQL\Type\Definition\Type;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Field\Field;
-use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
-use GraphQlTools\Helper\Registry\FederatedSchema;
+use GraphQlTools\Helper\Registry\SchemaRegistry;
 use GraphQlTools\Helper\Registry\TagBasedSchemaRules;
 use GraphQlTools\Test\Dummies\Schema\LionType;
 use PHPUnit\Framework\TestCase;
 
-class FederatedSchemaTest extends TestCase
+class SchemaRegistrySchemaTest extends TestCase
 {
 
     public function testRegister()
     {
-        $federation = new FederatedSchema();
+        $federation = new SchemaRegistry();
         $federation->register(LionType::class);
         $federation->verifyTypeNames();
         self::assertTrue(true);
@@ -43,7 +42,7 @@ class FederatedSchemaTest extends TestCase
         };
         $this->expectException(DefinitionException::class);
         $this->expectExceptionMessage('Could not infer name from class name string.');
-        $federation = new FederatedSchema();
+        $federation = new SchemaRegistry();
         $federation->register($instance::class);
     }
 
@@ -70,7 +69,7 @@ class FederatedSchemaTest extends TestCase
             }
         };
 
-        $federation = new FederatedSchema();
+        $federation = new SchemaRegistry();
         $federation->register($type);
         $federation->registerEagerlyLoadedType('MyType');
 

@@ -26,7 +26,7 @@ class DirectoriesTest extends TestCase
             'ProxyResolverTest.php',
             'QueryExecutorTest.php',
             'Registry/FactoryTypeRegistryTest.php',
-            'Registry/FederatedSchemaTest.php',
+            'Registry/SchemaRegistrySchemaTest.php',
             'Registry/TagBasedSchemaRulesTest.php',
             'Validation/QueryComplexityRuleTest.php'
         ], $result);
