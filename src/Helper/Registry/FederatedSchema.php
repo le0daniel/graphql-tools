@@ -3,6 +3,7 @@
 namespace GraphQlTools\Helper\Registry;
 
 use Closure;
+use GraphQL\GraphQL;
 use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Schema;
@@ -179,7 +180,7 @@ class FederatedSchema
                     }
                 },
                 'assumeValid' => $assumeValid,
-                'directives' => array_map(fn(GraphQlDirective $directive): Directive => $directive->toDefinition(), $this->directives),
+                'directives' => array_map(fn(GraphQlDirective $directive): Directive => $directive->toDefinition(), $this->directives) + GraphQL::getStandardDirectives(),
             ]
         );
     }

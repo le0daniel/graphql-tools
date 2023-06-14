@@ -88,7 +88,7 @@ class QueryTest extends ExecutionTestCase
 
     public function testFieldExecution(): void
     {
-        $result = $this->execute('query { currentUser }');
+        $result = $this->execute('query { currentUser @include(if: true) }');
         $this->assertNoErrors($result);
         self::assertEquals('Hello -- No Name Provided --', $result->data['currentUser']);
     }
