@@ -3,6 +3,7 @@
 namespace GraphQlTools\Helper\Registry;
 
 use Closure;
+use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
@@ -10,6 +11,7 @@ use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Extending\ExtendGraphQlType;
+use GraphQlTools\Definition\GraphQlDirective;
 use GraphQlTools\Utility\Types;
 use RuntimeException;
 use GraphQlTools\Contract\TypeRegistry as TypeRegistryContract;
@@ -21,6 +23,9 @@ class FederatedSchema
      */
     private array $types = [];
     private array $eagerlyLoadedTypes = [];
+
+    /** @var array<GraphQlDirective> */
+    private array $directives = [];
 
     /**
      * @var array<string, array<string|Closure|ExtendGraphQlType>>
@@ -59,6 +64,10 @@ class FederatedSchema
 
         $this->verifyTypeNameIsNotUsed($typeName);
         $this->types[$typeName] = $typeDeclaration;
+    }
+
+    public function registerDirective(GraphQlDirective $directive): void {
+        $this->directives[] = $directive;
     }
 
     private function verifyTypeNameIsNotUsed(string $typeName): void
@@ -170,6 +179,7 @@ class FederatedSchema
                     }
                 },
                 'assumeValid' => $assumeValid,
+                'directives' => array_map(fn(GraphQlDirective $directive): Directive => $directive->toDefinition(), $this->directives),
             ]
         );
     }

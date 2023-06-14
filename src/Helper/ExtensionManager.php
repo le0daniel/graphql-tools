@@ -19,7 +19,15 @@ final class ExtensionManager
 
     public function __construct(Extension ...$extensions)
     {
-        $this->extensions = $extensions;
+        $keyedExtensions = [];
+        foreach ($extensions as $extension) {
+            $keyedExtensions[$extension->key()] = $extension;
+        }
+        $this->extensions = $keyedExtensions;
+    }
+
+    public function getExtension(string $key): ?Extension {
+        return $this->extensions[$key] ?? null;
     }
 
     public function getExtensionsCount(): int {

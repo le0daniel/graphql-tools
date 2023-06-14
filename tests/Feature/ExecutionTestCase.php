@@ -7,10 +7,12 @@ namespace GraphQlTools\Test\Feature;
 use GraphQL\Executor\ExecutionResult;
 use GraphQL\Type\Schema;
 use GraphQlTools\Helper\Context;
+use GraphQlTools\Helper\Extension\ExportMultiQueryArguments;
 use GraphQlTools\Helper\QueryExecutor;
 use PHPUnit\Framework\TestCase;
 
-abstract class ExecutionTestCase extends TestCase {
+abstract class ExecutionTestCase extends TestCase
+{
 
     abstract protected function schema(): Schema;
 
@@ -21,19 +23,23 @@ abstract class ExecutionTestCase extends TestCase {
      */
     abstract protected function queryType(): string;
 
-    protected function extensions(): array {
+    protected function extensions(): array
+    {
         return [];
     }
 
-    protected function mutationType(): ?string {
+    protected function mutationType(): ?string
+    {
         return null;
     }
 
-    protected function eagerlyLoadedTypes(): array {
+    protected function eagerlyLoadedTypes(): array
+    {
         return [];
     }
 
-    protected function assertNoErrors(ExecutionResult $result): void {
+    protected function assertNoErrors(ExecutionResult $result): void
+    {
         $message = '';
         foreach ($result->errors as $error) {
             $message .= $error->getMessage() . PHP_EOL;
@@ -42,7 +48,8 @@ abstract class ExecutionTestCase extends TestCase {
         self::assertEmpty($result->errors, $message);
     }
 
-    protected function assertError(ExecutionResult $result, string $expectedMessage): void {
+    protected function assertError(ExecutionResult $result, string $expectedMessage): void
+    {
         $errorMessages = [];
 
         foreach ($result->errors as $error) {
@@ -62,7 +69,8 @@ abstract class ExecutionTestCase extends TestCase {
         self::fail(implode(PHP_EOL, $errorMessages));
     }
 
-    protected function assertColumnCount(int $expectedCount, array $data, string $column): void {
+    protected function assertColumnCount(int $expectedCount, array $data, string $column): void
+    {
         $count = 0;
         foreach ($data as $item) {
             if (!$item || (!is_array($item) && !$item instanceof \ArrayAccess)) {
@@ -77,17 +85,29 @@ abstract class ExecutionTestCase extends TestCase {
         self::assertEquals($expectedCount, $count);
     }
 
-    protected function executeOn(Schema $schema, string $query): ExecutionResult {
+    protected function executeOn(Schema $schema, string $query): ExecutionResult
+    {
         $executor = new QueryExecutor(
-            $this->extensions()
+            $this->extensions(),
         );
         return $executor->execute($schema, $query, new Context());
     }
 
-    protected function execute(string $query): ExecutionResult {
+    protected function executeMultiple(Schema $schema, string $query): ExecutionResult
+    {
+        $executor = new QueryExecutor(
+            [...$this->extensions(), ExportMultiQueryArguments::class]
+        );
+        return $executor->executeMultiple($schema, $query, new Context());
+    }
+
+    protected function execute(string $query): ExecutionResult
+    {
         return $this->executeOn($this->schema(), $query);
     }
 
-    protected function tearDown(): void {}
+    protected function tearDown(): void
+    {
+    }
 
 }

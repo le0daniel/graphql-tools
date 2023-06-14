@@ -6,6 +6,7 @@ namespace GraphQlTools\Test\Dummies\Schema;
 
 use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\NonNull;
+use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Helper\Context;
@@ -73,7 +74,9 @@ final class QueryType extends GraphQlType
             Field::withName('middlewareWithPrimitiveBinding')
                 ->ofType(Type::string())
                 ->tags('private')
-                ->resolvedBy(fn() => $value),
+                ->resolvedBy(static function($_, $__, $context, ResolveInfo $info) use ($value) {
+                    return $value;
+                }),
 
             Field::withName('mamelsQuery')
                 ->ofType(Type::string())

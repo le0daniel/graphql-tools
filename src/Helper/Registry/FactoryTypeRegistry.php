@@ -27,7 +27,7 @@ class FactoryTypeRegistry implements TypeRegistryContract
         private readonly array $types,
         private readonly array $aliasesOfTypes = [],
         private readonly array $extendedTypes = [],
-        ?SchemaRules $schemaRules = null,
+        ?SchemaRules $schemaRules = null
     )
     {
         $this->schemaRules = $schemaRules ?? new AllVisibleSchemaRule();

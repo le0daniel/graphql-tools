@@ -8,6 +8,7 @@ use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Helper\Extension\ActualCostExtension;
+use GraphQlTools\Helper\Extension\ExportMultiQueryArguments;
 use GraphQlTools\Helper\Extension\Extension;
 use GraphQlTools\Helper\ExtensionManager;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
@@ -24,7 +25,7 @@ class ExtensionManagerTest extends TestCase
     {
         $manager = ExtensionManager::createFromExtensionFactories([
             ActualCostExtension::class,
-            fn() => new ActualCostExtension()
+            fn() => new ExportMultiQueryArguments()
         ]);
         self::assertTrue(true);
         self::assertEquals(2, $manager->getExtensionsCount());
@@ -41,6 +42,7 @@ class ExtensionManagerTest extends TestCase
             $extensionProphecy = $this->prophesize(Extension::class);
             $extensionProphecy->start($startEvent)->shouldBeCalledOnce();
             $extensionProphecy->end($endEvent)->shouldBeCalledOnce();
+            $extensionProphecy->key()->willReturn(bin2hex(random_bytes(16)));
             $extensions[] = $extensionProphecy->reveal();
         }
 
@@ -53,9 +55,11 @@ class ExtensionManagerTest extends TestCase
         $enabledExtension = $this->prophesize(Extension::class);
         $enabledExtension->isEnabled()->willReturn(true);
         $enabledExtension->priority()->willReturn(1);
+        $enabledExtension->key()->willReturn('else');
 
         $disabledExtension = $this->prophesize(Extension::class);
         $disabledExtension->isEnabled()->willReturn(false);
+        $disabledExtension->key()->willReturn('random');
 
         $extensions = ExtensionManager::createFromExtensionFactories([
             fn() => $disabledExtension->reveal(),
@@ -71,6 +75,7 @@ class ExtensionManagerTest extends TestCase
         $extension->visitField(Argument::type(VisitFieldEvent::class))->willReturn(fn() => 'value');
         $extension->priority()->willReturn(1);
         $extension->isEnabled()->willReturn(true);
+        $extension->key()->willReturn('something');
 
         $extensions = ExtensionManager::createFromExtensionFactories([
             fn() => $extension->reveal()

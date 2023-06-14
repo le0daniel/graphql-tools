@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace GraphQlTools\Helper;
 
 use Closure;
+use GraphQL\Error\Error;
 use GraphQL\Error\Error as GraphQlError;
 use GraphQL\Error\FormattedError;
 use GraphQL\Error\SyntaxError;
 use GraphQL\Executor\ExecutionResult;
 use GraphQL\GraphQL;
+use GraphQL\Language\AST\DocumentNode;
 use GraphQL\Language\Parser;
 use GraphQL\Type\Schema;
 use GraphQL\Validator\DocumentValidator;
@@ -17,10 +19,13 @@ use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Contract\ExceptionWithExtensions;
 use GraphQlTools\Contract\ExtendsResult;
 use GraphQlTools\Contract\GraphQlContext;
+use GraphQlTools\Data\Exceptions\NoOperationNameProvidedException;
 use GraphQlTools\Data\ValueObjects\ValidationResult;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
+use GraphQlTools\Helper\Extension\ExportMultiQueryArguments;
+use GraphQlTools\Helper\Results\MultiExecutionResult;
 use GraphQlTools\Helper\Validation\CollectDeprecatedFieldNotices;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\ValidationRules;
@@ -45,11 +50,12 @@ final class QueryExecutor
      * @param ?Closure $errorLogger
      */
     public function __construct(
-        private readonly array $extensionFactories = [],
-        private readonly array $validationRules = self::DEFAULT_CONTEXTUAL_VALIDATION_RULE,
+        private readonly array    $extensionFactories = [],
+        private readonly array    $validationRules = self::DEFAULT_CONTEXTUAL_VALIDATION_RULE,
         private readonly ?Closure $errorLogger = null,
     )
-    {}
+    {
+    }
 
     private function collectValidationRuleExtensions(array $validationRules, GraphQlContext $context): array
     {
@@ -76,10 +82,11 @@ final class QueryExecutor
      * @throws \JsonException
      */
     public function validateQuery(
-        Schema $schema,
-        string $query,
+        Schema          $schema,
+        string          $query,
         ?GraphQlContext $context = null,
-    ): ValidationResult {
+    ): ValidationResult
+    {
         $context ??= new Context();
         $source = Parser::parse($query);
         $validationRules = ValidationRules::initialize($this->validationRules, $context);
@@ -87,13 +94,87 @@ final class QueryExecutor
         return new ValidationResult($validationErrors, $validationRules);
     }
 
-    public function execute(
-        Schema  $schema,
-        string  $query,
+    private function getOperationNamesFromSource(DocumentNode $node): array
+    {
+        $operationNames = [];
+        foreach ($node->definitions as $index => $definition) {
+            $operationName = $definition->name?->value;
+            if (!$operationName) {
+                $exception = new NoOperationNameProvidedException("No operation name given for operation {$index}");
+                throw new Error($exception->getMessage(), previous: $exception);
+            }
+            $operationNames[] = $operationName;
+        }
+        return $operationNames;
+    }
+
+    public function executeMultiple(
+        Schema         $schema,
+        string         $query,
         GraphQlContext $context,
-        ?array  $variables = null,
-        mixed   $rootValue = null,
-        ?string $operationName = null,
+        ?array         $variables = null,
+        mixed          $rootValue = null,
+    ): ExecutionResult
+    {
+        $extensionManager = ExtensionManager::createFromExtensionFactories([
+            new ExportMultiQueryArguments(),
+            ...$this->extensionFactories,
+        ]);
+
+        $extensionManager->dispatchStartEvent(StartEvent::create($query, $context));
+        $validationRules = ValidationRules::initialize($this->validationRules, $context);
+
+        try {
+            $source = Parser::parse($query);
+            $operationNames = $this->getOperationNamesFromSource($source);
+        } catch (Error $exception) {
+            $result = new ExecutionResult(null, [$exception]);
+            $extensionManager->dispatchEndEvent(EndEvent::create($result));
+            $result->extensions = $extensionManager->collect($context);
+            return $result;
+        }
+
+        $results = new MultiExecutionResult();
+        $operationContext = new OperationContext($context, $extensionManager);
+
+        foreach ($operationNames as $operationName) {
+            $result = GraphQL::executeQuery(
+                schema: $schema,
+                source: $source,
+                rootValue: $rootValue,
+                contextValue: $operationContext,
+                variableValues: $variables ?? [],
+                operationName: $operationName,
+                validationRules: $validationRules,
+            );
+
+            $results->addResult($result);
+
+            /** @var ExportMultiQueryArguments $exportedVariables */
+            if ($exportedVariables = $extensionManager->getExtension(ExportMultiQueryArguments::NAME)) {
+                $variables = array_merge($variables ?? [], $exportedVariables->getAllExportedVariables());
+            }
+        }
+
+        $results->extensions = Arrays::mergeKeyValues(
+            $extensionManager->collect($context),
+            $this->collectValidationRuleExtensions($validationRules, $context),
+            throwOnKeyConflict: true
+        );
+
+        $results->setErrorFormatter(fn(GraphQlError $error) => $this->formatErrorsWithExtensions($error, $context));
+        $results->setErrorsHandler($this->handleErrors(...));
+
+        return $results;
+    }
+
+    public function execute(
+        Schema         $schema,
+        string         $query,
+        GraphQlContext $context,
+        ?array         $variables = null,
+        mixed          $rootValue = null,
+        ?string        $operationName = null,
     ): ExecutionResult
     {
         $extensionManager = ExtensionManager::createFromExtensionFactories($this->extensionFactories);
@@ -138,7 +219,8 @@ final class QueryExecutor
      * @param callable $formatter
      * @return array
      */
-    private function handleErrors(array $errors, callable $formatter): array {
+    private function handleErrors(array $errors, callable $formatter): array
+    {
         $formattedErrors = [];
         $hasCustomErrorLogger = !!$this->errorLogger;
 
@@ -153,7 +235,8 @@ final class QueryExecutor
         return $formattedErrors;
     }
 
-    private function formatErrorsWithExtensions(GraphQlError $error, GraphQlContext $context): array {
+    private function formatErrorsWithExtensions(GraphQlError $error, GraphQlContext $context): array
+    {
         $formatted = FormattedError::createFromException($error);
         $previous = $error->getPrevious();
 

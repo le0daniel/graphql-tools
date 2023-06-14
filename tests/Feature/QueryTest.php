@@ -8,6 +8,8 @@ use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
+use GraphQlTools\Directives\ExportDirective;
+use GraphQlTools\Helper\Extension\ExportMultiQueryArguments;
 use GraphQlTools\Helper\Registry\FederatedSchema;
 use GraphQlTools\Helper\Registry\TagBasedSchemaRules;
 use GraphQlTools\Test\Dummies\Schema\JsonScalar;
@@ -71,6 +73,14 @@ class QueryTest extends ExecutionTestCase
         return $schema;
     }
 
+    protected function schemaWithExportDirective(array $excludeTags = []): Schema {
+        $registry = $this->federatedSchema();
+        $registry->registerDirective(new ExportDirective());
+        $schema = $registry->createSchema(QueryType::class, schemaRules: new TagBasedSchemaRules($excludeTags));
+        $schema->assertValid();
+        return $schema;
+    }
+
     protected function queryType(): string
     {
         return QueryType::class;
@@ -95,6 +105,20 @@ class QueryTest extends ExecutionTestCase
         $result = $this->execute('query { middlewareWithPrimitiveBinding }');
         $this->assertNoErrors($result);
         self::assertEquals('test', $result->data['middlewareWithPrimitiveBinding']);
+    }
+
+    public function testMultiple() {
+        $result = $this->executeMultiple(
+            $this->schemaWithExportDirective(),
+            'query First { middlewareWithPrimitiveBinding @export(as: "firstName") } query Second($firstName: String) { currentUser(name: $firstName) @export(as: "test", isList: true) }'
+        );
+        $this->assertNoErrors($result);
+        self::assertEquals('test', $result->data['middlewareWithPrimitiveBinding']);
+        self::assertEquals('Hello test', $result->data['currentUser']);
+        self::assertEquals([
+            'First' => ['firstName' => 'test'],
+            'Second' => ['test' => ['Hello test']]
+        ], $result->extensions[ExportMultiQueryArguments::NAME]);
     }
 
     public function testSimpleExecution(): void
