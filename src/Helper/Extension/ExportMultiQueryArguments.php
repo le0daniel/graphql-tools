@@ -64,6 +64,19 @@ class ExportMultiQueryArguments extends Extension
         return $argumentsArray;
     }
 
+    /**
+     * As resolved values can contain more data than they should, we only return primitive values.
+     * Example, if you resolve a field which loads data, you might leak full objects, which is not intended.
+     * @param mixed $value
+     * @return mixed
+     */
+    protected function getSafeValue(mixed $value): mixed {
+        return match (true) {
+            is_string($value), is_numeric($value), is_bool($value) => $value,
+            default => null,
+        };
+    }
+
     public function visitField(VisitFieldEvent $event): ?Closure
     {
         $directive = $this->getDirectiveNode(ExportDirective::NAME, $event->info);
@@ -77,14 +90,9 @@ class ExportMultiQueryArguments extends Extension
         $isList = $options['isList'] ?? false;
 
         return function ($value) use ($exportAs, $operationName, $isList) {
-            $safeValue = match (true) {
-                is_string($value), is_numeric($value), is_bool($value) => $value,
-                default => null,
-            };
-
             $isList
-                ? $this->exportedVariables[$operationName][$exportAs][] = $safeValue
-                : $this->exportedVariables[$operationName][$exportAs] = $safeValue;
+                ? $this->exportedVariables[$operationName][$exportAs][] = $this->getSafeValue($value)
+                : $this->exportedVariables[$operationName][$exportAs] = $this->getSafeValue($value);
         };
     }
 

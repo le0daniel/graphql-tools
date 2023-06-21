@@ -31,7 +31,7 @@ use GraphQlTools\Helper\Validation\CollectDeprecatedFieldNotices;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\ValidationRules;
 
-final class QueryExecutor
+class QueryExecutor
 {
     public const DEFAULT_CONTEXTUAL_VALIDATION_RULE = [
         CollectDeprecatedFieldNotices::class
@@ -121,9 +121,9 @@ final class QueryExecutor
             new ExportMultiQueryArguments(),
             ...$this->extensionFactories,
         ]);
+        $validationRules = ValidationRules::initialize($this->validationRules, $context);
 
         $extensionManager->dispatchStartEvent(StartEvent::create($query, $context));
-        $validationRules = ValidationRules::initialize($this->validationRules, $context);
 
         try {
             $source = Parser::parse($query);
@@ -159,20 +159,14 @@ final class QueryExecutor
 
             /** @var ExportMultiQueryArguments $exportedVariables */
             if ($exportedVariables = $extensionManager->getExtension(ExportMultiQueryArguments::NAME)) {
-                $variables = array_merge($variables ?? [], $exportedVariables->getAllExportedVariables());
+                $variables = Arrays::mergeKeyValues(
+                    $variables ?? [],
+                    $exportedVariables->getAllExportedVariables(),
+                );
             }
         }
 
-        $results->extensions = Arrays::mergeKeyValues(
-            $extensionManager->collect($context),
-            $this->collectValidationRuleExtensions($validationRules, $context),
-            throwOnKeyConflict: true
-        );
-
-        $results->setErrorFormatter(fn(GraphQlError $error) => $this->formatErrorsWithExtensions($error, $context));
-        $results->setErrorsHandler($this->handleErrors(...));
-
-        return $results;
+        return $this->prepareResult($results, $context, $extensionManager, $validationRules);
     }
 
     public function execute(
@@ -185,8 +179,8 @@ final class QueryExecutor
     ): ExecutionResult
     {
         $extensionManager = ExtensionManager::createFromExtensionFactories($this->extensionFactories);
-        $extensionManager->dispatchStartEvent(StartEvent::create($query, $context));
         $validationRules = ValidationRules::initialize($this->validationRules, $context);
+        $extensionManager->dispatchStartEvent(StartEvent::create($query, $context));
 
         try {
             $source = Parser::parse($query);
@@ -208,7 +202,10 @@ final class QueryExecutor
         );
 
         $extensionManager->dispatchEndEvent(EndEvent::create($result));
+        return $this->prepareResult($result, $context, $extensionManager, $validationRules);
+    }
 
+    private function prepareResult(ExecutionResult $result, $context, ExtensionManager $extensionManager, array $validationRules): ExecutionResult {
         $result->extensions = Arrays::mergeKeyValues(
             $extensionManager->collect($context),
             $this->collectValidationRuleExtensions($validationRules, $context),
@@ -217,7 +214,6 @@ final class QueryExecutor
 
         $result->setErrorFormatter(fn(GraphQlError $error) => $this->formatErrorsWithExtensions($error, $context));
         $result->setErrorsHandler($this->handleErrors(...));
-
         return $result;
     }
 

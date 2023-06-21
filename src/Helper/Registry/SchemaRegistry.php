@@ -6,6 +6,7 @@ use Closure;
 use GraphQL\GraphQL;
 use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Definition\ObjectType;
+use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
 use GraphQlTools\Contract\DefinesGraphQlType;
@@ -153,19 +154,25 @@ class SchemaRegistry
             $schemaRules,
         );
 
+        $queryType = $queryTypeName
+            ? Schema::resolveType($registry->type($queryTypeName))
+            : null;
+
+        $mutationType = $mutationTypeName
+            ? Schema::resolveType($registry->type($mutationTypeName))
+            : null;
+
         return SchemaConfig::create(
             [
-                'query' => $queryTypeName
-                    ? Schema::resolveType($registry->type($queryTypeName))
-                    : null,
-                'mutation' => $mutationTypeName
-                    ? Schema::resolveType($registry->type($mutationTypeName))
-                    : null,
+                'query' => $queryType,
+                'mutation' => $mutationType,
                 'types' => static function () use ($eagerlyLoadedTypes, $registry) {
                     $types = [];
                     foreach ($eagerlyLoadedTypes as $name) {
                         /** @var ObjectType $type */
                         $type = Schema::resolveType($registry->type($name));
+
+                        // For eagerly loaded types we verify if the fields are defined or not
                         if (!empty($type->getFields())) {
                             $types[] = $type;
                         }
