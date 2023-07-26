@@ -3,6 +3,7 @@
 namespace GraphQlTools\Test\Unit\Helper\Registry;
 
 use GraphQL\Type\Definition\Type;
+use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Field\Field;
@@ -29,9 +30,10 @@ class SchemaRegistrySchemaTest extends TestCase
     public function testPartialPrint(): void {
         $schema = new SchemaRegistry();
         $schema->extendType('Mamel', ExtendMamelInterface::class);
-        $schema->register(LionType::class);
+        $schema->register(new LionType);
         $schema->register(ProtectedUserType::class);
         $schema->register(MamelsQueryInputType::class);
+
         self::assertEquals('""
 type Lion implements Mamel {
   ""

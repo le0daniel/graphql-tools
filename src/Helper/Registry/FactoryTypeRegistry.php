@@ -20,7 +20,7 @@ class FactoryTypeRegistry implements TypeRegistryContract
     protected readonly SchemaRules $schemaRules;
 
     /**
-     * @param array<string, callable|class-string> $types
+     * @param array<string, callable|class-string|DefinesGraphQlType> $types
      * @param array<string, string> $aliasesOfTypes
      * @param array<string, array<ExtendGraphQlType|class-string|Closure>> $extendedTypes
      */
