@@ -12,10 +12,11 @@ use GraphQlTools\Definition\Extending\ExtendGraphQlType;
 use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
 use RuntimeException;
+use GraphQlTools\Data\ValueObjects\GraphQlTypes;
 
 class FactoryTypeRegistry implements TypeRegistryContract
 {
-    private array $typeInstances = [];
+    protected array $typeInstances = [];
     protected readonly SchemaRules $schemaRules;
 
     /**
@@ -41,7 +42,7 @@ class FactoryTypeRegistry implements TypeRegistryContract
         }
     }
 
-    public function type(string $nameOrAlias): Closure
+    public function type(string $nameOrAlias, ?GraphQlTypes $typeHint = null): Closure
     {
         return fn() => $this->getType(
             $this->resolveAliasToName($nameOrAlias)

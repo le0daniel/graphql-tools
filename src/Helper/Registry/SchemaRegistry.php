@@ -5,10 +5,13 @@ namespace GraphQlTools\Helper\Registry;
 use Closure;
 use GraphQL\GraphQL;
 use GraphQL\Type\Definition\Directive;
+use GraphQL\Type\Definition\InputObjectType;
+use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
+use GraphQL\Utils\SchemaPrinter;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry as TypeRegistryContract;
@@ -68,7 +71,8 @@ class SchemaRegistry
         $this->types[$typeName] = $typeDeclaration;
     }
 
-    public function registerDirective(GraphQlDirective $directive): void {
+    public function registerDirective(GraphQlDirective $directive): void
+    {
         $this->directives[] = $directive;
     }
 
@@ -98,7 +102,7 @@ class SchemaRegistry
      * @param Closure(TypeRegistryContract): array $fieldFactory
      * @return void
      */
-    public function extendType(string $typeNameOrAlias, Closure|string|ExtendGraphQlType ... $fieldFactories): void
+    public function extendType(string $typeNameOrAlias, Closure|string|ExtendGraphQlType ...$fieldFactories): void
     {
         if (!isset($this->typeFieldExtensions[$typeNameOrAlias])) {
             $this->typeFieldExtensions[$typeNameOrAlias] = [];
@@ -106,7 +110,8 @@ class SchemaRegistry
         array_push($this->typeFieldExtensions[$typeNameOrAlias], ...$fieldFactories);
     }
 
-    public function extendTypes(array $extensions): void {
+    public function extendTypes(array $extensions): void
+    {
         foreach ($extensions as $typeName => $definitions) {
             $this->extendType($typeName, ...$definitions);
         }
@@ -139,9 +144,9 @@ class SchemaRegistry
     }
 
     public function createSchemaConfig(
-        ?string $queryTypeName = null,
-        ?string $mutationTypeName = null,
-        bool    $assumeValid = true,
+        ?string      $queryTypeName = null,
+        ?string      $mutationTypeName = null,
+        bool         $assumeValid = true,
         ?SchemaRules $schemaRules = null,
     ): SchemaConfig
     {
@@ -192,17 +197,44 @@ class SchemaRegistry
         );
     }
 
+    public function printPartial(?SchemaRules $schemaRules = null): string
+    {
+        $aliases = $this->createAliases();
+        $registry = new PartialPrintRegistry(
+            $this->types,
+            $aliases,
+            $extensions = $this->resolveFieldExtensions($aliases),
+            $schemaRules,
+        );
+
+        // This step is required to get type hints for interface types.
+        $typeNames = array_unique([...$registry->getTypeNames(), ...array_keys($extensions)]);
+
+        $schema = new Schema(SchemaConfig::create([
+            'types' => array_filter(
+                array_map(function(string $name) use ($registry) {
+                    /** @var Type $type */
+                    $type = Schema::resolveType($registry->type($name));
+                    $hasFields = $type instanceof ObjectType || $type instanceof InterfaceType || $type instanceof InputObjectType;
+                    $isEmpty = $hasFields && empty($type->getFields());
+                    return $isEmpty ? null : $type;
+                }, $typeNames)
+            ),
+        ]));
+
+        return SchemaPrinter::doPrint($schema);
+    }
+
     /**
      * @param string|null $queryTypeName
      * @param string|null $mutationTypeName
      * @param bool $assumeValid
-     * @param array $excludeTags
      * @return Schema
      */
     public function createSchema(
-        ?string $queryTypeName = null,
-        ?string $mutationTypeName = null,
-        bool    $assumeValid = true,
+        ?string      $queryTypeName = null,
+        ?string      $mutationTypeName = null,
+        bool         $assumeValid = true,
         ?SchemaRules $schemaRules = null,
     ): Schema
     {

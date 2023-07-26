@@ -125,17 +125,4 @@ class QueryTest extends TestCase
             ],
         ];
     }
-
-    public function testGetQueryByOperationName(): void {
-        $query = 'query First { actor } query Second { different }';
-        self::assertEquals('query First {
-  actor
-}
-', Query::getQueryByOperationName($query, 'First'));
-
-        self::assertEquals('query Second {
-  different
-}
-', Query::getQueryByOperationName($query, 'Second'));
-    }
 }

@@ -8,7 +8,7 @@ use GraphQlTools\Utility\Query;
 
 /**
  * @property-read string $query
- * @method static create(string $query, GraphQlContext $context)
+ * @method static create(string $query, GraphQlContext $context, string|null $operationName)
  */
 final class StartEvent extends Event
 {

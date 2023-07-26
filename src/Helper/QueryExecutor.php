@@ -134,7 +134,7 @@ class QueryExecutor
         ]);
         $validationRules = ValidationRules::initialize($this->validationRules, $context);
 
-        $extensionManager->dispatchStartEvent(StartEvent::create($query, $context));
+        $extensionManager->dispatchStartEvent(StartEvent::create($query, $context, null));
 
         try {
             $source = Parser::parse($query);
@@ -191,7 +191,7 @@ class QueryExecutor
     {
         $extensionManager = ExtensionManager::createFromExtensionFactories($this->extensionFactories);
         $validationRules = ValidationRules::initialize($this->validationRules, $context);
-        $extensionManager->dispatchStartEvent(StartEvent::create($query, $context));
+        $extensionManager->dispatchStartEvent(StartEvent::create($query, $context, $operationName));
 
         try {
             $source = Parser::parse($query);

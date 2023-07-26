@@ -9,6 +9,7 @@ use GraphQL\Type\Definition\ObjectType;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
+use GraphQlTools\Data\ValueObjects\GraphQlTypes;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Shared\HasDeprecation;
 use GraphQlTools\Definition\Shared\HasDescription;
@@ -55,7 +56,7 @@ abstract class GraphQlType implements DefinesGraphQlType
                     $schemaRules
                 ),
                 'interfaces' => fn() => array_map(
-                    fn(string $interfaceName) => $registry->type($interfaceName),
+                    fn(string $interfaceName) => $registry->type($interfaceName, GraphQlTypes::INTERFACE),
                     $this->interfaces()
                 ),
             ]

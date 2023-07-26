@@ -4,6 +4,7 @@ namespace GraphQlTools\Contract;
 
 use Closure;
 use GraphQL\Type\Definition\Type;
+use GraphQlTools\Data\ValueObjects\GraphQlTypes;
 
 interface TypeRegistry
 {
@@ -14,5 +15,5 @@ interface TypeRegistry
      * @param string|class-string<Type>  $nameOrAlias
      * @return Closure(): Type|Type
      */
-    public function type(string $nameOrAlias): Closure|Type;
+    public function type(string $nameOrAlias, ?GraphQlTypes $typeHint = null): Closure|Type;
 }

@@ -9,7 +9,10 @@ use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Helper\Registry\SchemaRegistry;
 use GraphQlTools\Helper\Registry\TagBasedSchemaRules;
+use GraphQlTools\Test\Dummies\Schema\Input\MamelsQueryInputType;
 use GraphQlTools\Test\Dummies\Schema\LionType;
+use GraphQlTools\Test\Dummies\Schema\ProtectedUserType;
+use GraphQlTools\Test\Dummies\Schema\Stitching\ExtendMamelInterface;
 use PHPUnit\Framework\TestCase;
 
 class SchemaRegistrySchemaTest extends TestCase
@@ -21,6 +24,50 @@ class SchemaRegistrySchemaTest extends TestCase
         $federation->register(LionType::class);
         $federation->verifyTypeNames();
         self::assertTrue(true);
+    }
+
+    public function testPartialPrint(): void {
+        $schema = new SchemaRegistry();
+        $schema->extendType('Mamel', ExtendMamelInterface::class);
+        $schema->register(LionType::class);
+        $schema->register(ProtectedUserType::class);
+        $schema->register(MamelsQueryInputType::class);
+        self::assertEquals('""
+type Lion implements Mamel {
+  ""
+  sound: String!
+
+  "**Deprecated**: Some reason. Removal Date: 2023-01-09.  Tags: First, Second"
+  fieldWithMeta(test: String = "This is a string", else: String = "MEAT"): String! @deprecated(reason: "Some reason")
+
+  ""
+  depth: Depth
+
+  ""
+  added: String
+}
+
+"External type, interface, scalar, union or input type reference not present in the schema"
+type Depth
+
+""
+type ProtectedUser {
+  ""
+  secret: String
+}
+
+"My description"
+input MamelsQueryInput {
+  "**Deprecated**: my reason. No removal date specified. "
+  name: String!
+}
+
+"External type, scalar, union or input type reference not present in the schema"
+interface Mamel {
+  "@extend(): This field is an extension of an external type"
+  added: String
+}
+', $schema->printPartial());
     }
 
     public function testRegisterWithInvalidName() {

@@ -32,7 +32,7 @@ class ExtensionManagerTest extends TestCase
     }
 
     public function testExtensionsEventDispatching() {
-        $startEvent = StartEvent::create('', $this->prophesize(GraphQlContext::class)->reveal());
+        $startEvent = StartEvent::create('', $this->prophesize(GraphQlContext::class)->reveal(), null);
         $endEvent = EndEvent::create(new ExecutionResult(null));
 
         /** @var Extension|ObjectProphecy $extensionProphecy */
