@@ -109,6 +109,17 @@ class QueryExecutor
         return $operationNames;
     }
 
+    /**
+     * This is experimental
+     * @param Schema $schema
+     * @param string $query
+     * @param GraphQlContext $context
+     * @param array|null $variables
+     * @param mixed|null $rootValue
+     * @return ExecutionResult
+     * @throws DefinitionException
+     * @throws \JsonException
+     */
     public function executeMultiple(
         Schema         $schema,
         string         $query,

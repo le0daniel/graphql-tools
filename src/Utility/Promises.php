@@ -4,7 +4,7 @@ namespace GraphQlTools\Utility;
 
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 
-final class Promisses
+final class Promises
 {
     private static string $promiseClassName = SyncPromise::class;
 

@@ -12,7 +12,7 @@ use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Helper\OperationContext;
-use GraphQlTools\Utility\Promisses;
+use GraphQlTools\Utility\Promises;
 use Throwable;
 
 class ProxyResolver
@@ -84,7 +84,7 @@ class ProxyResolver
                 $info
             );
 
-            return Promisses::isPromise($promiseOrValue)
+            return Promises::isPromise($promiseOrValue)
                 ? $promiseOrValue
                     ->then(static fn(mixed $resolvedValue): mixed => $afterFieldResolution($resolvedValue))
                     ->catch(static fn(Throwable $error): Throwable => $afterFieldResolution($error))

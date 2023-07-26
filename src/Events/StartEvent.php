@@ -13,11 +13,16 @@ use GraphQlTools\Utility\Query;
 final class StartEvent extends Event
 {
 
-    protected function __construct(public readonly string $query, public readonly GraphQlContext $context)
+    protected function __construct(
+        public readonly string         $query,
+        public readonly GraphQlContext $context,
+        public readonly null|string    $operationName,
+    )
     {
     }
 
-    public function isIntrospectionQuery(): bool {
+    public function isIntrospectionQuery(): bool
+    {
         return Query::isIntrospection($this->query);
     }
 

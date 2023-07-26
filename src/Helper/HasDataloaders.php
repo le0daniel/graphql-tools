@@ -30,13 +30,9 @@ trait HasDataloaders
 
     public function dataLoader(string $key): DataLoader
     {
-        if (!isset($this->dataLoaderInstances[$key])) {
-            $this->dataLoaderInstances[$key] = new DataLoader(
-                $this->makeInstanceOfDataLoaderExecutor($key)
-            );
-        }
-
-        return $this->dataLoaderInstances[$key];
+        return $this->dataLoaderInstances[$key] ??= new DataLoader(
+            $this->makeInstanceOfDataLoaderExecutor($key)
+        );
     }
 
 }

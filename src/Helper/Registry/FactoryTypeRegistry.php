@@ -16,7 +16,7 @@ use RuntimeException;
 class FactoryTypeRegistry implements TypeRegistryContract
 {
     private array $typeInstances = [];
-    private readonly SchemaRules $schemaRules;
+    protected readonly SchemaRules $schemaRules;
 
     /**
      * @param array<string, callable|class-string> $types
@@ -24,9 +24,9 @@ class FactoryTypeRegistry implements TypeRegistryContract
      * @param array<string, array<ExtendGraphQlType|class-string|Closure>> $extendedTypes
      */
     public function __construct(
-        private readonly array $types,
-        private readonly array $aliasesOfTypes = [],
-        private readonly array $extendedTypes = [],
+        protected readonly array $types,
+        protected readonly array $aliasesOfTypes = [],
+        protected readonly array $extendedTypes = [],
         ?SchemaRules $schemaRules = null
     )
     {
@@ -61,7 +61,7 @@ class FactoryTypeRegistry implements TypeRegistryContract
     /**
      * @throws DefinitionException
      */
-    private function getTypeFieldExtensions(GraphQlInterface|GraphQlType $type): array {
+    protected function getTypeFieldExtensions(GraphQlInterface|GraphQlType $type): array {
         $factories = $this->getFieldExtensionsForTypeName($type->getName());
 
         if ($type instanceof GraphQlType) {
@@ -78,7 +78,7 @@ class FactoryTypeRegistry implements TypeRegistryContract
         return $factories;
     }
 
-    private function getFieldExtensionsForTypeName(string $typeName): array {
+    protected function getFieldExtensionsForTypeName(string $typeName): array {
         if (!isset($this->extendedTypes[$typeName])) {
             return [];
         }
