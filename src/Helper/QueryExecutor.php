@@ -54,6 +54,7 @@ class QueryExecutor
         private readonly array    $extensionFactories = [],
         private readonly array    $validationRules = self::DEFAULT_CONTEXTUAL_VALIDATION_RULE,
         private readonly ?Closure $errorLogger = null,
+        private readonly ?Closure $errorMapper = null,
     )
     {
     }
@@ -237,14 +238,30 @@ class QueryExecutor
     {
         $formattedErrors = [];
         $hasCustomErrorLogger = !!$this->errorLogger;
+        $hasErrorMapper = !!$this->errorMapper;
 
         foreach ($errors as $graphQlError) {
             $hasPreviousError = !!$graphQlError->getPrevious();
-            if ($hasCustomErrorLogger && $hasPreviousError) {
+            if (!$hasPreviousError) {
+                $formattedErrors[] = $formatter($graphQlError);
+                continue;
+            }
+
+            // Log the original error
+            if ($hasCustomErrorLogger) {
                 ($this->errorLogger)($graphQlError->getPrevious(), $graphQlError);
             }
 
-            $formattedErrors[] = $formatter($graphQlError);
+            $formattedErrors[] = $hasErrorMapper
+                ? $formatter(new GraphQlError(
+                    $graphQlError->getMessage(),
+                    $graphQlError->nodes,
+                    $graphQlError->getSource(),
+                    $graphQlError->getPositions(),
+                    $graphQlError->getPath(),
+                    ($this->errorMapper)($graphQlError->getPrevious())
+                ))
+                : $formatter($graphQlError);
         }
         return $formattedErrors;
     }

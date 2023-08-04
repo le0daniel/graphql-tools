@@ -42,9 +42,7 @@ class SchemaRegistry
         $typeName = is_string($definition)
             ? Types::inferNameFromClassName($definition)
             : $definition->getName();
-
-        $this->verifyTypeNameIsNotUsed($typeName);
-        $this->types[$typeName] = $definition;
+        $this->registerType($typeName, $definition);
     }
 
     public function verifyTypeNames(): void
@@ -62,11 +60,6 @@ class SchemaRegistry
 
     public function registerType(string $typeName, string|DefinesGraphQlType $typeDeclaration): void
     {
-        if ($typeDeclaration instanceof DefinesGraphQlType) {
-            $this->register($typeDeclaration);
-            return;
-        }
-
         $this->verifyTypeNameIsNotUsed($typeName);
         $this->types[$typeName] = $typeDeclaration;
     }
@@ -113,7 +106,8 @@ class SchemaRegistry
     public function extendTypes(array $extensions): void
     {
         foreach ($extensions as $typeName => $definitions) {
-            $this->extendType($typeName, ...$definitions);
+            $fieldFactories = is_array($definitions) ? $definitions : [$definitions];
+            $this->extendType($typeName, ...$fieldFactories);
         }
     }
 

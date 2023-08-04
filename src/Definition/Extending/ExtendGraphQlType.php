@@ -16,7 +16,8 @@ abstract class ExtendGraphQlType
     /**
      * @return array<Closure>
      */
-    protected function middleware(): array {
+    protected function middleware(): array
+    {
         return [];
     }
 
@@ -26,7 +27,8 @@ abstract class ExtendGraphQlType
      */
     abstract protected function fields(TypeRegistry $registry): array;
 
-    final public function getFields(TypeRegistry $registry): array {
+    final public function getFields(TypeRegistry $registry): array
+    {
         $middleware = $this->middleware();
         if ($this->key()) {
             array_unshift($middleware, Federation::key($this->key()));
