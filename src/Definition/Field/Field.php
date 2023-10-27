@@ -24,6 +24,8 @@ final class Field
     private null|Closure $costFunction = null;
     private int $cost = 0;
 
+    private Closure|bool $visible = true;
+
     protected function __construct(public readonly string $name)
     {
     }
@@ -78,7 +80,7 @@ final class Field
     {
         $resolveFn = empty($this->middlewares)
             ? new ProxyResolver($this->resolveFunction ?? null)
-            : new MiddlewareResolver($this->resolveFunction, $this->middlewares);
+            : new MiddlewareResolver($this->resolveFunction ?? null, $this->middlewares);
 
         $this->verifyTypeIsSet();
         return new FieldDefinition([
@@ -91,8 +93,14 @@ final class Field
             'args' => $this->initArguments($schemaRules),
             'tags' => $this->getTags(),
             'complexity' => $this->costFunction ?? self::freeCost(...),
-            'cost' => $this->cost
+            'cost' => $this->cost,
+            'visible' => $this->visible,
         ]);
+    }
+
+    public function visible(Closure $closure): self {
+        $this->visible = $closure;
+        return $this;
     }
 
     public function getName(): string

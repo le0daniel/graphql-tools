@@ -11,13 +11,13 @@ final class MiddlewareResolver extends ProxyResolver
 {
     private Closure $resolver;
 
-    public function __construct(private readonly Closure $middle, private readonly array $pipes)
+    public function __construct(private readonly ?Closure $middle, private readonly array $pipes)
     {
         parent::__construct();
     }
 
     private function getResolveFunction(): Closure {
-        return $this->resolver ??= Middleware::create($this->pipes)->then($this->middle);
+        return $this->resolver ??= Middleware::create($this->pipes)->then($this->middle ?? self::resolveDefault(...));
     }
 
     public function resolveToValue(mixed $typeData, array $arguments, GraphQlContext $context, ResolveInfo $info): mixed

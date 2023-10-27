@@ -3,6 +3,9 @@
 namespace GraphQlTools\Helper\Registry;
 
 use Closure;
+use GraphQL\Type\Definition\ListOfType;
+use GraphQL\Type\Definition\NonNull;
+use GraphQL\Type\Definition\ScalarType;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\SchemaRules;
@@ -142,5 +145,40 @@ class FactoryTypeRegistry implements TypeRegistryContract
             : $instance
                 ->mergeFieldFactories(...$extendedFields)
                 ->toDefinition($this,  $this->schemaRules);
+    }
+
+    public function nonNull(Type|Closure $wrappedType): NonNull
+    {
+        return new NonNull($wrappedType);
+    }
+
+    public function listOf(Type|Closure $wrappedType): ListOfType
+    {
+        return new ListOfType($wrappedType);
+    }
+
+    public function int(): ScalarType
+    {
+        return Type::int();
+    }
+
+    public function float(): ScalarType
+    {
+        return Type::float();
+    }
+
+    public function string(): ScalarType
+    {
+        return Type::string();
+    }
+
+    public function id(): ScalarType
+    {
+        return Type::id();
+    }
+
+    public function boolean(): ScalarType
+    {
+        return Type::boolean();
     }
 }

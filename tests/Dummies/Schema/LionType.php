@@ -18,14 +18,14 @@ final class LionType extends GraphQlType {
     protected function fields(TypeRegistry $registry): array {
         return [
             Field::withName('sound')
-                ->ofType(Type::nonNull(Type::string()))
+                ->ofType($registry->nonNull($registry->string()))
                 ->middleware(
                     fn(array $data, $args, $context, $info, $next) => $next($data['sound'] ?? '', $args, $context, $info)
                 )
                 ->resolvedBy(fn(string $sound) => $sound),
 
             Field::withName('fieldWithMeta')
-                ->ofType(Type::nonNull(Type::string()))
+                ->ofType($registry->nonNull($registry->string()))
                 ->resolvedBy(function ($value, $args, $context, ResolveInfo $resolveInfo) {
                     return "Tags are: " . implode(', ', $resolveInfo->fieldDefinition->config['tags'] ?? []);
                 })

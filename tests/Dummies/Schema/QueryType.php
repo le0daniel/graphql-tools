@@ -66,6 +66,10 @@ final class QueryType extends GraphQlType
                     return 'Hello World!';
                 }),
 
+            Field::withName('middlewareWithoutResolver')
+                ->ofType($registry->string())
+                ->middleware(fn($a, $b, $c, $d, $next) => ($next(['middlewareWithoutResolver' => 'Default'], $b, $c, $d)). ' - this is the middle'),
+
             Field::withName('testFieldMiddleware')
                 ->ofType(Type::nonNull(Type::string()))
                 ->middleware(Federation::field('currentUser'))

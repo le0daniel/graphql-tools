@@ -54,7 +54,7 @@ Everything begins by defining a new Type Repository. The Type Repository makes s
     );
 ```
 
-## Type Repository
+## Type Registry
 
 When using GraphQl with Objects definition, it is important to keep in mind that a type can only exist once in a schema.
 Meaning, if both of your types `Tiger` and `Lion` have a field named `parent` of type `Animal`, the object defining `Animal` must only be initialized once.
@@ -144,7 +144,7 @@ Full example of Type definition:
             return 'Provide the description of your type.';
         }
         
-        protected function fields() : array {
+        protected function fields(TypeRegistry $registry) : array {
             // To prevent circular types, this is already wrapped in a closure
             // Provide the fields of your type.
             // --

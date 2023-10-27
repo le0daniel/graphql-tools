@@ -2,8 +2,6 @@
 
 namespace GraphQlTools\Contract;
 
-use GraphQL\Executor\Promise\Adapter\SyncPromise;
-
 /**
  * @template T
  */

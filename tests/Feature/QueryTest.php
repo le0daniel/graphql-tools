@@ -223,6 +223,13 @@ class QueryTest extends TestCase
         self::assertEquals('Done: test', $result->data['createAnimal']);
     }
 
+    public function testMiddlewareWithoutResolver(): void
+    {
+        $result = $this->execute('query { middlewareWithoutResolver}');
+        $this->assertNoErrors($result);
+        self::assertEquals('Default - this is the middle', $result->data['middlewareWithoutResolver']);
+    }
+
     public function testQueryWithUnion(): void
     {
         $result = $this->execute('query { animals { ... on Lion {sound} } }');

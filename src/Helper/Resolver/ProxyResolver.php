@@ -17,6 +17,13 @@ use Throwable;
 
 class ProxyResolver
 {
+    /**
+     * Allows to overwrite the default resolver behaviour.
+     *
+     * @var Closure(mixed $typeData, array $arguments, GraphQlContext $context, ResolveInfo $info): mixed|null
+     */
+    public static ?Closure $defaultResolver = null;
+
     public function __construct(private readonly ?Closure $resolveFunction = null)
     {
     }
@@ -34,14 +41,17 @@ class ProxyResolver
      */
     public function resolveToValue(mixed $typeData, array $arguments, GraphQlContext $context, ResolveInfo $info): mixed
     {
-        if ($this->resolveFunction) {
-            return ($this->resolveFunction)($typeData, $arguments, $context, $info);
-        }
-
-        return $this->resolveDefault($info->fieldName, $typeData);
+        return $this->resolveFunction
+            ? ($this->resolveFunction)($typeData, $arguments, $context, $info)
+            : self::resolveDefault($typeData, $arguments, $context, $info);
     }
 
-    protected function resolveDefault(string $fieldName, mixed $typeData): mixed {
+    protected static function resolveDefault(mixed $typeData, array $arguments, GraphQlContext $context, ResolveInfo $info): mixed {
+        if (self::$defaultResolver) {
+            return (self::$defaultResolver)($typeData, $arguments, $context, $info);
+        }
+
+        $fieldName = $info->fieldName;
         if (is_array($typeData) || $typeData instanceof ArrayAccess) {
             return $typeData[$fieldName] ?? null;
         }

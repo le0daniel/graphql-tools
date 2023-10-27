@@ -12,10 +12,10 @@ use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Helper\Extension\Extension;
 use Throwable;
 
-final class ExtensionManager
+final readonly class ExtensionManager
 {
     /** @var Extension[] */
-    private readonly array $extensions;
+    private array $extensions;
 
     public function __construct(Extension ...$extensions)
     {
@@ -83,6 +83,7 @@ final class ExtensionManager
             }
 
             // Extensions should not modify the resolved value, they can only read it.
+            // Use middlewares to actually change the behaviour
             return $resolvedValue;
         };
     }
