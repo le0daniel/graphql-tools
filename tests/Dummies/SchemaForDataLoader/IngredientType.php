@@ -14,10 +14,10 @@ class IngredientType extends GraphQlType
     {
         return [
             Field::withName('id')
-                ->ofType(Type::id())
+                ->ofType($registry->id())
                 ->resolvedBy(fn($data): int => $data['id']),
             Field::withName('name')
-                ->ofType(Type::string())
+                ->ofType($registry->string())
                 ->resolvedBy(fn($data): string => $data['name'])
         ];
     }

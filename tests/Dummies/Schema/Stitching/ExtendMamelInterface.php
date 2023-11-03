@@ -24,7 +24,7 @@ class ExtendMamelInterface extends ExtendGraphQlType
     {
         return [
             Field::withName('added')
-                ->ofType(Type::string())
+                ->ofType($registry->string())
                 ->resolvedBy(fn() => 'this is a value')
         ];
     }

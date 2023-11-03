@@ -105,7 +105,7 @@ interface Mamel {
             {
                 return [
                     Field::withName('test')
-                        ->ofType(Type::string())
+                        ->ofType($registry->string())
                         ->resolvedBy(fn() => '')
                         ->tags('hidden')
                 ];

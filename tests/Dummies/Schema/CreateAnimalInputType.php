@@ -14,7 +14,7 @@ class CreateAnimalInputType extends GraphQlInputType
     {
         return [
             InputField::withName('id')
-                ->ofType(Type::nonNull(Type::id()))
+                ->ofType($registry->nonNull($registry->id()))
                 ->withDefaultValue('My-ID')
         ];
     }

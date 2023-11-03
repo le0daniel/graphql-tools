@@ -105,7 +105,7 @@ class QueryTest extends TestCase
             UserType::class,
             fn(TypeRegistry $registry) => [
                 Field::withName('extended')
-                    ->ofType(Type::string())
+                    ->ofType($registry->string())
                     ->resolvedBy(fn() => 'extended'),
                 Field::withName('closure')
                     ->ofType($registry->type(JsonScalar::class))
@@ -115,7 +115,7 @@ class QueryTest extends TestCase
 
         $federatedSchema->extendType('User', fn(TypeRegistry $registry) => [
             Field::withName('byName')
-                ->ofType(Type::string())
+                ->ofType($registry->string())
                 ->tags('name')
                 ->middleware(
                     Federation::key('id')
@@ -127,7 +127,7 @@ class QueryTest extends TestCase
                 ->ofType($registry->type('User')),
 
             Field::withName('lazy')
-                ->ofType(Type::string())
+                ->ofType($registry->string())
                 ->resolvedBy(fn() => 'lazy-field')
         ]);
 

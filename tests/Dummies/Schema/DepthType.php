@@ -14,7 +14,7 @@ final class DepthType extends GraphQlType
     {
         return [
             Field::withName('id')
-                ->ofType(Type::string())
+                ->ofType($registry->string())
                 ->resolvedBy(fn() => 'just a string'),
             Field::withName('deeper')
                 ->ofType($registry->type(DepthType::class))

@@ -19,7 +19,7 @@ class MamelsQueryInputType extends GraphQlInputType
     {
         return [
             InputField::withName('name')
-                ->ofType(Type::nonNull(Type::string()))
+                ->ofType($registry->nonNull($registry->string()))
                 ->deprecated('my reason')
         ];
     }

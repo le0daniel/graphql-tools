@@ -175,7 +175,7 @@ class SchemaRegistry
                     }
                 },
                 'assumeValid' => $assumeValid,
-                'directives' => array_map(fn(GraphQlDirective $directive): Directive => $directive->toDefinition(), $this->directives) + GraphQL::getStandardDirectives(),
+                'directives' => array_map(fn(GraphQlDirective $directive): Directive => $directive->toDefinition($registry), $this->directives) + GraphQL::getStandardDirectives(),
             ]
         );
     }

@@ -47,11 +47,11 @@ final class QueryType extends GraphQlType
         $value = 'test';
         return [
             Field::withName('currentUser')
-                ->ofType(Type::string())
+                ->ofType($registry->string())
                 ->withArguments(
                     InputField::withName('name')
                         ->tags('private')
-                        ->ofType(Type::string())
+                        ->ofType($registry->string())
                 )
                 ->deprecated('My reason')
                 ->withDescription('')
@@ -71,19 +71,19 @@ final class QueryType extends GraphQlType
                 ->middleware(fn($a, $b, $c, $d, $next) => ($next(['middlewareWithoutResolver' => 'Default'], $b, $c, $d)). ' - this is the middle'),
 
             Field::withName('testFieldMiddleware')
-                ->ofType(Type::nonNull(Type::string()))
+                ->ofType($registry->nonNull($registry->string()))
                 ->middleware(Federation::field('currentUser'))
                 ->resolvedBy(fn(string $data): string => $data),
 
             Field::withName('middlewareWithPrimitiveBinding')
-                ->ofType(Type::string())
+                ->ofType($registry->string())
                 ->tags('private')
                 ->resolvedBy(static function($_, $__, $context, ResolveInfo $info) use ($value) {
                     return $value;
                 }),
 
             Field::withName('mamelsQuery')
-                ->ofType(Type::string())
+                ->ofType($registry->string())
                 ->withArguments(
                     InputField::withName('query')
                         ->ofType($registry->type(MamelsQueryInputType::class))
@@ -103,11 +103,11 @@ final class QueryType extends GraphQlType
                 ->resolvedBy(fn() => 'some data'),
 
             Field::withName('whoami')
-                ->ofType(Type::string())
+                ->ofType($registry->string())
                 ->resolvedBy(fn() => QueryType::WHOAMI_DATA),
 
             Field::withName('createAnimal')
-                ->ofType(Type::string())
+                ->ofType($registry->string())
                 ->withArguments(
                     InputField::withName('input')
                         ->ofType($registry->type(CreateAnimalInputType::class))
@@ -116,7 +116,7 @@ final class QueryType extends GraphQlType
                 ),
 
             Field::withName('user')
-                ->ofType(new NonNull($registry->type(UserType::class)))
+                ->ofType($registry->nonNull($registry->type(UserType::class)))
                 ->resolvedBy(fn() => ['id' => QueryType::USER_ID]),
 
             Field::withName('jsonInput')
@@ -134,7 +134,13 @@ final class QueryType extends GraphQlType
 
             Field::withName('animals')
                 ->ofType(
-                    Type::nonNull(Type::listOf(Type::nonNull($registry->type(AnimalUnion::class))))
+                    $registry->nonNull(
+                        $registry->listOf(
+                            $registry->nonNull(
+                                $registry->type(AnimalUnion::class)
+                            )
+                        )
+                    )
                 )
                 ->resolvedBy(fn() => QueryType::ANIMALS)
             ,

@@ -21,7 +21,7 @@ final class ProtectedUserType extends GraphQlType
     {
         return [
             Field::withName('secret')
-                ->ofType(Type::string())
+                ->ofType($registry->string())
                 ->resolvedBy(fn() => 'secret value')
         ];
     }

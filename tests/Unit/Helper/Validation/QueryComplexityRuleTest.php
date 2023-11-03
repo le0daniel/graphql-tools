@@ -24,7 +24,7 @@ class QueryComplexityRuleTest extends TestCase
             {
                 return [
                     Field::withName('currentUser')
-                        ->ofType(Type::string())
+                        ->ofType($registry->string())
                         ->cost(5)
                         ->resolvedBy(fn() => 'username'),
                     Field::withName('user')
@@ -37,7 +37,7 @@ class QueryComplexityRuleTest extends TestCase
                     Field::withName('multiplied')
                         ->withArguments(
                             InputField::withName('limit')
-                                ->ofType(Type::nonNull(Type::int()))
+                                ->ofType($registry->nonNull($registry->int()))
                         )
                         ->ofType($registry->type('User'))
                         ->resolvedBy(fn() => 'something')
@@ -45,7 +45,7 @@ class QueryComplexityRuleTest extends TestCase
                     Field::withName('multipliedZero')
                         ->withArguments(
                             InputField::withName('limit')
-                                ->ofType(Type::nonNull(Type::int()))
+                                ->ofType($registry->nonNull($registry->int()))
                         )
                         ->ofType($registry->type('User'))
                         ->resolvedBy(fn() => 'something')
@@ -69,11 +69,11 @@ class QueryComplexityRuleTest extends TestCase
             {
                 return [
                     Field::withName('id')
-                        ->ofType(Type::string())
+                        ->ofType($registry->string())
                         ->cost(5)
                         ->resolvedBy(fn() => 'username'),
                     Field::withName('name')
-                        ->ofType(Type::string())
+                        ->ofType($registry->string())
                         ->cost(3)
                         ->resolvedBy(fn() => 'username'),
                 ];

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace GraphQlTools\Test\Dummies\Schema;
 
 use GraphQL\Type\Definition\ResolveInfo;
-use GraphQL\Type\Definition\Type;
 use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
@@ -16,7 +15,7 @@ final class MamelInterface extends GraphQlInterface {
 
     protected function fields(TypeRegistry $registry): array {
         return [
-            Field::withName('sound')->ofType(Type::nonNull(Type::string())),
+            Field::withName('sound')->ofType($registry->nonNull($registry->string())),
         ];
     }
 

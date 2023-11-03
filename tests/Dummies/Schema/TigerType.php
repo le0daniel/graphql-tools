@@ -18,19 +18,19 @@ final class TigerType extends GraphQlType {
     protected function fields(TypeRegistry $registry): array {
         return [
             Field::withName('sound')
-                ->ofType(Type::nonNull(Type::string()))
+                ->ofType($registry->nonNull($registry->string()))
                 ->resolvedBy(fn(array $data) => $data['sound']),
 
             Field::withName('withArg')
-                ->ofType(Type::string())
+                ->ofType($registry->string())
                 ->withArguments(
                     InputField::withName('test')
-                        ->ofType(Type::string())
+                        ->ofType($registry->string())
                 )
                 ->resolvedBy(fn($tiger, array $arguments) => $arguments['test']),
 
             Field::withName('deferred')
-                ->ofType(Type::string())
+                ->ofType($registry->string())
                 ->resolvedBy(function(array $data, array $arguments, $context, ResolveInfo $resolveInfo) {
                     return $context->dataLoader('test', $arguments, $resolveInfo)
                         ->load($data['id']);

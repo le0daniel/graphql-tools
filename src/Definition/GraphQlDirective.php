@@ -4,6 +4,7 @@ namespace GraphQlTools\Definition;
 
 use GraphQL\Language\DirectiveLocation;
 use GraphQL\Type\Definition\Directive;
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\Shared\HasDescription;
 
@@ -11,21 +12,21 @@ abstract class GraphQlDirective
 {
     use HasDescription;
 
-    public function toDefinition(): Directive
+    public function toDefinition(TypeRegistry $registry): Directive
     {
         $this->verifyLocations();
         return new Directive([
             'name' => $this->getName(),
             'description' => $this->description(),
-            'args' => $this->initInputFields(),
+            'args' => $this->initInputFields($registry),
             'isRepeatable' => $this->isRepeatable(),
             'locations' => $this->locations(),
         ]);
     }
 
-    private function initInputFields(): array {
+    private function initInputFields(TypeRegistry $registry): array {
         $fields = [];
-        foreach ($this->arguments() as $argument) {
+        foreach ($this->arguments($registry) as $argument) {
             $fields[$argument->getName()] = $argument->toDefinition();
         }
         return $fields;
@@ -43,7 +44,7 @@ abstract class GraphQlDirective
     /**
      * @return array<InputField>
      */
-    abstract protected function arguments(): array;
+    abstract protected function arguments(TypeRegistry $registry): array;
     abstract protected function locations(): array;
     abstract public function getName(): string;
 

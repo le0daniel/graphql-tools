@@ -13,7 +13,7 @@ final class DummyType extends GraphQlType {
 
     protected function fields(TypeRegistry $registry): array{
         return [
-            Field::withName('id')->ofType(Type::id())
+            Field::withName('id')->ofType($registry->id())
         ];
     }
 

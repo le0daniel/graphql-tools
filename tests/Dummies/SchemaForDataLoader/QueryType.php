@@ -17,10 +17,10 @@ class QueryType extends GraphQlType
     {
         return [
             Field::withName('loadByIds')
-                ->ofType(Type::listOf($registry->type(IngredientType::class)))
+                ->ofType($registry->listOf($registry->type(IngredientType::class)))
                 ->withArguments(
                     InputField::withName('ids')
-                        ->ofType(Type::nonNull(Type::listOf(Type::nonNull(Type::id()))))
+                        ->ofType($registry->nonNull($registry->listOf($registry->nonNull($registry->id()))))
                 )
                 ->resolvedBy(fn($_, $arguments, Context $context) => $context
                     ->dataLoader('loadMany')

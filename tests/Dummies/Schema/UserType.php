@@ -15,13 +15,13 @@ final class UserType extends GraphQlType {
     protected function fields(TypeRegistry $registry): array {
         return [
             Field::withName('id')
-                ->ofType(Type::id())
+                ->ofType($registry->id())
                 ->resolvedBy(fn($data) => $data['id']),
 
             Field::withName('name')
-                ->ofType(Type::nonNull(Type::string()))
+                ->ofType($registry->nonNull($registry->string()))
                 ->withArguments(
-                    InputField::withName('name')->ofType( Type::string())
+                    InputField::withName('name')->ofType( $registry->string())
                 )
                 ->resolvedBy(fn($data, array $arguments) => $arguments['name'] ?? 'no name given'),
 
