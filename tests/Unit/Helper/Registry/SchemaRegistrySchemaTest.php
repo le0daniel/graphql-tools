@@ -23,7 +23,6 @@ class SchemaRegistrySchemaTest extends TestCase
     {
         $federation = new SchemaRegistry();
         $federation->register(LionType::class);
-        $federation->verifyTypeNames();
         self::assertTrue(true);
     }
 

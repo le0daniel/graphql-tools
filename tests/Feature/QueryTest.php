@@ -148,7 +148,7 @@ class QueryTest extends TestCase
     protected function schemaWithExportDirective(array $excludeTags = []): Schema
     {
         $registry = $this->schemaRegistry();
-        $registry->registerDirective(new ExportDirective());
+        $registry->register(new ExportDirective());
         $schema = $registry->createSchema(QueryType::class, schemaRules: new TagBasedSchemaRules($excludeTags));
         $schema->assertValid();
         return $schema;

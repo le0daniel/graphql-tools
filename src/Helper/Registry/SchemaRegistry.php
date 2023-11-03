@@ -37,36 +37,22 @@ class SchemaRegistry
      */
     private array $typeFieldExtensions = [];
 
-    public function register(DefinesGraphQlType|string $definition): void
+    /**
+     * @param DefinesGraphQlType|class-string<DefinesGraphQlType> $definition
+     * @throws DefinitionException
+     */
+    public function register(DefinesGraphQlType|GraphQlDirective|string $definition): void
     {
+        if ($definition instanceof GraphQlDirective) {
+            $this->directives[] = $definition;
+            return;
+        }
+
         $typeName = is_string($definition)
             ? Types::inferNameFromClassName($definition)
             : $definition->getName();
-        $this->registerType($typeName, $definition);
-    }
-
-    public function verifyTypeNames(): void
-    {
-        foreach ($this->types as $name => $definition) {
-            $realTypeName = $definition instanceof DefinesGraphQlType
-                ? $definition->getName()
-                : (new $definition)->getName();
-
-            if ($name !== $realTypeName) {
-                throw new DefinitionException("The registered name `{$name}` does not match the name of the type `{$realTypeName}`");
-            }
-        }
-    }
-
-    public function registerType(string $typeName, string|DefinesGraphQlType $typeDeclaration): void
-    {
         $this->verifyTypeNameIsNotUsed($typeName);
-        $this->types[$typeName] = $typeDeclaration;
-    }
-
-    public function registerDirective(GraphQlDirective $directive): void
-    {
-        $this->directives[] = $directive;
+        $this->types[$typeName] = $definition;
     }
 
     private function verifyTypeNameIsNotUsed(string $typeName): void
@@ -76,12 +62,15 @@ class SchemaRegistry
         }
     }
 
+    /**
+     * @param array $types
+     * @return void
+     * @throws DefinitionException
+     */
     public function registerTypes(array $types): void
     {
-        foreach ($types as $possibleName => $declaration) {
-            is_string($possibleName)
-                ? $this->registerType($possibleName, $declaration)
-                : $this->register($declaration);
+        foreach ($types as $declaration) {
+            $this->register($declaration);
         }
     }
 

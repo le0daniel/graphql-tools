@@ -23,7 +23,7 @@ class FactoryTypeRegistry implements TypeRegistryContract
     protected readonly SchemaRules $schemaRules;
 
     /**
-     * @param array<string, callable|class-string|DefinesGraphQlType> $types
+     * @param array<string, class-string<DefinesGraphQlType>|DefinesGraphQlType> $types
      * @param array<string, string> $aliasesOfTypes
      * @param array<string, array<ExtendGraphQlType|class-string|Closure>> $extendedTypes
      */
@@ -65,17 +65,14 @@ class FactoryTypeRegistry implements TypeRegistryContract
     /**
      * @throws DefinitionException
      */
-    protected function getTypeFieldExtensions(GraphQlInterface|GraphQlType $type): array {
+    protected function getTypeExtendedFieldFactories(GraphQlInterface|GraphQlType $type): array {
         $factories = $this->getFieldExtensionsForTypeName($type->getName());
 
         if ($type instanceof GraphQlType) {
             foreach ($type->getInterfaces() as $interfaceNameOrAlias) {
-                $factories = [
-                    ...$factories,
-                    ...$this->getFieldExtensionsForTypeName(
-                        $this->resolveAliasToName($interfaceNameOrAlias)
-                    )
-                ];
+                array_push($factories, ...$this->getFieldExtensionsForTypeName(
+                    $this->resolveAliasToName($interfaceNameOrAlias)
+                ));
             }
         }
 
@@ -103,26 +100,13 @@ class FactoryTypeRegistry implements TypeRegistryContract
 
     protected function createInstanceOfGraphQlType(string $typeName): DefinesGraphQlType {
         $typeFactory = $this->types[$typeName] ?? null;
-        if (!$typeFactory) {
-            throw new DefinitionException("Could not resolve type '{$typeName}', no factory provided. Did you register this type?");
-        }
 
-        // Classname factory. We create a new instance of it.
-        if (is_string($typeFactory)) {
-            return new $typeFactory;
-        }
-
-        // Legacy case where the factory is given as a closure.
-        if ($typeFactory instanceof Closure) {
-            return $typeFactory();
-        }
-
-        // A definition is given.
-        if ($typeFactory instanceof DefinesGraphQlType) {
-            return $typeFactory;
-        }
-
-        throw new DefinitionException("Invalid type factory provided for '{$typeName}'. Expected class-string, closure, or instance of DefinesGraphQlType got: " . gettype($typeFactory));
+        return match (true) {
+            is_string($typeFactory) => new $typeFactory,
+            $typeFactory instanceof DefinesGraphQlType => $typeFactory,
+            is_null($typeFactory) => throw new DefinitionException("Could not resolve type '{$typeName}', no factory provided. Did you register this type?"),
+            default => throw new DefinitionException("Invalid type factory provided for '{$typeName}'. Expected class-string, closure, or instance of DefinesGraphQlType got: " . gettype($typeFactory))
+        };
     }
 
     /**
@@ -132,19 +116,19 @@ class FactoryTypeRegistry implements TypeRegistryContract
      */
     protected function createType(string $typeName): Type
     {
-        $instance = $this->createInstanceOfGraphQlType($typeName);
+        $type = $this->createInstanceOfGraphQlType($typeName);
 
-        $isExtendableType = $instance instanceof GraphQlType || $instance instanceof GraphQlInterface;
-        if (!$isExtendableType) {
-            return $instance->toDefinition($this, $this->schemaRules);
+        $isExtendableType = $type instanceof GraphQlType || $type instanceof GraphQlInterface;
+        if ($isExtendableType) {
+            $extendedFields = $this->getTypeExtendedFieldFactories($type);
+            return empty($extendedFields)
+                ? $type->toDefinition($this, $this->schemaRules)
+                : $type
+                    ->mergeFieldFactories(...$extendedFields)
+                    ->toDefinition($this,  $this->schemaRules);
         }
 
-        $extendedFields = $this->getTypeFieldExtensions($instance);
-        return empty($extendedFields)
-            ? $instance->toDefinition($this, $this->schemaRules)
-            : $instance
-                ->mergeFieldFactories(...$extendedFields)
-                ->toDefinition($this,  $this->schemaRules);
+        return $type->toDefinition($this, $this->schemaRules);
     }
 
     public function nonNull(Type|Closure $wrappedType): NonNull
