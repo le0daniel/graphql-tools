@@ -9,8 +9,6 @@ use GraphQlTools\Definition\GraphQlDirective;
 
 final class ExportDirective extends GraphQlDirective
 {
-    public const NAME = 'export';
-
     protected function arguments(TypeRegistry $registry): array
     {
         return [
@@ -32,10 +30,5 @@ final class ExportDirective extends GraphQlDirective
     protected function description(): string
     {
         return 'Export a value as a variable for a multi query.';
-    }
-
-    public function getName(): string
-    {
-        return self::NAME;
     }
 }

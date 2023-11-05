@@ -17,7 +17,8 @@ use GraphQlTools\Contract\DataLoader as DataLoaderContract;
  */
 final class DataLoader implements DataLoaderContract
 {
-    public const IDENTIFIER_KEY = 'itemId';
+    public static string $arrayIdentifierKey = 'itemId';
+
     private array $loadingTraces = [];
     private array $queuedItems = [];
     private mixed $loadedData = null;
@@ -53,12 +54,16 @@ final class DataLoader implements DataLoaderContract
      */
     public function load(mixed $item): SyncPromise
     {
+        // Caching between layers is not currently supported.
+        // If there are already loaded items present, they are discarded if data is loaded one layer deeper
         $this->clearLoadedDataIfNeeded();
-        $this->queuedItems[] = &$item;
 
         // If an array is given, an identifier is required to map to the correct data. This is due
         // to arrays being passed as values and not as references.
         $identifier = $this->identifier($item);
+
+        // The item is put into the queue
+        $this->queuedItems[] = &$item;
 
         return new Deferred(function () use (&$identifier) {
             $this->loadDataOnce();
@@ -67,7 +72,6 @@ final class DataLoader implements DataLoaderContract
             $valueOrThrowable = $this->loadedData[$identifier] ?? null;
 
             if ($valueOrThrowable instanceof Throwable) {
-                // This will reject the promise
                 throw $valueOrThrowable;
             }
             return $valueOrThrowable;
@@ -77,7 +81,7 @@ final class DataLoader implements DataLoaderContract
     private function identifier(mixed &$item): mixed {
         if (is_array($item)) {
             $this->verifyArrayItemsContainIdentifier($item);
-            return $item[self::IDENTIFIER_KEY];
+            return $item[self::$arrayIdentifierKey];
         }
 
         return $item instanceof DataLoaderIdentifiable
@@ -155,8 +159,8 @@ final class DataLoader implements DataLoaderContract
 
     private function verifyArrayItemsContainIdentifier(array &$item): void
     {
-        if (!array_key_exists(self::IDENTIFIER_KEY, $item)) {
-            $keyName = 'DataLoader::IDENTIFIER_KEY';
+        if (!array_key_exists(self::$arrayIdentifierKey, $item)) {
+            $keyName = 'DataLoader::$arrayIdentifierKey';
             throw new RuntimeException(
                 "An item enqueued in a dataloader is required to have a property called '{$keyName}' for mapping." . PHP_EOL .
                 "Hint: Make sure to use \$dataLoader->load([{$keyName} => 'yourID!', ...])."

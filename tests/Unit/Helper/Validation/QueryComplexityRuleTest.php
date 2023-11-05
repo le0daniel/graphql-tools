@@ -12,6 +12,7 @@ use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Helper\QueryExecutor;
 use GraphQlTools\Helper\Registry\SchemaRegistry;
+use GraphQlTools\Helper\Results\GraphQlResult;
 use GraphQlTools\Helper\Validation\QueryComplexityRule;
 use PHPUnit\Framework\TestCase;
 
@@ -97,7 +98,7 @@ class QueryComplexityRuleTest extends TestCase
         ]);
     }
 
-    private function query(string $query, int $maxComplexity): ExecutionResult {
+    private function query(string $query, int $maxComplexity): GraphQlResult {
         return $this->getExecutor($maxComplexity)
             ->execute(
                 $this->getSchema(),
@@ -109,16 +110,16 @@ class QueryComplexityRuleTest extends TestCase
     private function cost(string $query): int {
         $result = $this->query($query, 100000);
         /** @var QueryComplexityRule $queryComplexity */
-        $queryComplexity = $result->extensions['complexity'];
-        return $queryComplexity->getActualComplexity();
+        $queryComplexity = $result->getValidationRule(QueryComplexityRule::class);
+        return $queryComplexity->getQueryComplexity();
     }
 
     public function testMaxQueryScore(): void {
         $result = $this->query('query { currentUser }', 10);
         /** @var QueryComplexityRule $queryComplexity */
-        $queryComplexity = $result->extensions['complexity'];
+        $queryComplexity = $result->getValidationRule(QueryComplexityRule::class);
 
-        self::assertEquals(5, $queryComplexity->getActualComplexity());
+        self::assertEquals(5, $queryComplexity->getQueryComplexity());
         self::assertEquals(10, $queryComplexity->getMaxQueryComplexity());
         self::assertEmpty($result->errors);
     }
@@ -126,9 +127,9 @@ class QueryComplexityRuleTest extends TestCase
     public function testMaxQueryScoreExceeded(): void {
         $result = $this->query('query { currentUser }', 4);
         /** @var QueryComplexityRule $queryComplexity */
-        $queryComplexity = $result->extensions['complexity'];
+        $queryComplexity = $result->getValidationRule(QueryComplexityRule::class);
 
-        self::assertEquals(5, $queryComplexity->getActualComplexity());
+        self::assertEquals(5, $queryComplexity->getQueryComplexity());
         self::assertEquals(4, $queryComplexity->getMaxQueryComplexity());
         self::assertEmpty($result->data);
         self::assertEquals("Max query complexity should be 4 but got 5.", $result->errors[0]->getMessage());

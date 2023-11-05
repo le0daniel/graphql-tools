@@ -61,6 +61,7 @@ final class Field
 
     /**
      * Clones and adds a middleware at the beginning. Ensures the state is not mutated from the outside if reused.
+     * @internal
      * @param array<Closure> $middleware
      * @return $this
      */

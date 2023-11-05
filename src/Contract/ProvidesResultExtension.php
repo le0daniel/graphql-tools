@@ -4,10 +4,8 @@ namespace GraphQlTools\Contract;
 
 use JsonSerializable;
 
-interface ExtendsResult extends JsonSerializable
+interface ProvidesResultExtension extends JsonSerializable
 {
-
     public function isVisibleInResult($context): bool;
     public function key(): string;
-
 }

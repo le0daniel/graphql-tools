@@ -13,14 +13,6 @@ use JsonSerializable;
  */
 interface ExecutionExtension extends JsonSerializable
 {
-    public function key(): string;
-
-    /**
-     * @param T $context
-     * @return bool
-     */
-    public function isVisibleInResult($context): bool;
-
     public function priority(): int;
 
     public function start(StartEvent $event): void;
@@ -28,4 +20,6 @@ interface ExecutionExtension extends JsonSerializable
     public function end(EndEvent $event): void;
 
     public function visitField(VisitFieldEvent $event): ?Closure;
+
+    public function getName(): string;
 }

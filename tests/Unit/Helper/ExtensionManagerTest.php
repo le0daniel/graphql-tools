@@ -8,7 +8,6 @@ use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Helper\Extension\ActualCostExtension;
-use GraphQlTools\Helper\Extension\ExportMultiQueryArguments;
 use GraphQlTools\Helper\Extension\Extension;
 use GraphQlTools\Helper\ExtensionManager;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
@@ -23,9 +22,13 @@ class ExtensionManagerTest extends TestCase
 
     public function testCreate()
     {
+        $extension = $this->prophesize(Extension::class);
+        $extension->isEnabled()->willReturn(true);
+        $extension->priority()->willReturn(1);
+
         $manager = ExtensionManager::createFromExtensionFactories([
             ActualCostExtension::class,
-            fn() => new ExportMultiQueryArguments()
+            fn() => $extension->reveal(),
         ]);
         self::assertTrue(true);
         self::assertEquals(2, $manager->getExtensionsCount());
@@ -43,6 +46,7 @@ class ExtensionManagerTest extends TestCase
             $extensionProphecy->start($startEvent)->shouldBeCalledOnce();
             $extensionProphecy->end($endEvent)->shouldBeCalledOnce();
             $extensionProphecy->key()->willReturn(bin2hex(random_bytes(16)));
+            $extensionProphecy->getName()->willReturn(bin2hex(random_bytes(16)));
             $extensions[] = $extensionProphecy->reveal();
         }
 
@@ -56,10 +60,13 @@ class ExtensionManagerTest extends TestCase
         $enabledExtension->isEnabled()->willReturn(true);
         $enabledExtension->priority()->willReturn(1);
         $enabledExtension->key()->willReturn('else');
+        $enabledExtension->getName()->willReturn(bin2hex(random_bytes(16)));
 
         $disabledExtension = $this->prophesize(Extension::class);
         $disabledExtension->isEnabled()->willReturn(false);
         $disabledExtension->key()->willReturn('random');
+        $disabledExtension->getName()->willReturn(bin2hex(random_bytes(16)));
+
 
         $extensions = ExtensionManager::createFromExtensionFactories([
             fn() => $disabledExtension->reveal(),
@@ -76,6 +83,7 @@ class ExtensionManagerTest extends TestCase
         $extension->priority()->willReturn(1);
         $extension->isEnabled()->willReturn(true);
         $extension->key()->willReturn('something');
+        $extension->getName()->willReturn('something');
 
         $extensions = ExtensionManager::createFromExtensionFactories([
             fn() => $extension->reveal()

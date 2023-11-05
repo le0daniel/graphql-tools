@@ -2,7 +2,6 @@
 
 namespace GraphQlTools\Events;
 
-use GraphQL\Error\Error;
 use GraphQL\Executor\ExecutionResult;
 use GraphQlTools\Contract\Event;
 

@@ -5,29 +5,33 @@ declare(strict_types=1);
 namespace GraphQlTools\Helper;
 
 use Closure;
-use GraphQlTools\Contract\GraphQlContext;
+use GraphQlTools\Contract\ExecutionExtension;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;
-use GraphQlTools\Helper\Extension\Extension;
-use Throwable;
 
+/**
+ * @internal
+ */
 final readonly class ExtensionManager
 {
-    /** @var Extension[] */
+    /** @var ExecutionExtension[] */
     private array $extensions;
 
-    public function __construct(Extension ...$extensions)
+    public function __construct(ExecutionExtension ...$extensions)
     {
-        $keyedExtensions = [];
-        foreach ($extensions as $extension) {
-            $keyedExtensions[$extension->key()] = $extension;
-        }
-        $this->extensions = $keyedExtensions;
+        $this->extensions = $extensions;
     }
 
-    public function getExtension(string $key): ?Extension {
-        return $this->extensions[$key] ?? null;
+    /**
+     * @return array<string, ExecutionExtension>
+     */
+    public function getKeyedExtensions(): array {
+        $keyedExtensions = [];
+        foreach ($this->extensions as $extension) {
+            $keyedExtensions[$extension->getName()] = $extension;
+        }
+        return $keyedExtensions;
     }
 
     public function getExtensionsCount(): int {
@@ -50,8 +54,8 @@ final readonly class ExtensionManager
         $instances = [];
         $columnToSort = [];
 
-        /** @var Extension|Closure(): Extension $instance */
         foreach ($extensionFactories as $classNameOrCallable) {
+            /** @var ExecutionExtension|Closure(): ExecutionExtension $instance */
             $instance = $classNameOrCallable instanceof Closure ? $classNameOrCallable() : new $classNameOrCallable;
             if (!$instance->isEnabled()) {
                 continue;
@@ -100,22 +104,5 @@ final readonly class ExtensionManager
         foreach ($this->extensions as $extension) {
             $extension->end($event);
         }
-    }
-
-    public function collect(GraphQlContext $context): array
-    {
-        $extensionData = [];
-
-        foreach ($this->extensions as $extension) {
-            if ($extension->isVisibleInResult($context)) {
-                try {
-                    $extensionData[$extension->key()] = $extension->jsonSerialize();
-                } catch (Throwable) {
-                    $extensionData[$extension->key()] = "Error collecting data form extension.";
-                }
-            }
-        }
-
-        return $extensionData;
     }
 }

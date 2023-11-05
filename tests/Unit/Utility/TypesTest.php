@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\Test\Unit\Utility;
 
+use GraphQlTools\Directives\ExportDirective;
 use GraphQlTools\Test\Dummies\Schema\AnimalUnion;
 use GraphQlTools\Test\Dummies\Schema\CreateAnimalInputType;
 use GraphQlTools\Test\Dummies\Schema\EatingEnum;
@@ -22,5 +23,6 @@ class TypesTest extends TestCase
         self::assertEquals('Tiger', Types::inferNameFromClassName(TigerType::class));
         self::assertEquals('Json', Types::inferNameFromClassName(JsonScalar::class));
         self::assertEquals('CreateAnimalInput', Types::inferNameFromClassName(CreateAnimalInputType::class));
+        self::assertEquals('export', Types::inferNameFromClassName(ExportDirective::class));
     }
 }

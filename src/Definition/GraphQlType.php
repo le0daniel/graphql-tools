@@ -29,7 +29,7 @@ abstract class GraphQlType implements DefinesGraphQlType
      * Return an array of fields of that specific type. The fields
      * are then initialized correctly and a proxy attached to them.
      *
-     * @return Field[]|array<string, callable(string, TypeRegistry): Field>
+     * @return Field[]
      */
     abstract protected function fields(TypeRegistry $registry): array;
 

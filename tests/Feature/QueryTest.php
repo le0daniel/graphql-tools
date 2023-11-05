@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace GraphQlTools\Test\Feature;
 
 use GraphQL\Executor\ExecutionResult;
-use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Directives\ExportDirective;
 use GraphQlTools\Helper\Context;
-use GraphQlTools\Helper\Extension\ExportMultiQueryArguments;
 use GraphQlTools\Helper\QueryExecutor;
 use GraphQlTools\Helper\Registry\SchemaRegistry;
 use GraphQlTools\Helper\Registry\TagBasedSchemaRules;
@@ -78,14 +76,6 @@ class QueryTest extends TestCase
             [],
         );
         return $executor->execute($schema, $query, new Context());
-    }
-
-    protected function executeMultiple(Schema $schema, string $query): ExecutionResult
-    {
-        $executor = new QueryExecutor(
-            [ExportMultiQueryArguments::class]
-        );
-        return $executor->executeMultiple($schema, $query, new Context());
     }
 
     protected function execute(string $query): ExecutionResult
@@ -173,21 +163,6 @@ class QueryTest extends TestCase
         $result = $this->execute('query { middlewareWithPrimitiveBinding }');
         $this->assertNoErrors($result);
         self::assertEquals('test', $result->data['middlewareWithPrimitiveBinding']);
-    }
-
-    public function testMultiple()
-    {
-        $result = $this->executeMultiple(
-            $this->schemaWithExportDirective(),
-            'query First { middlewareWithPrimitiveBinding @export(as: "firstName") @include(if: true) } query Second($firstName: String) { currentUser(name: $firstName) @export(as: "test", isList: true) }'
-        );
-        $this->assertNoErrors($result);
-        self::assertEquals('test', $result->data['middlewareWithPrimitiveBinding']);
-        self::assertEquals('Hello test', $result->data['currentUser']);
-        self::assertEquals([
-            'First' => ['firstName' => 'test'],
-            'Second' => ['test' => ['Hello test']]
-        ], $result->extensions[ExportMultiQueryArguments::NAME]);
     }
 
     public function testSimpleExecution(): void

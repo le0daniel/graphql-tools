@@ -4,7 +4,7 @@ namespace GraphQlTools\Test\Unit\Helper;
 
 use GraphQL\Validator\Rules\QueryDepth;
 use GraphQL\Validator\Rules\ValidationRule;
-use GraphQlTools\Contract\ExtendsResult;
+use GraphQlTools\Contract\ProvidesResultExtension;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Helper\QueryExecutor;
 use GraphQlTools\Helper\Registry\SchemaRegistry;
@@ -66,7 +66,7 @@ class QueryExecutorTest extends TestCase
     }
 
     public function testWithContextualValidationRule() {
-        $rule = new class extends ValidationRule implements ExtendsResult {
+        $rule = new class extends ValidationRule implements ProvidesResultExtension {
 
             public function isVisibleInResult($context): bool
             {
@@ -100,6 +100,6 @@ class QueryExecutorTest extends TestCase
             new Context()
         );
 
-        self::assertEquals('result', $result->extensions['test']->jsonSerialize());
+        self::assertEquals('result', $result->toArray()['extensions']['test']);
     }
 }

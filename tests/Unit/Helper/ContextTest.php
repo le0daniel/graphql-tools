@@ -15,13 +15,13 @@ class ContextTest extends TestCase
     private function contextWithMocks(array $mocks): Context
     {
         return new class ($mocks) extends Context {
-            public function __construct(private array $mocks)
+            public function __construct(private readonly array $mocks)
             {
             }
 
-            protected function makeInstanceOfDataLoaderExecutor(string $classNameOrLoaderName): Closure|ExecutableByDataLoader
+            protected function makeInstanceOfDataLoaderExecutor(string $key): Closure|ExecutableByDataLoader
             {
-                return $this->mocks[$classNameOrLoaderName];
+                return $this->mocks[$key];
             }
         };
     }

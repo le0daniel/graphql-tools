@@ -6,23 +6,29 @@ namespace GraphQlTools\Helper\Extension;
 
 use Closure;
 use GraphQlTools\Contract\ExecutionExtension;
-use GraphQlTools\Contract\ExtendsResult;
+use GraphQlTools\Contract\ProvidesResultExtension;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;
 
-abstract class Extension implements ExecutionExtension, ExtendsResult
+abstract class Extension implements ExecutionExtension, ProvidesResultExtension
 {
     private const DEFAULT_PRIORITY = 100;
+    protected string $name;
 
     /**
      * Determines if the extension is exposed to the client or not.
      *
+     * @param mixed $context
      * @return bool
      */
-    public function isVisibleInResult($context): bool
+    public function isVisibleInResult(mixed $context): bool
     {
         return true;
+    }
+
+    public function getName(): string {
+        return $this->name ?? static::class;
     }
 
     /**

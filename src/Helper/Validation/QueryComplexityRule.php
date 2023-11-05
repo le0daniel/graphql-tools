@@ -11,12 +11,12 @@ use GraphQL\Language\Visitor;
 use GraphQL\Language\VisitorOperation;
 use GraphQL\Validator\QueryValidationContext;
 use GraphQL\Validator\Rules\QueryComplexity;
-use GraphQlTools\Contract\ExtendsResult;
+use GraphQlTools\Contract\ProvidesResultExtension;
 use RuntimeException;
 
-class QueryComplexityRule extends QueryComplexity implements ExtendsResult
+class QueryComplexityRule extends QueryComplexity implements ProvidesResultExtension
 {
-    protected ?int $actualComplexity = null;
+    protected ?int $queryComplexity = null;
 
     public function isVisibleInResult($context): bool
     {
@@ -59,14 +59,14 @@ class QueryComplexityRule extends QueryComplexity implements ExtendsResult
                             return;
                         }
 
-                        $this->actualComplexity = $this->fieldComplexity($operationDefinition->selectionSet);
+                        $this->queryComplexity = $this->fieldComplexity($operationDefinition->selectionSet);
 
-                        if ($this->actualComplexity <= $this->maxQueryComplexity) {
+                        if ($this->queryComplexity <= $this->maxQueryComplexity) {
                             return;
                         }
 
                         $this->handleComplexityExceedingAvailableComplexity(
-                            $this->actualComplexity,
+                            $this->queryComplexity,
                             $this->maxQueryComplexity,
                         );
                     },
@@ -75,11 +75,11 @@ class QueryComplexityRule extends QueryComplexity implements ExtendsResult
         );
     }
 
-    protected function handleComplexityExceedingAvailableComplexity(int $actualComplexity, int $maxComplexity): void {
+    protected function handleComplexityExceedingAvailableComplexity(int $queryComplexity, int $maxComplexity): void {
         $this->context->reportError(
             new Error(static::maxQueryComplexityErrorMessage(
                 $maxComplexity,
-                $actualComplexity
+                $queryComplexity
             ))
         );
     }
@@ -87,20 +87,20 @@ class QueryComplexityRule extends QueryComplexity implements ExtendsResult
     /**
      * @return int
      */
-    public function getActualComplexity(): int
+    public function getQueryComplexity(): int
     {
-        if (!isset($this->actualComplexity)) {
+        if (!isset($this->queryComplexity)) {
             throw new RuntimeException("Tried to query actual complexity before it was set.");
         }
 
-        return $this->actualComplexity;
+        return $this->queryComplexity;
     }
 
     public function jsonSerialize(): array
     {
         return [
-            'allowed' => $this->maxQueryComplexity,
-            'actual' => $this->actualComplexity,
+            'max' => $this->maxQueryComplexity,
+            'current' => $this->queryComplexity,
         ];
     }
 }

@@ -7,6 +7,7 @@ use GraphQL\Type\Definition\Directive;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\Shared\HasDescription;
+use GraphQlTools\Utility\Types;
 
 abstract class GraphQlDirective
 {
@@ -46,7 +47,9 @@ abstract class GraphQlDirective
      */
     abstract protected function arguments(TypeRegistry $registry): array;
     abstract protected function locations(): array;
-    abstract public function getName(): string;
+    public function getName(): string {
+        return Types::inferNameFromClassName(static::class);
+    }
 
     protected function isRepeatable(): bool {
         return false;

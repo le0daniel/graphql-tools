@@ -9,11 +9,11 @@ use GraphQlTools\Utility\Middleware\Federation;
 
 abstract class ExtendGraphQlType
 {
-    abstract protected function key(): ?string;
 
     abstract public function typeName(): string;
 
     /**
+     * Provide an array of middlewares to apply to all fields
      * @return array<Closure>
      */
     protected function middleware(): array
@@ -26,6 +26,14 @@ abstract class ExtendGraphQlType
      * @return array<Field>
      */
     abstract protected function fields(TypeRegistry $registry): array;
+
+    /**
+     * Return the key for which to use the Federation::key() middleware.
+     * @return string|null
+     */
+    protected function key(): ?string {
+        return null;
+    }
 
     final public function getFields(TypeRegistry $registry): array
     {

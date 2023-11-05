@@ -12,12 +12,12 @@ use GraphQL\Type\Definition\FieldDefinition;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Validator\Rules\ValidationRule;
 use GraphQL\Validator\ValidationContext;
-use GraphQlTools\Contract\ExtendsResult;
+use GraphQlTools\Contract\ProvidesResultExtension;
 use GraphQlTools\Data\ValueObjects\Deprecations\DeprecatedArgument;
 use GraphQlTools\Data\ValueObjects\Deprecations\DeprecatedEnumValue;
 use GraphQlTools\Data\ValueObjects\Deprecations\DeprecatedField;
 
-class CollectDeprecatedFieldNotices extends ValidationRule implements ExtendsResult
+class CollectDeprecatedFieldNotices extends ValidationRule implements ProvidesResultExtension
 {
     /** @var array<DeprecatedArgument|DeprecatedField|DeprecatedEnumValue>  */
     private array $messages = [];

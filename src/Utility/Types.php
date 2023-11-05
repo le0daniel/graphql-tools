@@ -14,6 +14,7 @@ final class Types
             str_ends_with($baseName, 'Interface') => substr($baseName, 0, -9),
             str_ends_with($baseName, 'Scalar') => substr($baseName, 0, -6),
             str_ends_with($baseName, 'Union') => substr($baseName, 0, -5),
+            str_ends_with($baseName, 'Directive') => lcfirst(substr($baseName, 0, -9)),
             default => throw new DefinitionException("Could not infer name from class name string."),
         };
     }
