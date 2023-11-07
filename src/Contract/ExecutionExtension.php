@@ -6,12 +6,11 @@ use Closure;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;
-use JsonSerializable;
 
 /**
  * @template T as GraphQlContext
  */
-interface ExecutionExtension extends JsonSerializable
+interface ExecutionExtension
 {
     public function priority(): int;
 

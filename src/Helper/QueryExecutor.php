@@ -59,7 +59,6 @@ class QueryExecutor
      *
      * @param Schema $schema
      * @param string $query
-     * @param GraphQlContext|null $context
      * @return ValidationResult
      * @throws DefinitionException
      * @throws SyntaxError
@@ -68,10 +67,8 @@ class QueryExecutor
     public function validateQuery(
         Schema          $schema,
         string          $query,
-        ?GraphQlContext $context = null,
     ): ValidationResult
     {
-        $context ??= new Context();
         $source = Parser::parse($query);
         $validationRules = ValidationRules::initialize($this->validationRules);
         $validationErrors = DocumentValidator::validate($schema, $source, $validationRules);
@@ -148,19 +145,14 @@ class QueryExecutor
      */
     private function handleErrors(array $errors): array
     {
-        $mappedErrors = [];
-        foreach ($errors as $graphQlError) {
-            $hasPreviousError = !!$graphQlError->getPrevious();
-
-            if (!$hasPreviousError) {
-                $mappedErrors[] = $graphQlError;
-                continue;
+        return array_map(function(GraphQlError $graphQlError): GraphQlError {
+            if (!$graphQlError->getPrevious()) {
+                return $graphQlError;
             }
 
             $this->logError($graphQlError);
-            $mappedErrors[] = $this->mapError($graphQlError);
-        }
-        return $mappedErrors;
+            return $this->mapError($graphQlError);
+        }, $errors);
     }
 
 

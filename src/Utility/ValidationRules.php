@@ -5,6 +5,7 @@ namespace GraphQlTools\Utility;
 use Closure;
 use GraphQL\Validator\DocumentValidator;
 use GraphQL\Validator\Rules\ValidationRule;
+use GraphQlTools\Contract\ProvidesResultExtension;
 use GraphQlTools\Definition\DefinitionException;
 
 final class ValidationRules
@@ -19,6 +20,12 @@ final class ValidationRules
         $initializedRules = DocumentValidator::defaultRules();
 
         foreach ($rules as $ruleOrFactory) {
+            // A rule that implements ProvidesResultExtension must be cloned to guarantee
+            // that the context is scoped.
+            if ($ruleOrFactory instanceof ProvidesResultExtension) {
+                $ruleOrFactory = clone $ruleOrFactory;
+            }
+
             /** @var ValidationRule $rule */
             $rule = match (true) {
                 $ruleOrFactory instanceof ValidationRule => $ruleOrFactory,

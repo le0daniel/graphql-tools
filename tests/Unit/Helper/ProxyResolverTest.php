@@ -35,7 +35,6 @@ final class ProxyResolverTest extends TestCase {
 
         /** @var Extension|ObjectProphecy $dummyExtension */
         $dummyExtension = $this->prophesize(Extension::class);
-        $dummyExtension->key()->willReturn('dummy');
         $dummyExtension->getName()->willReturn('dummy');
 
         $operationContext = new OperationContext(new Context(), new ExtensionManager($dummyExtension->reveal()));
@@ -53,7 +52,6 @@ final class ProxyResolverTest extends TestCase {
 
         /** @var Extension $dummyExtension */
         $dummyExtension = $this->prophesize(Extension::class);
-        $dummyExtension->key()->willReturn('here it is');
         $dummyExtension->getName()->willReturn('here it is');
         $dummyExtension->visitField(Argument::type(VisitFieldEvent::class))
             ->willReturn(fn($value) => "Extension: {$value}");

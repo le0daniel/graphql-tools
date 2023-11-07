@@ -76,7 +76,7 @@ final class PartialPrintRegistry extends FactoryTypeRegistry
 
     private function createMock(string $typeName): Type
     {
-        $typeHint = $this->typeHints[$typeName] ?? GraphQlTypes::OBJECT_TYPE;
+        $typeHint = $this->typeHints[$typeName] ?? GraphQlTypes::SCALAR;
         $isInterface = $typeHint === GraphQlTypes::INTERFACE;
 
         $pipes = [

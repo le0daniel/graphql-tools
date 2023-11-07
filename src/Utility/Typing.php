@@ -19,12 +19,6 @@ class Typing
         }
     }
 
-    public static function verifyIsString(mixed $value): void {
-        if (!is_string($value)) {
-            throw DefinitionException::from($value, 'string');
-        }
-    }
-
     /**
      * @template T
      * @param class-string<T> $className

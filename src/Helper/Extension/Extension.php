@@ -11,21 +11,10 @@ use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;
 
-abstract class Extension implements ExecutionExtension, ProvidesResultExtension
+abstract class Extension implements ExecutionExtension
 {
     private const DEFAULT_PRIORITY = 100;
     protected string $name;
-
-    /**
-     * Determines if the extension is exposed to the client or not.
-     *
-     * @param mixed $context
-     * @return bool
-     */
-    public function isVisibleInResult(mixed $context): bool
-    {
-        return true;
-    }
 
     public function getName(): string {
         return $this->name ?? static::class;

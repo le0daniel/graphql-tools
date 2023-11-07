@@ -3,10 +3,10 @@
 namespace GraphQlTools\Helper\Extension;
 
 use Closure;
-use GraphQlTools\Events\StartEvent;
+use GraphQlTools\Contract\ProvidesResultExtension;
 use GraphQlTools\Events\VisitFieldEvent;
 
-final class ActualCostExtension extends Extension
+final class ActualCostExtension extends Extension implements ProvidesResultExtension
 {
     private const DEFAULT_MIN_QUERY_COST = 2;
 
@@ -36,5 +36,10 @@ final class ActualCostExtension extends Extension
     public function jsonSerialize(): int
     {
         return $this->getCost();
+    }
+
+    public function isVisibleInResult($context): bool
+    {
+        return true;
     }
 }

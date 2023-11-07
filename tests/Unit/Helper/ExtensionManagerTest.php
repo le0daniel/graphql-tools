@@ -45,7 +45,6 @@ class ExtensionManagerTest extends TestCase
             $extensionProphecy = $this->prophesize(Extension::class);
             $extensionProphecy->start($startEvent)->shouldBeCalledOnce();
             $extensionProphecy->end($endEvent)->shouldBeCalledOnce();
-            $extensionProphecy->key()->willReturn(bin2hex(random_bytes(16)));
             $extensionProphecy->getName()->willReturn(bin2hex(random_bytes(16)));
             $extensions[] = $extensionProphecy->reveal();
         }
@@ -59,12 +58,10 @@ class ExtensionManagerTest extends TestCase
         $enabledExtension = $this->prophesize(Extension::class);
         $enabledExtension->isEnabled()->willReturn(true);
         $enabledExtension->priority()->willReturn(1);
-        $enabledExtension->key()->willReturn('else');
         $enabledExtension->getName()->willReturn(bin2hex(random_bytes(16)));
 
         $disabledExtension = $this->prophesize(Extension::class);
         $disabledExtension->isEnabled()->willReturn(false);
-        $disabledExtension->key()->willReturn('random');
         $disabledExtension->getName()->willReturn(bin2hex(random_bytes(16)));
 
 
@@ -82,7 +79,6 @@ class ExtensionManagerTest extends TestCase
         $extension->visitField(Argument::type(VisitFieldEvent::class))->willReturn(fn() => 'value');
         $extension->priority()->willReturn(1);
         $extension->isEnabled()->willReturn(true);
-        $extension->key()->willReturn('something');
         $extension->getName()->willReturn('something');
 
         $extensions = ExtensionManager::createFromExtensionFactories([
