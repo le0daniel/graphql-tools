@@ -4,16 +4,18 @@ namespace GraphQlTools\Definition;
 
 use GraphQL\Language\DirectiveLocation;
 use GraphQL\Type\Definition\Directive;
+use GraphQlTools\Contract\DefinesGraphQlType;
+use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Utility\Types;
 
-abstract class GraphQlDirective
+abstract class GraphQlDirective implements DefinesGraphQlType
 {
     use HasDescription;
 
-    public function toDefinition(TypeRegistry $registry): Directive
+    public function toDefinition(TypeRegistry $registry, SchemaRules $schemaRules): Directive
     {
         $this->verifyLocations();
         return new Directive([

@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\Test\Unit\Helper;
 
+use GraphQL\Error\DebugFlag;
 use GraphQL\Validator\Rules\QueryDepth;
 use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Contract\ProvidesResultExtension;
@@ -66,6 +67,8 @@ class QueryExecutorTest extends TestCase
     }
 
     public function testWithContextualValidationRule() {
+
+
         $rule = new class extends ValidationRule implements ProvidesResultExtension {
 
             public function isVisibleInResult($context): bool
@@ -78,7 +81,7 @@ class QueryExecutorTest extends TestCase
                 return 'test';
             }
 
-            public function jsonSerialize(): string
+            public function serialize(int $debug = DebugFlag::NONE): mixed
             {
                 return 'result';
             }
@@ -88,7 +91,7 @@ class QueryExecutorTest extends TestCase
             [$rule::class]
         );
 
-        $schemaRegistry = new SchemaRegistry();;
+        $schemaRegistry = new SchemaRegistry();
         [$types, $extendedTypes] = TypeMap::createTypeMapFromDirectory(__DIR__ . '/../../Dummies/Schema');
         $schemaRegistry->registerTypes($types);
         $schemaRegistry->extendTypes($extendedTypes);

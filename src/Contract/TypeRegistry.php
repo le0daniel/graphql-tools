@@ -15,13 +15,13 @@ interface TypeRegistry
      * Given a type name or class name, return an instance of the Type or a Closure which resolves
      * to a type
      *
-     * @param string|class-string<Type>  $nameOrAlias
+     * @param string $nameOrAlias
+     * @param GraphQlTypes|null $typeHint
      * @return Closure(): Type|Type
      */
     public function type(string $nameOrAlias, ?GraphQlTypes $typeHint = null): Closure|Type;
 
     public function nonNull(Type|Closure $wrappedType): NonNull;
-
     public function listOf(Type|Closure $wrappedType): ListOfType;
     public function int(): ScalarType;
     public function float(): ScalarType;

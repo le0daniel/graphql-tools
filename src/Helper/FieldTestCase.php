@@ -86,7 +86,7 @@ class FieldTestCase
         $resolver = $this->getFieldResolver();
         $resolveInfo ??= $this->buildResolveInfo();
         $context ??= $this->buildDefaultContext();
-        $operationContext = new OperationContext($context, new ExtensionManager());
+        $operationContext = new OperationContext($context, new Extensions());
 
         $result = $resolver($rootData, $arguments, $operationContext, $resolveInfo);
 

@@ -3,6 +3,7 @@
 namespace GraphQlTools\Helper\Extension;
 
 use Closure;
+use GraphQL\Error\DebugFlag;
 use GraphQlTools\Contract\ProvidesResultExtension;
 use GraphQlTools\Events\VisitFieldEvent;
 
@@ -33,13 +34,13 @@ final class ActualCostExtension extends Extension implements ProvidesResultExten
         return max($this->usedCost, $this->minQueryCost);
     }
 
-    public function jsonSerialize(): int
-    {
-        return $this->getCost();
-    }
-
     public function isVisibleInResult($context): bool
     {
         return true;
+    }
+
+    public function serialize(int $debug = DebugFlag::NONE): int
+    {
+        return $this->getCost();
     }
 }

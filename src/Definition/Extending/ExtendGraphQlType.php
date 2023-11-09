@@ -10,6 +10,10 @@ use GraphQlTools\Utility\Middleware\Federation;
 abstract class ExtendGraphQlType
 {
 
+    /**
+     * Return type name of class name
+     * @return string
+     */
     abstract public function typeName(): string;
 
     /**
@@ -37,10 +41,9 @@ abstract class ExtendGraphQlType
 
     final public function getFields(TypeRegistry $registry): array
     {
-        $middleware = $this->middleware();
-        if ($this->key()) {
-            array_unshift($middleware, Federation::key($this->key()));
-        }
+        $middleware = $this->key()
+            ? [Federation::key($this->key()), ...$this->middleware()]
+            : $this->middleware();
 
         if (empty($middleware)) {
             return $this->fields($registry);

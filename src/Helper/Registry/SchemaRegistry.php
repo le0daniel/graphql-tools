@@ -41,10 +41,10 @@ class SchemaRegistry
      * @param DefinesGraphQlType|class-string<DefinesGraphQlType> $definition
      * @throws DefinitionException
      */
-    public function register(DefinesGraphQlType|GraphQlDirective|string $definition): void
+    public function register(DefinesGraphQlType|string $definition): void
     {
-        if ($definition instanceof GraphQlDirective) {
-            $this->directives[] = $definition;
+        if ($definition instanceof GraphQlDirective || (is_string($definition) && str_ends_with($definition, 'Directive'))) {
+            $this->registerDirective($definition);
             return;
         }
 
@@ -53,6 +53,13 @@ class SchemaRegistry
             : $definition->getName();
         $this->verifyTypeNameIsNotUsed($typeName);
         $this->types[$typeName] = $definition;
+    }
+
+    private function registerDirective(GraphQlDirective|string $directive): void
+    {
+        /** @var GraphQlDirective $instance */
+        $instance = is_string($directive) ? new $directive() : $directive;
+        $this->directives[$instance->getName()] = $directive;
     }
 
     private function verifyTypeNameIsNotUsed(string $typeName): void
@@ -86,9 +93,7 @@ class SchemaRegistry
      */
     public function extendType(string $typeNameOrAlias, Closure|string|ExtendGraphQlType ...$fieldFactories): void
     {
-        if (!isset($this->typeFieldExtensions[$typeNameOrAlias])) {
-            $this->typeFieldExtensions[$typeNameOrAlias] = [];
-        }
+        $this->typeFieldExtensions[$typeNameOrAlias] ??= [];
         array_push($this->typeFieldExtensions[$typeNameOrAlias], ...$fieldFactories);
     }
 
@@ -106,9 +111,7 @@ class SchemaRegistry
 
         foreach ($this->typeFieldExtensions as $typeNameOrAlias => $fieldExtensions) {
             $typeName = $aliases[$typeNameOrAlias] ?? $typeNameOrAlias;
-            if (!isset($extensionFactories[$typeName])) {
-                $extensionFactories[$typeName] = [];
-            }
+            $extensionFactories[$typeName] ??= [];
             array_push($extensionFactories[$typeName], ...$fieldExtensions);
         }
 
@@ -133,6 +136,7 @@ class SchemaRegistry
         ?SchemaRules $schemaRules = null,
     ): SchemaConfig
     {
+        $schemaRules ??= new AllVisibleSchemaRule();
         $aliases = $this->createAliases();
         $eagerlyLoadedTypes = $this->eagerlyLoadedTypes;
         $registry = new FactoryTypeRegistry(
@@ -149,6 +153,11 @@ class SchemaRegistry
         $mutationType = $mutationTypeName
             ? Schema::resolveType($registry->type($mutationTypeName))
             : null;
+
+        $customDirectives = array_map(
+            fn(GraphQlDirective $directive): Directive => $directive->toDefinition($registry, $schemaRules),
+            $this->directives
+        );
 
         return SchemaConfig::create(
             [
@@ -170,12 +179,17 @@ class SchemaRegistry
                 'typeLoader' => static function (string $typeNameOrClassName) use ($registry) {
                     try {
                         return Schema::resolveType($registry->type($typeNameOrClassName));
-                    } catch (DefinitionException) {
-                        return null;
+                    } catch (DefinitionException $exception) {
+                        // The GraphQL framework supports defaults for Query, Mutation or Subscription types when printing the schema
+                        // In that case, we have to return null to not get an exception
+                        if (in_array($typeNameOrClassName, ['Query', 'Mutation', 'Subscription'])) {
+                            return null;
+                        }
+                        throw $exception;
                     }
                 },
                 'assumeValid' => $assumeValid,
-                'directives' => array_map(fn(GraphQlDirective $directive): Directive => $directive->toDefinition($registry), $this->directives) + GraphQL::getStandardDirectives(),
+                'directives' => $customDirectives + GraphQL::getStandardDirectives(),
             ]
         );
     }
@@ -187,7 +201,7 @@ class SchemaRegistry
             $this->types,
             $aliases,
             $extensions = $this->resolveFieldExtensions($aliases),
-            $schemaRules,
+            $schemaRules ?? new AllVisibleSchemaRule(),
         );
 
         // This step is required to get type hints for interface types.
@@ -195,7 +209,7 @@ class SchemaRegistry
 
         $schema = new Schema(SchemaConfig::create([
             'types' => array_filter(
-                array_map(function(string $name) use ($registry) {
+                array_map(function (string $name) use ($registry) {
                     /** @var Type $type */
                     $type = Schema::resolveType($registry->type($name));
                     $hasFields = $type instanceof ObjectType || $type instanceof InterfaceType || $type instanceof InputObjectType;

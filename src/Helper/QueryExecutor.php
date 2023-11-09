@@ -67,10 +67,11 @@ class QueryExecutor
     public function validateQuery(
         Schema          $schema,
         string          $query,
+        GraphQlContext  $context = new Context(),
     ): ValidationResult
     {
         $source = Parser::parse($query);
-        $validationRules = ValidationRules::initialize($this->validationRules);
+        $validationRules = ValidationRules::initialize($context, $this->validationRules);
         $validationErrors = DocumentValidator::validate($schema, $source, $validationRules);
         return new ValidationResult($validationErrors, $validationRules);
     }
@@ -84,8 +85,8 @@ class QueryExecutor
         ?string        $operationName = null,
     ): GraphQlResult
     {
-        $extensionManager = ExtensionManager::createFromExtensionFactories($this->extensionFactories);
-        $validationRules = ValidationRules::initialize($this->validationRules);
+        $extensionManager = Extensions::createFromExtensionFactories($context,$this->extensionFactories);
+        $validationRules = ValidationRules::initialize($context, $this->validationRules);
         $extensionManager->dispatchStartEvent(StartEvent::create($query, $context, $operationName));
 
         try {
@@ -97,9 +98,11 @@ class QueryExecutor
                 contextValue: new OperationContext($context, $extensionManager),
                 variableValues: $variables ?? [],
                 operationName: $operationName,
-                fieldResolver: fn() => throw new RuntimeException("A field was provided that did not include the proxy resolver. This might break extensions and produce unknown side-effects. Did you use the field builder everywhere?"),
+                fieldResolver: static fn() => throw new RuntimeException("A field was provided that did not include the proxy resolver. This might break extensions and produce unknown side-effects. Did you use the field builder everywhere?"),
                 validationRules: $validationRules,
             );
+
+            // We only use the error handler and mapper for errors that occur during execution.
             $executionResult->errors = $this->handleErrors($executionResult->errors);
         } catch (SyntaxError $exception) {
             $executionResult = new ExecutionResult(null, [$exception]);

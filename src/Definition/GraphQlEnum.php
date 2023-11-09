@@ -30,6 +30,9 @@ abstract class GraphQlEnum implements DefinesGraphQlType
         ]);
     }
 
+    /**
+     * @throws DefinitionException
+     */
     private function initValues(SchemaRules $schemaRules): array
     {
         $definedValues = $this->values();
@@ -40,7 +43,7 @@ abstract class GraphQlEnum implements DefinesGraphQlType
         $values = [];
         foreach ($definedValues as $key => $definition) {
             $value = $this->initValue($key, $definition);
-            if (!empty($tagsToExclude) && $value->containsAnyOfTags(...$tagsToExclude)) {
+            if (!$schemaRules->isVisible($value)) {
                 continue;
             }
 

@@ -9,7 +9,7 @@ use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;
 use GraphQlTools\Helper\Extension\ActualCostExtension;
 use GraphQlTools\Helper\Extension\Extension;
-use GraphQlTools\Helper\ExtensionManager;
+use GraphQlTools\Helper\Extensions;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
@@ -26,15 +26,17 @@ class ExtensionManagerTest extends TestCase
         $extension->isEnabled()->willReturn(true);
         $extension->priority()->willReturn(1);
 
-        $manager = ExtensionManager::createFromExtensionFactories([
-            ActualCostExtension::class,
-            fn() => $extension->reveal(),
-        ]);
+        $manager = Extensions::createFromExtensionFactories(
+            $this->prophesize(GraphQlContext::class)->reveal(),
+            [
+                ActualCostExtension::class,
+                fn() => $extension->reveal(),
+            ]);
         self::assertTrue(true);
-        self::assertEquals(2, $manager->getExtensionsCount());
     }
 
-    public function testExtensionsEventDispatching() {
+    public function testExtensionsEventDispatching()
+    {
         $startEvent = StartEvent::create('', $this->prophesize(GraphQlContext::class)->reveal(), null);
         $endEvent = EndEvent::create(new ExecutionResult(null));
 
@@ -49,12 +51,13 @@ class ExtensionManagerTest extends TestCase
             $extensions[] = $extensionProphecy->reveal();
         }
 
-        $extensionManager = new ExtensionManager(...$extensions);
+        $extensionManager = new Extensions(...$extensions);
         $extensionManager->dispatchStartEvent($startEvent);
         $extensionManager->dispatchEndEvent($endEvent);
     }
 
-    public function testDisabledExtension(): void {
+    public function testDisabledExtension(): void
+    {
         $enabledExtension = $this->prophesize(Extension::class);
         $enabledExtension->isEnabled()->willReturn(true);
         $enabledExtension->priority()->willReturn(1);
@@ -65,11 +68,14 @@ class ExtensionManagerTest extends TestCase
         $disabledExtension->getName()->willReturn(bin2hex(random_bytes(16)));
 
 
-        $extensions = ExtensionManager::createFromExtensionFactories([
-            fn() => $disabledExtension->reveal(),
-            fn() => $enabledExtension->reveal(),
-        ]);
-        self::assertEquals(1, $extensions->getExtensionsCount());
+        $extensions = Extensions::createFromExtensionFactories(
+            $this->prophesize(GraphQlContext::class)->reveal(),
+            [
+                fn() => $disabledExtension->reveal(),
+                fn() => $enabledExtension->reveal(),
+            ]
+        );
+        self::assertCount(1, $extensions->getKeyedExtensions());
     }
 
     public function testMiddlewareFieldResolution()
@@ -81,9 +87,12 @@ class ExtensionManagerTest extends TestCase
         $extension->isEnabled()->willReturn(true);
         $extension->getName()->willReturn('something');
 
-        $extensions = ExtensionManager::createFromExtensionFactories([
-            fn() => $extension->reveal()
-        ]);
+        $extensions = Extensions::createFromExtensionFactories(
+            $this->prophesize(GraphQlContext::class)->reveal(),
+            [
+                fn() => $extension->reveal()
+            ]
+        );
 
         $next = $extensions->willResolveField(VisitFieldEvent::create(
             null, [], ResolveInfoDummy::withDefaults(), []

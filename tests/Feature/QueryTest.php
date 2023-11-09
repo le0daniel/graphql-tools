@@ -90,6 +90,7 @@ class QueryTest extends TestCase
         [$types, $extendedTypes] = TypeMap::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema');
         $federatedSchema->registerTypes($types);
         $federatedSchema->extendTypes($extendedTypes);
+        $federatedSchema->register(new ExportDirective());
 
         $federatedSchema->extendType(
             UserType::class,
@@ -229,6 +230,16 @@ class QueryTest extends TestCase
         self::assertCount(3, $result->data['mamels']);
         $this->assertColumnCount(3, $result->data['mamels'], 'sound');
     }
+
+    public function testQueryWithDirective(): void
+    {
+        $result = $this->execute('query { mamels { sound @include(if: true) } }');
+        $this->assertNoErrors($result);
+        self::assertCount(3, $result->data['mamels']);
+        self::assertCount(3, $result->data['mamels']);
+        $this->assertColumnCount(3, $result->data['mamels'], 'sound');
+    }
+
 
     public function testQueryExtendedInterface(): void
     {

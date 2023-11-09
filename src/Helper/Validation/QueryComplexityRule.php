@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\Helper\Validation;
 
+use GraphQL\Error\DebugFlag;
 use GraphQL\Error\Error;
 use GraphQL\Language\AST\NodeKind;
 use GraphQL\Language\AST\NodeList;
@@ -96,7 +97,7 @@ class QueryComplexityRule extends QueryComplexity implements ProvidesResultExten
         return $this->queryComplexity;
     }
 
-    public function jsonSerialize(): array
+    public function serialize(int $debug = DebugFlag::NONE): array
     {
         return [
             'max' => $this->maxQueryComplexity,

@@ -6,6 +6,7 @@ namespace GraphQlTools\Helper;
 
 use Closure;
 use GraphQlTools\Contract\ExecutionExtension;
+use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;
@@ -13,7 +14,7 @@ use GraphQlTools\Events\VisitFieldEvent;
 /**
  * @internal
  */
-final readonly class ExtensionManager
+final readonly class Extensions
 {
     /** @var ExecutionExtension[] */
     private array $extensions;
@@ -34,10 +35,6 @@ final readonly class ExtensionManager
         return $keyedExtensions;
     }
 
-    public function getExtensionsCount(): int {
-        return count($this->extensions);
-    }
-
     /**
      * This is used internally to build and order extensions
      * The extensions array must consist of class names or factories
@@ -47,17 +44,17 @@ final readonly class ExtensionManager
      *
      * @template T
      * @param array<Closure|class-string<T>> $extensionFactories
-     * @return ExtensionManager
+     * @return Extensions
      */
-    public static function createFromExtensionFactories(array $extensionFactories): ExtensionManager
+    public static function createFromExtensionFactories(GraphQlContext $context, array $extensionFactories): Extensions
     {
         $instances = [];
         $columnToSort = [];
 
         foreach ($extensionFactories as $classNameOrCallable) {
             /** @var ExecutionExtension|Closure(): ExecutionExtension $instance */
-            $instance = $classNameOrCallable instanceof Closure ? $classNameOrCallable() : new $classNameOrCallable;
-            if (!$instance->isEnabled()) {
+            $instance = $classNameOrCallable instanceof Closure ? $classNameOrCallable($context) : new $classNameOrCallable;
+            if (!$instance || !$instance->isEnabled()) {
                 continue;
             }
 

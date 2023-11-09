@@ -20,7 +20,6 @@ use GraphQlTools\Data\ValueObjects\GraphQlTypes;
 class FactoryTypeRegistry implements TypeRegistryContract
 {
     protected array $typeInstances = [];
-    protected readonly SchemaRules $schemaRules;
 
     /**
      * @param array<string, class-string<DefinesGraphQlType>|DefinesGraphQlType> $types
@@ -28,16 +27,16 @@ class FactoryTypeRegistry implements TypeRegistryContract
      * @param array<string, array<ExtendGraphQlType|class-string|Closure>> $extendedTypes
      */
     public function __construct(
-        protected readonly array $types,
-        protected readonly array $aliasesOfTypes = [],
-        protected readonly array $extendedTypes = [],
-        ?SchemaRules $schemaRules = null
+        protected readonly array       $types,
+        protected readonly array       $aliasesOfTypes = [],
+        protected readonly array       $extendedTypes = [],
+        protected readonly SchemaRules $schemaRules = new AllVisibleSchemaRule()
     )
     {
-        $this->schemaRules = $schemaRules ?? new AllVisibleSchemaRule();
     }
 
-    public function verifyAliasCollisions(): void {
+    public function verifyAliasCollisions(): void
+    {
         foreach ($this->aliasesOfTypes as $alias => $typeName) {
             if (array_key_exists($alias, $this->types)) {
                 throw new RuntimeException("The alias `{$alias}` is used also as typename, which is invalid.");
@@ -65,7 +64,8 @@ class FactoryTypeRegistry implements TypeRegistryContract
     /**
      * @throws DefinitionException
      */
-    protected function getTypeExtendedFieldFactories(GraphQlInterface|GraphQlType $type): array {
+    protected function getAllExtendedFieldFactoriesFor(GraphQlInterface|GraphQlType $type): array
+    {
         $factories = $this->getFieldExtensionsForTypeName($type->getName());
 
         if ($type instanceof GraphQlType) {
@@ -79,7 +79,8 @@ class FactoryTypeRegistry implements TypeRegistryContract
         return $factories;
     }
 
-    protected function getFieldExtensionsForTypeName(string $typeName): array {
+    protected function getFieldExtensionsForTypeName(string $typeName): array
+    {
         if (!isset($this->extendedTypes[$typeName])) {
             return [];
         }
@@ -98,7 +99,8 @@ class FactoryTypeRegistry implements TypeRegistryContract
         return $factories;
     }
 
-    protected function createInstanceOfGraphQlType(string $typeName): DefinesGraphQlType {
+    protected function createInstanceOfGraphQlType(string $typeName): DefinesGraphQlType
+    {
         $typeFactory = $this->types[$typeName] ?? null;
 
         return match (true) {
@@ -117,18 +119,23 @@ class FactoryTypeRegistry implements TypeRegistryContract
     protected function createType(string $typeName): Type
     {
         $type = $this->createInstanceOfGraphQlType($typeName);
+        return match (true) {
+            $type instanceof GraphQlType, $type instanceof GraphQlInterface => $this->extendTypeWithAdditionalFields($type),
+            default => $type->toDefinition($this, $this->schemaRules)
+        };
+    }
 
-        $isExtendableType = $type instanceof GraphQlType || $type instanceof GraphQlInterface;
-        if ($isExtendableType) {
-            $extendedFields = $this->getTypeExtendedFieldFactories($type);
-            return empty($extendedFields)
-                ? $type->toDefinition($this, $this->schemaRules)
-                : $type
-                    ->mergeFieldFactories(...$extendedFields)
-                    ->toDefinition($this,  $this->schemaRules);
-        }
-
-        return $type->toDefinition($this, $this->schemaRules);
+    /**
+     * @throws DefinitionException
+     */
+    protected function extendTypeWithAdditionalFields(GraphQlType|GraphQlInterface $type): Type
+    {
+        $extendedFields = $this->getAllExtendedFieldFactoriesFor($type);
+        return empty($extendedFields)
+            ? $type->toDefinition($this, $this->schemaRules)
+            : $type
+                ->mergeFieldFactories(...$extendedFields)
+                ->toDefinition($this, $this->schemaRules);
     }
 
     public function nonNull(Type|Closure $wrappedType): NonNull

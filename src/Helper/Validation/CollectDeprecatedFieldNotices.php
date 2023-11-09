@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\Helper\Validation;
 
+use GraphQL\Error\DebugFlag;
 use GraphQL\Language\AST\ArgumentNode;
 use GraphQL\Language\AST\EnumValueNode;
 use GraphQL\Language\AST\FieldNode;
@@ -106,10 +107,7 @@ class CollectDeprecatedFieldNotices extends ValidationRule implements ProvidesRe
         return !empty($this->messages);
     }
 
-    /**
-     * @return array<DeprecatedArgument|DeprecatedField|DeprecatedEnumValue>
-     */
-    public function jsonSerialize(): array
+    public function serialize(int $debug = DebugFlag::NONE): array
     {
         return $this->messages;
     }

@@ -2,10 +2,11 @@
 
 namespace GraphQlTools\Contract;
 
-use JsonSerializable;
+use GraphQL\Error\DebugFlag;
 
-interface ProvidesResultExtension extends JsonSerializable
+interface ProvidesResultExtension
 {
     public function isVisibleInResult($context): bool;
     public function key(): string;
+    public function serialize(int $debug = DebugFlag::NONE): mixed;
 }
