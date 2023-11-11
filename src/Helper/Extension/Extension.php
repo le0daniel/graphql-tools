@@ -6,7 +6,6 @@ namespace GraphQlTools\Helper\Extension;
 
 use Closure;
 use GraphQlTools\Contract\ExecutionExtension;
-use GraphQlTools\Contract\ProvidesResultExtension;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;

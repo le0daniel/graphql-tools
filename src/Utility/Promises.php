@@ -12,6 +12,11 @@ final class Promises
         self::$promiseClassName = $className;
     }
 
+    /**
+     * @template T
+     * @param T $potentialPromise
+     * @phpstan-assert-if-true SyncPromise $object
+     */
     public static function isPromise(mixed $potentialPromise): bool {
         return $potentialPromise instanceof self::$promiseClassName;
     }

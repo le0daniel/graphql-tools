@@ -7,14 +7,14 @@ use GraphQlTools\Definition\Field\EnumValue;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Field\InputField;
 
-final class TagBasedSchemaRules implements SchemaRules
+final readonly class TagBasedSchemaRules implements SchemaRules
 {
-    private readonly bool $blacklistCheckRequired;
-    private readonly bool $whitelistCheckRequired;
+    private bool $blacklistCheckRequired;
+    private bool $whitelistCheckRequired;
 
     public function __construct(
-        private readonly array $ignoreWithTags = [],
-        private readonly array $onlyWithTags = [],
+        private array $ignoreWithTags = [],
+        private array $onlyWithTags = [],
     )
     {
         $this->blacklistCheckRequired = !empty($this->ignoreWithTags);

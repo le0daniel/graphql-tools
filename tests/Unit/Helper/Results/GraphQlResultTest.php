@@ -4,10 +4,10 @@ namespace GraphQlTools\Test\Unit\Helper\Results;
 
 use GraphQL\Error\ClientAware;
 use GraphQL\Error\Error;
+use GraphQL\Error\ProvidesExtensions;
 use GraphQL\Executor\ExecutionResult;
 use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Contract\ExecutionExtension;
-use GraphQlTools\Contract\ProvidesErrorExtensions;
 use GraphQlTools\Contract\ProvidesResultExtension;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Helper\Results\GraphQlResult;
@@ -53,15 +53,14 @@ class GraphQlResultTest extends TestCase
         ], $result->toArray());
     }
 
-    private function getThrowableMock(): ObjectProphecy|(\Throwable&ClientAware&ProvidesErrorExtensions)
+    private function getThrowableMock(): ObjectProphecy|(\Throwable&ClientAware&ProvidesExtensions)
     {
         return $this->prophesize(\Throwable::class)
             ->willImplement(ClientAware::class)
-            ->willImplement(ProvidesErrorExtensions::class);
+            ->willImplement(ProvidesExtensions::class);
     }
 
     public function testToArrayErrorFormatter(): void {
-        /** @var ObjectProphecy|\Throwable&ClientAware&ProvidesErrorExtensions $exception */
         $exception = $this->getThrowableMock();
         $exception->isClientSafe()->willReturn(true);
         $exception->getExtensions()->willReturn(['code' => 404]);
@@ -88,9 +87,9 @@ class GraphQlResultTest extends TestCase
     }
 
     public function testFormatWhenNotClientAware(): void {
-        /** @var ObjectProphecy|\Throwable&ClientAware&ProvidesErrorExtensions $exception */
         $exception = $this->getThrowableMock();
         $exception->isClientSafe()->willReturn(false);
+        $exception->getExtensions()->willReturn(null);
         $error = new Error(previous: $exception->reveal());
 
         $result = GraphqlResult::fromExecutionResult(
@@ -110,11 +109,10 @@ class GraphQlResultTest extends TestCase
     }
 
     public function testFormatWithEmptyExceptions(): void {
-        /** @var ObjectProphecy|\Throwable&ClientAware&ProvidesErrorExtensions $exception */
         $exception = $this->getThrowableMock();
         $exception->isClientSafe()->willReturn(true);
         $error = new Error(previous: $exception->reveal());
-        $exception->getExtensions()->willReturn([]);
+        $exception->getExtensions()->willReturn(null);
 
         $result = GraphqlResult::fromExecutionResult(
             new ExecutionResult(errors: [$error]),

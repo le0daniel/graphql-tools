@@ -11,7 +11,9 @@ use GraphQlTools\Contract\Event;
 final class EndEvent extends Event
 {
 
-    protected function __construct(public readonly ExecutionResult $result)
+    protected function __construct(
+        public readonly ExecutionResult $result
+    )
     {
     }
 

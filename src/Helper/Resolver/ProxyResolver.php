@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Helper\Resolver;
 
-use ArrayAccess;
 use Closure;
+use GraphQL\Executor\Executor;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\GraphQlContext;
@@ -17,13 +17,6 @@ use Throwable;
 
 class ProxyResolver
 {
-    /**
-     * Allows to overwrite the default resolver behaviour.
-     *
-     * @var Closure(mixed $typeData, array $arguments, GraphQlContext $context, ResolveInfo $info): mixed|null
-     */
-    public static ?Closure $defaultResolver = null;
-
     public function __construct(private readonly ?Closure $resolveFunction = null)
     {
     }
@@ -43,25 +36,7 @@ class ProxyResolver
     {
         return $this->resolveFunction
             ? ($this->resolveFunction)($typeData, $arguments, $context, $info)
-            : self::resolveDefault($typeData, $arguments, $context, $info);
-    }
-
-    protected static function resolveDefault(mixed $typeData, array $arguments, GraphQlContext $context, ResolveInfo $info): mixed {
-        if (self::$defaultResolver) {
-            return (self::$defaultResolver)($typeData, $arguments, $context, $info);
-        }
-
-        $fieldName = $info->fieldName;
-        if (is_array($typeData) || $typeData instanceof ArrayAccess) {
-            return $typeData[$fieldName] ?? null;
-        }
-
-        if (!is_object($typeData)) {
-            return null;
-        }
-
-        /** @var $typeData object */
-        return $typeData->{$fieldName} ?? null;
+            : Executor::getDefaultFieldResolver()($typeData, $arguments, $context, $info);
     }
 
     /**

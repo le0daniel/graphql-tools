@@ -35,6 +35,28 @@ final class DataLoader implements DataLoaderContract
     {
     }
 
+    public static function getIdentifier(mixed $item): mixed {
+        if (is_array($item)) {
+            self::verifyArrayItemsContainIdentifier($item);
+            return $item[self::$arrayIdentifierKey];
+        }
+
+        return $item instanceof DataLoaderIdentifiable
+            ? $item->dataLoaderIdentifier()
+            : $item;
+    }
+
+    private static function verifyArrayItemsContainIdentifier(array &$item): void
+    {
+        if (!array_key_exists(self::$arrayIdentifierKey, $item)) {
+            $keyName = 'DataLoader::$arrayIdentifierKey';
+            throw new RuntimeException(
+                "An item enqueued in a dataloader is required to have a property called '{$keyName}' for mapping." . PHP_EOL .
+                "Hint: Make sure to use \$dataLoader->load([{$keyName} => 'yourID!', ...])."
+            );
+        }
+    }
+
     public function getLoadingTraces(): array
     {
         return $this->loadingTraces;
@@ -60,7 +82,7 @@ final class DataLoader implements DataLoaderContract
 
         // If an array is given, an identifier is required to map to the correct data. This is due
         // to arrays being passed as values and not as references.
-        $identifier = $this->identifier($item);
+        $identifier = self::getIdentifier($item);
 
         // The item is put into the queue
         $this->queuedItems[] = &$item;
@@ -76,17 +98,6 @@ final class DataLoader implements DataLoaderContract
             }
             return $valueOrThrowable;
         });
-    }
-
-    private function identifier(mixed &$item): mixed {
-        if (is_array($item)) {
-            $this->verifyArrayItemsContainIdentifier($item);
-            return $item[self::$arrayIdentifierKey];
-        }
-
-        return $item instanceof DataLoaderIdentifiable
-            ? $item->dataLoaderIdentifier()
-            : $item;
     }
 
     public function loadMany(mixed ...$items): array
@@ -154,17 +165,6 @@ final class DataLoader implements DataLoaderContract
         if ($this->loadedData) {
             $this->loadedData = null;
             $this->queuedItems = [];
-        }
-    }
-
-    private function verifyArrayItemsContainIdentifier(array &$item): void
-    {
-        if (!array_key_exists(self::$arrayIdentifierKey, $item)) {
-            $keyName = 'DataLoader::$arrayIdentifierKey';
-            throw new RuntimeException(
-                "An item enqueued in a dataloader is required to have a property called '{$keyName}' for mapping." . PHP_EOL .
-                "Hint: Make sure to use \$dataLoader->load([{$keyName} => 'yourID!', ...])."
-            );
         }
     }
 }

@@ -3,6 +3,7 @@
 namespace GraphQlTools\Helper\Resolver;
 
 use Closure;
+use GraphQL\Executor\Executor;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Helper\Middleware;
@@ -17,7 +18,7 @@ final class MiddlewareResolver extends ProxyResolver
     }
 
     private function getResolveFunction(): Closure {
-        return $this->resolver ??= Middleware::create($this->pipes)->then($this->middle ?? self::resolveDefault(...));
+        return $this->resolver ??= Middleware::create($this->pipes)->then($this->middle ?? Executor::getDefaultFieldResolver()(...));
     }
 
     public function resolveToValue(mixed $typeData, array $arguments, GraphQlContext $context, ResolveInfo $info): mixed
