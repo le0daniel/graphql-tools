@@ -33,6 +33,26 @@ abstract class GraphQlType implements DefinesGraphQlType
      */
     abstract protected function fields(TypeRegistry $registry): array;
 
+    /**
+     * Overwrite if you want to define custom name patterns
+     * @return string
+     * @throws DefinitionException
+     */
+    public function getName(): string
+    {
+        return Types::inferNameFromClassName(static::class);
+    }
+
+    /**
+     * Overwrite to define interfaces implemented by this type.
+     * Return class-names or interface names.
+     * @return array<string|class-string<GraphQlInterface>>
+     */
+    protected function interfaces(): array
+    {
+        return [];
+    }
+
     private function getDefinedFields(TypeRegistry $registry): array {
         if (empty($this->middleware())) {
             return $this->fields($registry);
@@ -43,7 +63,7 @@ abstract class GraphQlType implements DefinesGraphQlType
         return array_map(fn(Field $field) => $field->prependMiddleware(...$middleware), $this->fields($registry));
     }
 
-    public function toDefinition(TypeRegistry $registry, SchemaRules $schemaRules): ObjectType {
+    final public function toDefinition(TypeRegistry $registry, SchemaRules $schemaRules): ObjectType {
         return new ObjectType(
             [
                 'name' => $this->getName(),
@@ -65,20 +85,6 @@ abstract class GraphQlType implements DefinesGraphQlType
 
     final public function getInterfaces(): array {
         return $this->interfaces();
-    }
-
-    public function getName(): string
-    {
-        return Types::inferNameFromClassName(static::class);
-    }
-
-    /**
-     * Array returning the Interface types resolved by the TypeRepository.
-     * @return array
-     */
-    protected function interfaces(): array
-    {
-        return [];
     }
 
 }

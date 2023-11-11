@@ -32,6 +32,10 @@ class CollectDeprecatedFieldNotices extends ValidationRule implements ProvidesRe
         return $parent ? $parent->name : '';
     }
 
+    public function getMessages(): array {
+        return $this->messages;
+    }
+
     public function getVisitor(ValidationContext $context): array
     {
         return [

@@ -1,45 +1,55 @@
 # GraphQl Tools
+
 [![Latest Stable Version](https://poser.pugx.org/le0daniel/graphql-tools/v)](//packagist.org/packages/le0daniel/graphql-tools) [![Total Downloads](https://poser.pugx.org/le0daniel/graphql-tools/downloads)](//packagist.org/packages/le0daniel/graphql-tools) [![Latest Unstable Version](https://poser.pugx.org/le0daniel/graphql-tools/v/unstable)](//packagist.org/packages/le0daniel/graphql-tools) [![License](https://poser.pugx.org/le0daniel/graphql-tools/license)](//packagist.org/packages/le0daniel/graphql-tools)
 
-This is a simple opinionated toolkit for writing GraphQL applications in PHP. It supports extensions and in particulat the apollo tracing format.
+This is a simple opinionated toolkit for writing scalable GraphQL applications in PHP.
 
 Main Features
 
- - (not working yet) Apollo Tracing support
- - Custom extensions support
- - Default TypeRepository Implementation with lazy loading
- - Strict Type Checks
- - Abstract classes to extend for defining types / enums / interfaces / unions / scalars / Fields
- - Fields are built with the easy to use Field builder
- - Abstraction of deferred fields to solve the N+1 problem
- - Code First approach to schema building
+- Custom extensions support (Tracing, Telemetry of resolvers)
+- Support for middlewares of resolvers
+- Abstraction for schema registration and multi schema supports. This is similar to the visible function, but more
+  transparent.
+- Abstract classes to extend for defining types / enums / interfaces / unions / scalars
+- Fields are built with the easy-to-use field builder
+- Simple dataloader implementation to solve N+1 problems
+- Code First approach to schema building
+- Extending of Types with additional fields, allowing you to respect your domain boundires and construct the right
+  dependency directions.
+- Type name aliases, so that you can either use type names of class names of types.
 
 ## Basic Usage
 
-The usage is similar to how you would use `webonyx/graphql` and define object types, but it comes with default implementations for all GraphQL types.
+The usage is similar to how you would use `webonyx/graphql` and define object types. Instead of extending the default
+classes, you extend the abstract classes provided.
+Every resolve function is wrapped by the ProxyResolver class, which provides support for extensions.
 
-Every resolve function is wrapped by the ProxyResolver class, which enables the extensions to work and is extensible with different hooks. 
-
-Additionally, default implementations for the Context and the type repository are provided. Those can be extended to fit your needs or usage with a specific Framework.
-
-Everything begins by defining a new Type Repository. The Type Repository makes sure that all types are only created once.
+At the core, we start with a schema registry. There you register types and register extensions to types.
 
 ```php
 <?php
-    use GraphQlTools\Helper\Context;use GraphQlTools\Helper\QueryExecutor;use GraphQlTools\Helper\TypeRegistry; use GraphQlTools\Utility\TypeMap;
+    use GraphQlTools\Helper\Registry\SchemaRegistry;
+    use GraphQlTools\Contract\TypeRegistry;
+    use GraphQlTools\Definition\Field\Field;
+    use GraphQlTools\Helper\QueryExecutor;
     require_once __DIR__ . '/vendor/autoload.php';   
 
-    // Extend this class to implement specific methods
-    $typeRegistry = new TypeRegistry(
-        // This should be cached for production, usually in build process
-        TypeMap::createTypeMapFromDirectory(__DIR__ . '/YOUR_DIRECTORY_WITH_ALL_TYPE_DECLARATIONS')
-    );
+    $schemaRegistry = new SchemaRegistry();
+    
+    // You can use a classname for lazy loading or an instance of this type class.
+    // You can register object-types, interfaces, enums, input-types, scalars and unions
+    $schemaRegistry->register(Type::class);
+    
+    // You can extend types and interfaces with additional fields
+    $schemaRegistry->extendType('Lion', function(TypeRegistry $registry): array {
+        return [
+            Field::withName('species')->ofType($registry->string())
+        ];
+    });
 
-    $schema = $typeRegistry->toSchema(
-        RootQueryType::class, // Your own root query type
-        RootMutationType::class, // Your own root mutation type
-        [], // Eagerly loaded types
-        [], // Array of directives
+    $schema = $schemaRegistry->createSchema(
+        RootQueryType::class, // Define
+        'MutationRoot', // Your own root mutation type,
     );
 
     $executor = new QueryExecutor();
@@ -50,93 +60,106 @@ Everything begins by defining a new Type Repository. The Type Repository makes s
         new Context(),
         [], // variables array
         null, // Root Value
-        'query' // operation name
+        null, // operation name
     );
 ```
 
-## Type Registry
+## Schema Registry
 
-When using GraphQl with Objects definition, it is important to keep in mind that a type can only exist once in a schema.
-Meaning, if both of your types `Tiger` and `Lion` have a field named `parent` of type `Animal`, the object defining `Animal` must only be initialized once.
+The schema registry serves as a single place where you register all types that exist in your graphql schema.
+You can then use the createSchema method to create different variations of your schema based on rules you pass to it.
+This is more transparent than using the visible method on your fields, as you can print different variants and see what
+different users might be able to see.
+Schema rules allow you to granularly show and hide fields. A schema rule file gets an instance of every field a type has
+and lets you decide if it is visible or not.
 
-The Type Repository's job is to ensure that types are only created once.
+**All types and fields are by default lazy loaded for best performance.**
 
-When defining fields with custom types, you must use the TypeRepository.
+### Loading all types in a directory
+
+To simplify type registration, you can use the TypeMap utility to load all types in a directory. It uses Glob to find
+all PHP files. In production, **you should cache those**.
 
 ```php
-    use GraphQlTools\Helper\TypeRegistry;use GraphQlTools\Utility\TypeMap;
-    $typeRegistry = new TypeRegistry(
-        TypeMap::createTypeMapFromDirectory(__DIR__ . '/YOUR_DIRECTORY_WITH_ALL_TYPE_DECLARATIONS')
-    );
+    use GraphQlTools\Helper\Registry\SchemaRegistry;
+    use GraphQlTools\Utility\TypeMap;
 
-    // This will return the instance of the Root Query Type
-    // and if not available, create if for the first time
-    $queryType = $typeRegistry->type(RootQueryType::class);
+    $schemaRegistry = new SchemaRegistry();
     
-    // Therefore the following comparison will return true
-    $queryType === $typeRegistry->type(RootQueryType::class); // => true
+    [$types, $typeExtensions] = TypeMap::createTypeMapFromDirectory('/your/directory/with/GraphQL');
+    
+    $schemaRegistry->registerTypes($types);
+    $schemaRegistry->extendTypes($typeExtensions);
 ```
 
-Every Type / Union / Interface / InputType / Enum will be injected automatically with the instance of the TypeRepository.
+## Define Types
 
-## Context
-
-The Context Object is passed to all Resolvers and contains contextual values. This is a good place to add current User information for example.
-
-The Context is also used to automatically Inject Services (or classes) into the Deferred Field loading function or the mutation field resolver.
-You can simply extend the Context Object to add functionality to it.
+An object type can be defined, by creating a class that extends the `GraphQlTools\Definition\GraphQlType` class.
+The Type name is automatically deduced by the class name. For this to work, the class name needs to end in Type.
+Example: class QueryType => Query (Name in schema).
+You can overwrite this behaviour by overwriting the getName function.
 
 ```php
-class MyCustomContext extends \GraphQlTools\Helper\Context {
+use GraphQlTools\Definition\GraphQlType;
+use GraphQlTools\Contract\TypeRegistry;
+use GraphQlTools\Definition\Field\Field;
 
-    public function __construct(public readonly User $currentUser, private \Psr\Container\ContainerInterface $container) {}
+class QueryType extends GraphQlType {
 
-    /**
-    * Decouples the Schema and GraphQL from all your business logic.
-    *
-    * A data loader executor is responsible to load data from a source and perform business logic.
-    * You can refer to a data loader by any string. This method is used to return a loading function or instance
-    * of ExecutableByDataLoader. This allows you to separate the business logic completely from GraphQL.
-    * 
-    * @param string $classNameOrLoaderName
-    * @return callable|\GraphQlTools\Contract\ExecutableByDataLoader
-    * @throws \Psr\Container\ContainerExceptionInterface
-    * @throws \Psr\Container\NotFoundExceptionInterface
-     */
-    protected function makeInstanceOfDataLoaderExecutor(string $classNameOrLoaderName) : callable|\GraphQlTools\Contract\ExecutableByDataLoader{
-        $this->container->get($className);
+    // Define Fields of the type. Use the type registry to reference all other types in the schema.
+    // You MUST use the type registry for referencing all types. The type registry guarantees that the type is only 
+    // created once and reused everywhere.
+    protected function fields(TypeRegistry $registry) : array {
+        return [
+            Field::withName('currentUser')
+                ->ofType($registry->nonNull($registry->string()))
+                ->resolvedBy(fn(array $user) => $user['name']),
+            // More fields
+        ];
+    }
+    
+    protected function description() : string{
+        return 'Entry point into the schema query.';
+    }
+    
+    // Optional
+    protected function interfaces(): array {
+        return [
+            UserInterface::class,
+            'Animal', 
+        ];
+    }
+    
+    // Optional, define middlewares for the resolver. See Middlewares.
+    protected function middleware() : array|null{
+        return [];
     }
 }
 ```
 
-In this example, every resolver now gets access to the current user through your context. Additionally, the context resolves dependencies for resolve functions.
+## Defining Fields and InputFields
 
-## Defining Types
+It is required to use the Field and Input fields builder to define Fields (output) and InputFields for input (InputType
+fields or Arguments).
+This is required for the Framework to work correctly. It attaches ProxyResolver under the hood for extensions and
+Middlewares to work correctly.
 
-The most important functionality is how to define Types. Compared to the raw implementation of webonix/graphql, SDL is not supported and slightly different classes are required.
+Additionally, you can define Tags, which can be used to define visibility of fields in different schema variations.
+Types need to be referenced via the Type Registry. The sole job of the type registry is to create referenced types only
+once in the complete schema.
+This is automatically created for you when you create a schema from the schema registry.
 
-Every Type, Interface, Union, ENUM, Scalar only depends on the TypeRepository without any thirdparty dependencies. This is really important, as their only use is to build the schema.
-The resolve functions of the Fields then should use your services to get data from your Application. Only they should depend on Services, which are injected or created from the Context.
+By default, the resolver is using the default resolve function from Webonyx (`Executor::getDefaultFieldResolver()`).
 
-This ensures fast schema loading and query execution to work correctly. The only Object knowing your Application is the Context.
-
-Type resolution is done automatically if you provide a ClassName using the TypeRepository. If you need nested Types (like nonnull or list of), pass a closure, which will get the TypeRepository as an argument
-
-```php
-Field::withName('myFieldName')->ofType(fn(TypeRepository $typeRepository) => new NonNull($typeRepository->type(MyCustomTypeClass::class)))
-```
-
-Full example of Type definition:
+Usage (For a type example):
 
 ```php
 
-    use GraphQL\Type\Definition\Type;
     use GraphQlTools\Definition\GraphQlType;
+    use GraphQlTools\Contract\TypeRegistry;
     use GraphQlTools\Definition\Field\Field;
-    use GraphQlTools\Helper\TypeRegistry;
-    use GraphQlTools\Definition\Field\DeferredField;
-    use GraphQlTools\Definition\Field\InputField;
-    use GraphQlTools\Helper\Context;
+    use GraphQL\Type\Definition\ResolveInfo;
+    
     
     final class AnimalType extends GraphQlType {
         
@@ -145,66 +168,129 @@ Full example of Type definition:
         }
         
         protected function fields(TypeRegistry $registry) : array {
-            // To prevent circular types, this is already wrapped in a closure
-            // Provide the fields of your type.
-            // --
-            // You can, and should access the protected `typeRepository` to reference your own types:
+            
             return [
-                Field::withName('id')
-                    ->ofType(Type::id()),
+                // Uses the default resolver
+                Field::withName('id') ->ofType($registry->id()),
                 
                 // Define custom types using the repository
                 Field::withName('customType')
-                    ->ofType($this->typeRegistry->type(MyCustomTypeClass::class))
-                    ->ofSchemaVariant('Only-On-Public'), # Adds metadata to dynamically hide a field
+                    ->withDescription('This is a custom type')
+                    ->ofType($registry->type(CustomType::class))
+                    ->tags('public', 'stable'),
+                    
+                // Using type name instead of class name
+                Field::withName('customType2')
+                    ->ofType($registry->type('Custom'))
+                    ->tags('public', 'stable'),
                    
+                // With Resolver
+                Field::withName('userName')
+                    ->ofType($registry->string())
+                    ->resolvedBy(fn(User $user, array $arguments, $context, ResolveInfo $info): string => $user->name),
                 
-                // With custom resolver, the definition here is equal to above.
-                Field::withName('sameCustomType')
-                    ->ofType(MyCustomTypeClass::class)
-                    ->resolvedBy(fn($data, array $arguments) => $data['items']),
-                
-                // Defer a field, the logic of deferring is abstracted away    
-                Field::withName('myField')
-                    ->ofType(MyType::class)
+                // Define arguments 
+                Field::withName('fieldWithArgs')
+                    ->ofType($registry->string())
                     ->withArguments(
                         
                         // Define named arguments, works for all fields
-                        InputField::withName('id')
-                            ->ofType(Type::id())
-                            ->withDefaultValue('My Value')
+                        InputField::withName('name')
+                            ->ofType($registry->nonNull($registry->string()))
+                            ->withDefaultValue('Anonymous')
                             ->withDescription('My Description')
-                       
-                        InputField::withName('second')
-                            ->ofType(MyType::class),
                     )
-                    ->resolvedBy(function ($data, $arguments, Context $context, $resolveInfo) {
-                        $context
-                            ->dataLoader(MyDataLoaderExecutor::class)
-                            // ->loadMany(...$data->tagIds)
-                            ->load($data->id)
+                    ->resolvedBy(function ($data, array $arguments, $context, ResolveInfo $resolveInfo): string {
+                        return "Hello {$arguments['name']}";
                     })
                              
             ];
         }
-        
-        // Optional, define interfaces of this type.
-        protected function interfaces() : array{
-            return [
-                MamelType::class,
-                $this->typeRegistry->type(MyType::class),
-            ];
-        }
-        
-        // Optional, return the type name, used in your schema.
-        // By default, the class basename is used, by removing Type from it
-        // Ex: Namespace\AnimalType => Animal
-        // 
-        // This applies to all different Types (Union, Interface, Type, InputType, Enum)
-        // with slightly different endings being removed.
-        public static function typeName(): string {
-            return 'Animal';
-        }
     }
 ```
 
+## Middleware
+
+A middleware is a function that is executed before and after the real resolve function is called. It follows an onion principle. You can define multiple middleware functions to prevent data leakage on a complete type or on specific fields.
+
+**Signature**
+```php
+use GraphQL\Type\Definition\ResolveInfo;
+use Closure;
+
+$middleware = function(mixed $data, array $arguments, $context, ResolveInfo $resolveInfo, Closure $next): mixed {
+    // Do something before actually resolving the field.
+    if (!$context->isAdmin()) {
+        return null;
+    }
+    
+    $result = $next($data, $arguments, $context, $resolveInfo);
+    
+    // Do something after the field was resolved. You can manipulate the result here.
+    if ($result === 'super secret value') {
+        return null;
+    }
+    
+    return $result;
+} 
+```
+
+**Usage**
+You can define multiple middleware for a type (Those middlewares are then pretended to all Fields of that type) or only specific fields.
+
+```php
+use GraphQlTools\Definition\Field\Field;
+
+Field::withName('fieldWithMiddleware')
+    ->middleware(
+        $middleware,
+        function(mixed $data, array $arguments, $context, ResolveInfo $resolveInfo, Closure $next) {
+            return $next($data, $arguments, $context, $resolveInfo);
+        }
+    )
+```
+
+## Query execution (QueryExecutor)
+
+The query executor is used to execute a query. It attaches Extensions and Validation Rules, handles error mapping and logging.
+
+**Extensions**: Classes that can drop in to the execution of the query and listen to events. They do not change the result of the query but can collect valuable telemetry data. They are contextual and a new instance is created for each query that is executed.
+**Validation Rules**: They validate the query before it is executed. They are not necessarily contextual. If a factory or classname is provided, a new instance is created for each query that is executed.
+**Error Mapper**: Receives an instance of Throwable and the corresponding GraphQl Error. It is tasked to map this to a Throwable that potentially implements ClientAware. This allows you to disconnect your internal exceptions from exceptions that you use in GraphQL.
+**Error Logger**: Receives an instance of Throwable before it is mapped. This allows you to log errors that occurred.
+
+### Extensions and ValidationRules
+If you define a factory, it will get the context as argument. This allows you to dynamically create or attach them based on the user that is executing your query.
+If an extension of validation rule implements `GraphQlTools\Contract\ProvidesResultExtension`, you can add data to the extensions array of the result, according to the graphql spec.
+
+```php
+use GraphQlTools\Helper\QueryExecutor;
+use GraphQlTools\Helper\Validation\QueryComplexityRule;
+use GraphQlTools\Helper\Validation\CollectDeprecatedFieldNotices;
+
+$executor = new QueryExecutor(
+    [fn($context) => new YourTelemetryExtension],
+    [CollectDeprecatedFieldNotices::class, fn($context) => new QueryComplexityRule($context->maxAllowedComplexity)],
+    function(Throwable $throwable, \GraphQL\Error\Error $error): void {
+        YourLogger::error($throwable);
+    },
+    function(Throwable $throwable): Throwable {
+        match ($throwable::class) {
+            AuthenticationError::class => GraphQlErrorWhichIsClientAware($throwable),
+            default => $throwable
+        }
+    }
+);
+
+$result = $executor->execute(/* ... */);
+
+// You can access extensions after the execution
+$telemetryExtension = $result->getExtension(YourTelemetryExtension::class);
+$application->storeTrace($telemetryExtension->getTrace());
+
+// You can access validation rules after execution
+$deprecationNotices = $result->getValidationRule(CollectDeprecatedFieldNotices::class);
+$application->logDeprecatedUsages($deprecationNotices->getMessages());
+
+$jsonResult = json_encode($result);
+```

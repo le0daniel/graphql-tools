@@ -20,14 +20,17 @@ final class ValidationRules
         $initializedRules = DocumentValidator::defaultRules();
 
         foreach ($rules as $ruleOrFactory) {
-            /** @var ValidationRule $rule */
+            /** @var ValidationRule|null $rule */
             $rule = match (true) {
                 $ruleOrFactory instanceof ValidationRule => $ruleOrFactory,
                 is_string($ruleOrFactory) => new $ruleOrFactory,
                 $ruleOrFactory instanceof Closure => $ruleOrFactory($context),
                 default => throw new DefinitionException("Expected class-string|Closure|ValidationRule, got: " . gettype($ruleOrFactory)),
             };
-            $initializedRules[$rule->getName()] = $rule;
+
+            if ($rule) {
+                $initializedRules[$rule->getName()] = $rule;
+            }
         }
 
         return $initializedRules;
