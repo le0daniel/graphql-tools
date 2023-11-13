@@ -8,7 +8,6 @@ use GraphQL\Executor\ExecutionResult;
 use GraphQL\Type\Schema;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
-use GraphQlTools\Directives\ExportDirective;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Helper\QueryExecutor;
 use GraphQlTools\Helper\Registry\SchemaRegistry;
@@ -90,7 +89,6 @@ class QueryTest extends TestCase
         [$types, $extendedTypes] = TypeMap::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema');
         $federatedSchema->registerTypes($types);
         $federatedSchema->extendTypes($extendedTypes);
-        $federatedSchema->register(new ExportDirective());
 
         $federatedSchema->extendType(
             UserType::class,
@@ -132,15 +130,6 @@ class QueryTest extends TestCase
         $schema = $this
             ->schemaRegistry()
             ->createSchema(QueryType::class, schemaRules: new TagBasedSchemaRules($excludeTags));
-        $schema->assertValid();
-        return $schema;
-    }
-
-    protected function schemaWithExportDirective(array $excludeTags = []): Schema
-    {
-        $registry = $this->schemaRegistry();
-        $registry->register(new ExportDirective());
-        $schema = $registry->createSchema(QueryType::class, schemaRules: new TagBasedSchemaRules($excludeTags));
         $schema->assertValid();
         return $schema;
     }
@@ -311,18 +300,29 @@ class QueryTest extends TestCase
         $this->assertError($result, 'Unknown argument "name" on field "currentUser" of type "Query".');
     }
 
+    public function testOverwrittenGetName(): void
+    {
+        $result = $this->executeOn(
+            $this->schema(),
+            "query { overwritten { id } }"
+        );
+        $this->assertNoErrors($result);
+        self::assertEquals(['overwritten' => ['id' => 'super secret id']], $result->data);
+    }
+
+    public function testOverwrittenGetNameByAlias(): void
+    {
+        $result = $this->executeOn(
+            $this->schema(),
+            "query { overwrittenAlias { id } }"
+        );
+        $this->assertNoErrors($result);
+        self::assertEquals(['overwrittenAlias' => ['id' => 'super secret id']], $result->data);
+    }
+
     public function testFederationFieldMiddleware(): void
     {
         $result = $this->execute('query {testFieldMiddleware}');
         self::assertEquals('Hello -- No Name Provided --', $result->data['testFieldMiddleware']);
     }
-
-    // public function testQueryWithBuilderField(): void
-    // {
-    //     $result = $this->execute('query { builderField { test } }');
-    //     $this->assertNoErrors($result);
-    //     self::assertIsArray($result->data['builderField']);
-    //     self::assertEquals('This is a test', $result->data['builderField']['test']);
-    // }
-
 }

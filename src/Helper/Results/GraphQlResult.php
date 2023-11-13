@@ -86,7 +86,9 @@ final class GraphQlResult extends ExecutionResult
             }
 
             try {
-                $serialized[$item->key()] = $item->serialize($debug);
+                if ($data = $item->serialize($debug)) {
+                    $serialized[$item->key()] = $data;
+                }
             } catch (Throwable $throwable) {
                 $serialized[$item->key()] = $debug >= DebugFlag::INCLUDE_DEBUG_MESSAGE
                     ? $throwable->getMessage()

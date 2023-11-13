@@ -10,7 +10,7 @@ use GraphQlTools\Helper\Middleware;
 
 final class MiddlewareResolver extends ProxyResolver
 {
-    private Closure $resolver;
+    private readonly Closure $resolver;
 
     public function __construct(private readonly ?Closure $middle, private readonly array $pipes)
     {

@@ -14,7 +14,7 @@ final class Arrays
      * @template K of string|int
      * @template V
      * @param iterable<mixed, mixed> $array
-     * @param Closure(mixed $key, mixed $value) $closure
+     * @param Closure $closure
      * @return array<K, V>
      */
     public static function mapWithKeys(iterable $array, Closure $closure): array

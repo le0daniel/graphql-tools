@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Directives;
+namespace GraphQlTools\Test\Dummies\Schema\Directives;
 
 use GraphQL\Language\DirectiveLocation;
 use GraphQlTools\Contract\TypeRegistry;

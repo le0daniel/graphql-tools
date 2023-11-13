@@ -2,9 +2,9 @@
 
 namespace GraphQlTools\Test\Unit\Utility;
 
-use GraphQlTools\Directives\ExportDirective;
 use GraphQlTools\Test\Dummies\Schema\AnimalUnion;
 use GraphQlTools\Test\Dummies\Schema\CreateAnimalInputType;
+use GraphQlTools\Test\Dummies\Schema\Directives\ExportDirective;
 use GraphQlTools\Test\Dummies\Schema\EatingEnum;
 use GraphQlTools\Test\Dummies\Schema\JsonScalar;
 use GraphQlTools\Test\Dummies\Schema\MamelInterface;

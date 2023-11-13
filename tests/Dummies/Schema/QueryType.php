@@ -142,8 +142,15 @@ final class QueryType extends GraphQlType
                         )
                     )
                 )
-                ->resolvedBy(fn() => QueryType::ANIMALS)
-            ,
+                ->resolvedBy(fn() => QueryType::ANIMALS),
+
+            Field::withName('overwritten')
+                ->ofType($registry->type(TypeWithOtherNamePattern::class))
+                ->resolvedBy(fn() => new \stdClass()),
+
+            Field::withName('overwrittenAlias')
+                ->ofType($registry->type('OverwrittenName'))
+                ->resolvedBy(fn() => new \stdClass()),
         ];
     }
 

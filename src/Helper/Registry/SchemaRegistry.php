@@ -41,14 +41,14 @@ class SchemaRegistry
      * @param DefinesGraphQlType|class-string<DefinesGraphQlType> $definition
      * @throws DefinitionException
      */
-    public function register(DefinesGraphQlType|string $definition): void
+    public function register(DefinesGraphQlType|string $definition, ?string $typeName = null): void
     {
         if ($definition instanceof GraphQlDirective || (is_string($definition) && str_ends_with($definition, 'Directive'))) {
             $this->registerDirective($definition);
             return;
         }
 
-        $typeName = is_string($definition)
+        $typeName ??= is_string($definition)
             ? Types::inferNameFromClassName($definition)
             : $definition->getName();
         $this->verifyTypeNameIsNotUsed($typeName);
@@ -59,7 +59,7 @@ class SchemaRegistry
     {
         /** @var GraphQlDirective $instance */
         $instance = is_string($directive) ? new $directive() : $directive;
-        $this->directives[$instance->getName()] = $directive;
+        $this->directives[$instance->getName()] = $instance;
     }
 
     private function verifyTypeNameIsNotUsed(string $typeName): void
@@ -76,8 +76,8 @@ class SchemaRegistry
      */
     public function registerTypes(array $types): void
     {
-        foreach ($types as $declaration) {
-            $this->register($declaration);
+        foreach ($types as $typeName => $declaration) {
+            $this->register($declaration, $typeName);
         }
     }
 
