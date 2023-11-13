@@ -13,10 +13,6 @@ class ClassesTest extends TestCase
         self::assertEquals(self::class, Classes::getDeclaredClassInFile(__FILE__));
     }
 
-    public function testBaseName() {
-        self::assertEquals('ClassesTest', Classes::baseName(self::class));
-    }
-
     public function testClassNameAsArray()
     {
         self::assertEquals([

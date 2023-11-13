@@ -8,7 +8,7 @@ final class Promises
 {
     private static string $promiseClassName = SyncPromise::class;
 
-    public static function setPromiseClass(string $className): void {
+    public static function setPromiseAdapterClass(string $className): void {
         self::$promiseClassName = $className;
     }
 

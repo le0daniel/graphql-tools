@@ -8,12 +8,6 @@ use RuntimeException;
 
 final class Classes
 {
-    public static function baseName(string $className): string
-    {
-        $parts = explode('\\', $className);
-        return end($parts);
-    }
-
     /**
      * @param string $file
      * @return class-string|null

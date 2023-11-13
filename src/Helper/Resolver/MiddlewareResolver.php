@@ -8,6 +8,10 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Helper\Middleware;
 
+/**
+ * @internal
+ * Lazily create a middleware resolve function.
+ */
 final class MiddlewareResolver extends ProxyResolver
 {
     private readonly Closure $resolver;

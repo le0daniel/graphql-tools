@@ -24,17 +24,20 @@ class FactoryTypeRegistry implements TypeRegistryContract
     /**
      * @param array<string, class-string<DefinesGraphQlType>|DefinesGraphQlType> $types
      * @param array<string, string> $aliasesOfTypes
-     * @param array<string, array<ExtendGraphQlType|class-string|Closure>> $extendedTypes
+     * @param array<string, array<ExtendGraphQlType|class-string|Closure>> $typeExtensions
      */
     public function __construct(
         protected readonly array       $types,
         protected readonly array       $aliasesOfTypes = [],
-        protected readonly array       $extendedTypes = [],
+        protected readonly array       $typeExtensions = [],
         protected readonly SchemaRules $schemaRules = new AllVisibleSchemaRule()
     )
     {
     }
 
+    /**
+     * @return void
+     */
     public function verifyAliasCollisions(): void
     {
         foreach ($this->aliasesOfTypes as $alias => $typeName) {
@@ -81,13 +84,13 @@ class FactoryTypeRegistry implements TypeRegistryContract
 
     protected function getFieldExtensionsForTypeName(string $typeName): array
     {
-        if (!isset($this->extendedTypes[$typeName])) {
+        if (!isset($this->typeExtensions[$typeName])) {
             return [];
         }
 
         $factories = [];
         /** @var class-string<ExtendGraphQlType>|Closure|ExtendGraphQlType $extension */
-        foreach ($this->extendedTypes[$typeName] as $extension) {
+        foreach ($this->typeExtensions[$typeName] as $extension) {
             $factories[] = match (true) {
                 is_string($extension) => (new $extension)->getFields(...),
                 $extension instanceof ExtendGraphQlType => $extension->getFields(...),
@@ -118,17 +121,18 @@ class FactoryTypeRegistry implements TypeRegistryContract
      */
     protected function createType(string $typeName): Type
     {
-        $type = $this->createInstanceOfGraphQlType($typeName);
+        $definesGraphQlType = $this->createInstanceOfGraphQlType($typeName);
+
         return match (true) {
-            $type instanceof GraphQlType, $type instanceof GraphQlInterface => $this->extendTypeWithAdditionalFields($type),
-            default => $type->toDefinition($this, $this->schemaRules)
+            $definesGraphQlType instanceof GraphQlType, $definesGraphQlType instanceof GraphQlInterface => $this->extendTypeDefinitionWithExtendedFields($definesGraphQlType),
+            default => $definesGraphQlType->toDefinition($this, $this->schemaRules)
         };
     }
 
     /**
      * @throws DefinitionException
      */
-    protected function extendTypeWithAdditionalFields(GraphQlType|GraphQlInterface $type): Type
+    protected function extendTypeDefinitionWithExtendedFields(GraphQlType|GraphQlInterface $type): Type
     {
         $extendedFields = $this->getAllExtendedFieldFactoriesFor($type);
         return empty($extendedFields)

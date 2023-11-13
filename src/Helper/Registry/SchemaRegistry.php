@@ -43,7 +43,10 @@ class SchemaRegistry
      */
     public function register(DefinesGraphQlType|string $definition, ?string $typeName = null): void
     {
-        if ($definition instanceof GraphQlDirective || (is_string($definition) && str_ends_with($definition, 'Directive'))) {
+        if (
+            $definition instanceof GraphQlDirective
+            || (is_string($definition) && Types::isDirective($definition))
+        ) {
             $this->registerDirective($definition);
             return;
         }
@@ -88,7 +91,7 @@ class SchemaRegistry
 
     /**
      * @param string $typeNameOrAlias
-     * @param Closure(TypeRegistryContract): array $fieldFactory
+     * @param Closure(TypeRegistryContract):array|string|ExtendGraphQlType ...$fieldFactories
      * @return void
      */
     public function extendType(string $typeNameOrAlias, Closure|string|ExtendGraphQlType ...$fieldFactories): void

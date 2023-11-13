@@ -15,6 +15,10 @@ use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Utility\Promises;
 use Throwable;
 
+/**
+ * This class decorates all resolve functions to provide extension functionality.
+ * @internal
+ */
 class ProxyResolver
 {
     public function __construct(private readonly ?Closure $resolveFunction = null)
