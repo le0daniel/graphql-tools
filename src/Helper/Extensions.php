@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace GraphQlTools\Helper;
 
 use Closure;
+use GraphQlTools\Contract\Event;
 use GraphQlTools\Contract\ExecutionExtension;
 use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Events\EndEvent;
+use GraphQlTools\Events\ParsedEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;
 
@@ -43,6 +45,7 @@ final readonly class Extensions
      * query.
      *
      * @template T
+     * @param GraphQlContext $context
      * @param array<Closure|class-string<T>> $extensionFactories
      * @return Extensions
      */
@@ -89,17 +92,13 @@ final readonly class Extensions
         };
     }
 
-    public function dispatchStartEvent(StartEvent $event): void
-    {
+    public function dispatch(Event $event): void {
         foreach ($this->extensions as $extension) {
-            $extension->start($event);
-        }
-    }
-
-    public function dispatchEndEvent(EndEvent $event): void
-    {
-        foreach ($this->extensions as $extension) {
-            $extension->end($event);
+            match ($event::class) {
+                StartEvent::class => $extension->start($event),
+                ParsedEvent::class => $extension->parsed($event),
+                EndEvent::class => $extension->end($event),
+            };
         }
     }
 }

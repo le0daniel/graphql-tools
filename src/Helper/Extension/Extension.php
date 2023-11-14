@@ -7,6 +7,7 @@ namespace GraphQlTools\Helper\Extension;
 use Closure;
 use GraphQlTools\Contract\ExecutionExtension;
 use GraphQlTools\Events\EndEvent;
+use GraphQlTools\Events\ParsedEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\VisitFieldEvent;
 
@@ -15,7 +16,8 @@ abstract class Extension implements ExecutionExtension
     private const DEFAULT_PRIORITY = 100;
     protected string $name;
 
-    public function getName(): string {
+    public function getName(): string
+    {
         return $this->name ?? static::class;
     }
 
@@ -29,7 +31,8 @@ abstract class Extension implements ExecutionExtension
         return self::DEFAULT_PRIORITY;
     }
 
-    public function isEnabled(): bool {
+    public function isEnabled(): bool
+    {
         return true;
     }
 
@@ -40,6 +43,11 @@ abstract class Extension implements ExecutionExtension
      * @return void
      */
     public function start(StartEvent $event): void
+    {
+
+    }
+
+    public function parsed(ParsedEvent $event): void
     {
 
     }

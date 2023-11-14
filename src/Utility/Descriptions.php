@@ -15,7 +15,7 @@ final class Descriptions
     public static function appendTags(string $description, array $tags): string {
         return empty($tags)
             ? $description
-            : $description . PHP_EOL . PHP_EOL . 'Tags: ' . implode(', ', $tags);
+            : trim($description . PHP_EOL . PHP_EOL . 'Tags: ' . implode(', ', $tags));
     }
 
 }

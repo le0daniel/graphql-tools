@@ -52,8 +52,8 @@ class ExtensionManagerTest extends TestCase
         }
 
         $extensionManager = new Extensions(...$extensions);
-        $extensionManager->dispatchStartEvent($startEvent);
-        $extensionManager->dispatchEndEvent($endEvent);
+        $extensionManager->dispatch($startEvent);
+        $extensionManager->dispatch($endEvent);
     }
 
     public function testDisabledExtension(): void

@@ -213,6 +213,8 @@ Usage (For a type example):
 
 A middleware is a function that is executed before and after the real resolve function is called. It follows an onion principle. You can define multiple middleware functions to prevent data leakage on a complete type or on specific fields.
 
+Middlewares can be defined for a type (applying to all fields) or to a fields.
+
 **Signature**
 ```php
 use GraphQL\Type\Definition\ResolveInfo;
@@ -248,6 +250,82 @@ Field::withName('fieldWithMiddleware')
             return $next($data, $arguments, $context, $resolveInfo);
         }
     )
+```
+
+## Extending Types
+
+Extending types and interfaces allows you to add one or many fields to a type outside from its base declaration. This is usually the case when you don't want to cross domain boundaries, but need to add additional fields to another type. This allows you to stitch a schema together.
+
+The simplest way is to use the schema registry and extend an object type or interface, passing a closure that declares additional fields.
+
+```php
+use GraphQlTools\Helper\Registry\SchemaRegistry;
+use GraphQlTools\Contract\TypeRegistry;
+use GraphQlTools\Definition\Field\Field;
+
+$schemaRegistry = new SchemaRegistry();
+
+$schemaRegistry->extendType('Animal', fn(TypeRegistry $registry): array => [
+    Field::withName('family')
+        ->ofType($registry->string())
+        ->resolvedBy(fn() => 'Animal Family')
+]);
+```
+
+### Using Classes
+
+Our approach allows to use classes, similar to types, that define type extensions.
+
+
+```php
+use GraphQlTools\Definition\Extending\ExtendGraphQlType;
+use GraphQlTools\Contract\TypeRegistry;
+use GraphQlTools\Helper\Registry\SchemaRegistry;
+
+class ExtendsAnimalType extends ExtendGraphQlType {
+    
+    public function typeName(): string {
+        return 'Animal';
+    }
+    
+    public function fields(TypeRegistry $registry) : array {
+        return [
+            Field::withName('family')
+                ->ofType($registry->string())
+                ->resolvedBy(fn() => 'Animal Family')
+        ];
+    }
+    
+    // Optional
+    protected function middleware() : array{
+        return [];
+    }
+}
+
+$schemaRegistry = new SchemaRegistry();
+$schemaRegistry->extendType('Animal', ExtendsAnimalType::class);
+// OR
+$schemaRegistry->extendType('Animal', new ExtendGraphQlType());
+```
+
+### Federation Middleware
+
+To decouple and remove references to the complete data object in the resolver, a Federation middleware is provided.
+
+2 Middlewares are provided:
+1. `Federation::key('id')`, extracts the id property of the data object/array
+2. `Federation::field('id')`, runs the resolver of the field id
+
+```php
+use GraphQlTools\Definition\Field\Field;
+use GraphQlTools\Utility\Middleware\Federation;
+use GraphQlTools\Contract\TypeRegistry;
+
+/** @var TypeRegistry $registry */
+Field::withName('extendedField')
+    ->ofType($registry->string())
+    ->middleware(Federation::key('id'))
+    ->resolvedBy(fn(string $animalId) => "Only the ID is received, not the complete Animal Data.");
 ```
 
 ## Query execution (QueryExecutor)

@@ -16,6 +16,7 @@ use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Data\ValueObjects\ValidationResult;
 use GraphQlTools\Definition\DefinitionException;
+use GraphQlTools\Events\ParsedEvent;
 use GraphQlTools\Events\StartEvent;
 use GraphQlTools\Events\EndEvent;
 use GraphQlTools\Helper\Extension\Extension;
@@ -65,9 +66,9 @@ class QueryExecutor
      * @throws \JsonException
      */
     public function validateQuery(
-        Schema          $schema,
-        string          $query,
-        GraphQlContext  $context = new Context(),
+        Schema         $schema,
+        string         $query,
+        GraphQlContext $context = new Context(),
     ): ValidationResult
     {
         $source = Parser::parse($query);
@@ -85,17 +86,18 @@ class QueryExecutor
         ?string        $operationName = null,
     ): GraphQlResult
     {
-        $extensionManager = Extensions::createFromExtensionFactories($context,$this->extensionFactories);
+        $extensions = Extensions::createFromExtensionFactories($context, $this->extensionFactories);
         $validationRules = ValidationRules::initialize($context, $this->validationRules);
-        $extensionManager->dispatchStartEvent(StartEvent::create($query, $context, $operationName));
+        $extensions->dispatch(StartEvent::create($query, $context, $operationName));
 
         try {
             $source = Parser::parse($query);
+            $extensions->dispatch(ParsedEvent::create($query, $operationName));
             $executionResult = GraphQL::executeQuery(
                 schema: $schema,
                 source: $source,
                 rootValue: $rootValue,
-                contextValue: new OperationContext($context, $extensionManager),
+                contextValue: new OperationContext($context, $extensions),
                 variableValues: $variables ?? [],
                 operationName: $operationName,
                 fieldResolver: static fn() => throw new RuntimeException("A field was provided that did not include the proxy resolver. This might break extensions and produce unknown side-effects. Did you use the field builder everywhere?"),
@@ -108,13 +110,13 @@ class QueryExecutor
             $executionResult = new ExecutionResult(null, [$exception]);
         }
 
-        $extensionManager->dispatchEndEvent(EndEvent::create($executionResult));
+        $extensions->dispatch(EndEvent::create($executionResult));
 
         return GraphQlResult::fromExecutionResult(
             $executionResult,
             $context,
             $validationRules,
-            $extensionManager->getKeyedExtensions(),
+            $extensions->getKeyedExtensions(),
         );
     }
 
@@ -148,7 +150,7 @@ class QueryExecutor
      */
     private function handleErrors(array $errors): array
     {
-        return array_map(function(GraphQlError $graphQlError): GraphQlError {
+        return array_map(function (GraphQlError $graphQlError): GraphQlError {
             if (!$graphQlError->getPrevious()) {
                 return $graphQlError;
             }
