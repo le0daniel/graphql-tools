@@ -3,27 +3,33 @@
 namespace GraphQlTools\Definition\Shared;
 
 use DateTimeInterface;
+use GraphQlTools\Utility\Descriptions;
 
 trait HasDeprecation
 {
-    protected function deprecationReason(): ?string {
+    protected function deprecationReason(): ?string
+    {
         return null;
     }
 
-    protected function removalDate(): ?DateTimeInterface {
+    protected function removalDate(): ?DateTimeInterface
+    {
         return null;
+    }
+
+    protected function isDeprecated(): bool
+    {
+        return !!$this->deprecationReason();
     }
 
     protected function addDeprecationToDescription(string $baseDescription): string
     {
-        if (empty($this->deprecationReason())) {
-            return $baseDescription;
-        }
-
-        if ($this->removalDate()) {
-            return "**Deprecated**: {$this->deprecationReason()} | Removal Date: {$this->removalDate()->format('Y-m-d')}. {$baseDescription}";
-        }
-
-        return "**Deprecated**: {$this->deprecationReason()}. No removal date specified. {$baseDescription}";
+        return $this->isDeprecated()
+            ? Descriptions::pretendDeprecationWarning(
+                $baseDescription,
+                $this->deprecationReason(),
+                $this->removalDate()
+            )
+            : $baseDescription;
     }
 }

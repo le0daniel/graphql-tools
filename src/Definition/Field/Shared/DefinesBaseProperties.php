@@ -3,6 +3,7 @@
 namespace GraphQlTools\Definition\Field\Shared;
 
 use DateTimeInterface;
+use GraphQlTools\Utility\Descriptions;
 
 trait DefinesBaseProperties
 {
@@ -22,10 +23,6 @@ trait DefinesBaseProperties
 
     public function getTags(): array {
         return array_unique($this->tags);
-    }
-
-    public function containsAnyOfTags(string ...$tags): bool {
-        return !empty(array_intersect($this->tags, $tags));
     }
 
     public function deprecated(string $reason, ?DateTimeInterface $removalDate = null): static
@@ -49,17 +46,11 @@ trait DefinesBaseProperties
     protected function computeDescription(): string
     {
         $baseDescription = $this->description ?? '';
-        if ($this->isDeprecated()) {
-            $baseDescription = isset($this->removalDate)
-                ? "**Deprecated**: {$this->deprecationReason}. Removal Date: {$this->removalDate->format('Y-m-d')}. {$baseDescription}"
-                : "**Deprecated**: {$this->deprecationReason}. No removal date specified. {$baseDescription}";
-        }
+        $withDeprecation = $this->isDeprecated()
+            ? Descriptions::pretendDeprecationWarning($baseDescription, $this->deprecationReason, $this->removalDate)
+            : $baseDescription;
 
-        if (!empty($this->tags)) {
-            $baseDescription .= ' Tags: ' . implode(', ', $this->tags);
-        }
-
-        return $baseDescription;
+        return Descriptions::appendTags($withDeprecation, $this->tags);
     }
 
 }

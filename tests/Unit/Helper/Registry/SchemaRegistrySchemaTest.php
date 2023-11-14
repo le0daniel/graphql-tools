@@ -38,7 +38,11 @@ type Lion implements Mamel {
   ""
   sound: String!
 
-  "**Deprecated**: Some reason. Removal Date: 2023-01-09.  Tags: First, Second"
+  """
+  **Deprecated**: Some reason | Removal Date: 2023-01-09. 
+  
+  Tags: First, Second
+  """
   fieldWithMeta(test: String = "This is a string", else: String = "MEAT"): String! @deprecated(reason: "Some reason")
 
   ""

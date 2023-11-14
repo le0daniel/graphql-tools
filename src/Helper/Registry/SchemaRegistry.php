@@ -149,14 +149,6 @@ class SchemaRegistry
             $schemaRules,
         );
 
-        $queryType = $queryTypeName
-            ? Schema::resolveType($registry->type($queryTypeName))
-            : null;
-
-        $mutationType = $mutationTypeName
-            ? Schema::resolveType($registry->type($mutationTypeName))
-            : null;
-
         $customDirectives = array_map(
             fn(GraphQlDirective $directive): Directive => $directive->toDefinition($registry, $schemaRules),
             $this->directives
@@ -164,8 +156,8 @@ class SchemaRegistry
 
         return SchemaConfig::create(
             [
-                'query' => $queryType,
-                'mutation' => $mutationType,
+                'query' => $queryTypeName ? $registry->type($queryTypeName) : null,
+                'mutation' => $mutationTypeName ? $registry->type($mutationTypeName) : null,
                 'types' => static function () use ($eagerlyLoadedTypes, $registry) {
                     $types = [];
                     foreach ($eagerlyLoadedTypes as $name) {
@@ -225,12 +217,6 @@ class SchemaRegistry
         return SchemaPrinter::doPrint($schema);
     }
 
-    /**
-     * @param string|null $queryTypeName
-     * @param string|null $mutationTypeName
-     * @param bool $assumeValid
-     * @return Schema
-     */
     public function createSchema(
         ?string      $queryTypeName = null,
         ?string      $mutationTypeName = null,
