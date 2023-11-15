@@ -100,6 +100,10 @@ class SchemaRegistry
         array_push($this->typeFieldExtensions[$typeNameOrAlias], ...$fieldFactories);
     }
 
+    public function extend(ExtendGraphQlType $extendedType): void {
+        $this->extendType($extendedType->typeName(), $extendedType);
+    }
+
     public function extendTypes(array $extensions): void
     {
         foreach ($extensions as $typeName => $definitions) {

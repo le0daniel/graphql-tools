@@ -141,6 +141,13 @@ class QueryTest extends TestCase
         self::assertEquals('Hello -- No Name Provided --', $result->data['currentUser']);
     }
 
+    public function testStitchedFieldByClassNameExecution(): void
+    {
+        $result = $this->execute('query { stitchedByClassName }');
+        $this->assertNoErrors($result);
+        self::assertEquals('passed', $result->data['stitchedByClassName']);
+    }
+
     public function testFieldExecutionWithArguments(): void
     {
         $result = $this->execute('query { currentUser(name: "Doris") }');

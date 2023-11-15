@@ -6,7 +6,11 @@ use Closure;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Utility\Middleware\Federation;
+use function _PHPStan_c6b09fbdf\RingCentral\Psr7\str;
 
+/**
+ * Naming pattern Extends[TypeOrInterfaceName][Type|Interface]
+ */
 abstract class ExtendGraphQlType
 {
 
@@ -14,7 +18,20 @@ abstract class ExtendGraphQlType
      * Return type name of class name
      * @return string
      */
-    abstract public function typeName(): string;
+    public function typeName(): string {
+        $parts = explode('\\', static::class);
+        $baseName = end($parts);
+
+        if (str_starts_with($baseName, 'Extends')) {
+            $baseName = substr($baseName, strlen('Extends'));
+        }
+
+        return match (true) {
+            str_ends_with($baseName, 'Type') => substr($baseName, 0, -4),
+            str_ends_with($baseName, 'Interface') => substr($baseName, 0, -9),
+            default => $baseName
+        };
+    }
 
     /**
      * Provide an array of middlewares to apply to all fields

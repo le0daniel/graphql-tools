@@ -16,7 +16,7 @@ final class Federation
                 return $next(null, $args, $context, $info);
             }
 
-            if ($data instanceof ArrayAccess || is_array($data)) {
+            if (is_array($data) || $data instanceof ArrayAccess) {
                 if (!isset($data[$name])) {
                     return new RuntimeException("Could not resolve federated key `{$name}` on array|ArrayAccessible. Hint: Federation::key(name) requires array|ArrayAccessible to have a value set for the key `{$name}`.");
                 }

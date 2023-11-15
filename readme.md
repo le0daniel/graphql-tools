@@ -2,7 +2,7 @@
 
 [![Latest Stable Version](https://poser.pugx.org/le0daniel/graphql-tools/v)](//packagist.org/packages/le0daniel/graphql-tools) [![Total Downloads](https://poser.pugx.org/le0daniel/graphql-tools/downloads)](//packagist.org/packages/le0daniel/graphql-tools) [![Latest Unstable Version](https://poser.pugx.org/le0daniel/graphql-tools/v/unstable)](//packagist.org/packages/le0daniel/graphql-tools) [![License](https://poser.pugx.org/le0daniel/graphql-tools/license)](//packagist.org/packages/le0daniel/graphql-tools)
 
-This is a simple opinionated toolkit for writing scalable GraphQL applications in PHP.
+This is a simple opinionated toolkit for writing scalable code first GraphQL applications in PHP.
 
 Main Features
 
@@ -14,8 +14,8 @@ Main Features
 - Fields are built with the easy-to-use field builder
 - Simple dataloader implementation to solve N+1 problems
 - Code First approach to schema building
-- Extending of Types with additional fields, allowing you to respect your domain boundires and construct the right
-  dependency directions.
+- Schema Stitching: Extending of Types with additional fields, allowing you to respect your domain boundires and construct the right
+  dependency directions in your code.
 - Type name aliases, so that you can either use type names of class names of types.
 
 ## Basic Usage
@@ -38,9 +38,11 @@ At the core, we start with a schema registry. There you register types and regis
     
     // You can use a classname for lazy loading or an instance of this type class.
     // You can register object-types, interfaces, enums, input-types, scalars and unions
+    // See: Defining Types
     $schemaRegistry->register(Type::class);
     
     // You can extend types and interfaces with additional fields
+    // See: Extending Types
     $schemaRegistry->extendType('Lion', function(TypeRegistry $registry): array {
         return [
             Field::withName('species')->ofType($registry->string())
@@ -283,11 +285,6 @@ use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Helper\Registry\SchemaRegistry;
 
 class ExtendsAnimalType extends ExtendGraphQlType {
-    
-    public function typeName(): string {
-        return 'Animal';
-    }
-    
     public function fields(TypeRegistry $registry) : array {
         return [
             Field::withName('family')
@@ -300,12 +297,18 @@ class ExtendsAnimalType extends ExtendGraphQlType {
     protected function middleware() : array{
         return [];
     }
+    
+    // Optional, can be inferred by class name
+    // Follow naming pattern: Extends[TypeOrInterfaceName][Type|Interface]
+    public function typeName(): string {
+        return 'Animal';
+    }
 }
 
 $schemaRegistry = new SchemaRegistry();
 $schemaRegistry->extendType('Animal', ExtendsAnimalType::class);
 // OR
-$schemaRegistry->extendType('Animal', new ExtendGraphQlType());
+$schemaRegistry->extend(new ExtendGraphQlType());
 ```
 
 ### Federation Middleware
@@ -371,4 +374,40 @@ $deprecationNotices = $result->getValidationRule(CollectDeprecatedFieldNotices::
 $application->logDeprecatedUsages($deprecationNotices->getMessages());
 
 $jsonResult = json_encode($result);
+```
+
+## ValidationRules
+
+We use the default validation rules from webonyx/graphql with an additional rule to collect deprecation notices. 
+
+You can define custom validation rules, by extending the default ValidationRule class from webonyx/graphql. If you additionally implement the ProvidesResultExtension, rules can add an entry to the extensions field in the result.
+Validation rules are executed before the query is actually run. 
+
+## Extensions
+
+Extensions are able to hook into the execution and collect data during execution. They allow you to collect traces or telemetry data. Extensions are not allowed to manipulate results of a field resolver. If you want to manipulate results, you need to use middlewares.
+Extensions are contextual and a new instance is created each time a query is run. You can define extensions by passing a classname to the query executor or a factory. To each factory, the current Context is passed in. 
+
+To define an extension, a class needs to implement the ExecutionExtension interface. Extensions can additionally implement ProvidesResultExtension and add entries to the extensions field in the result.
+The abstract class Extension implements some helper and general logic to build extensions easily. 
+
+Following events are provided:
+- StartEvent: when the execution is started, but no code has been run yet
+- ParsedEvent: once the query is successfully parsed
+- EndEvent: once the execution is done
+
+Each event contains specific properties and the time of the event in nanoseconds.
+
+During execution, extensions can hook into the resolve function of each resolver using the visitField hook. You can pass a closure back, which is executed once resolution is done. This is then executed after all promises are resolved, giving you access to the actual data resolved for a field. In case of a failure, a throwable is returned.
+
+```php
+use GraphQlTools\Helper\Extension\Extension;
+
+class MyCustomExtension extends Extension {
+    //...
+    public function visitField(\GraphQlTools\Events\VisitFieldEvent $event) : ?Closure{
+        Log::debug('Will resolve field', ['name' => $event->info->fieldName, 'typeData' => $event->typeData, 'args' => $event->arguments]);
+        return fn($resolvedValue) => Log::debug('did resolve field value to', ['value' => $resolvedValue]); 
+    }
+}
 ```

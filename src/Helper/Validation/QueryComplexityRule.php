@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\Helper\Validation;
 
+use ArrayObject;
 use GraphQL\Error\DebugFlag;
 use GraphQL\Error\Error;
 use GraphQL\Language\AST\NodeKind;
@@ -33,7 +34,7 @@ class QueryComplexityRule extends QueryComplexity implements ProvidesResultExten
     {
         $this->context = $context;
         $this->variableDefs = new NodeList([]);
-        $this->fieldNodeAndDefs = new \ArrayObject();
+        $this->fieldNodeAndDefs = new ArrayObject();
 
         return $this->invokeIfNeeded(
             $context,
