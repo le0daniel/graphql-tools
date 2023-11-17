@@ -14,7 +14,6 @@ use GraphQL\Type\SchemaConfig;
 use GraphQL\Utils\SchemaPrinter;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\SchemaRules;
-use GraphQlTools\Contract\TypeRegistry as TypeRegistryContract;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Extending\ExtendGraphQlType;
 use GraphQlTools\Definition\GraphQlDirective;
@@ -89,26 +88,38 @@ class SchemaRegistry
         $this->eagerlyLoadedTypes[] = $typeNameOrAlias;
     }
 
-    /**
-     * @param string $typeNameOrAlias
-     * @param Closure(TypeRegistryContract):array|string|ExtendGraphQlType ...$fieldFactories
-     * @return void
-     */
-    public function extendType(string $typeNameOrAlias, Closure|string|ExtendGraphQlType ...$fieldFactories): void
+    public function extend(ExtendGraphQlType|string $extendedType, ?string $extendedTypeName = null): void
     {
+        $typeNameOrAlias = match (true) {
+            isset($extendedTypeName) => $extendedTypeName,
+            $extendedType instanceof ExtendGraphQlType => $extendedType->typeName(),
+            is_string($extendedType) => Types::inferNameFromClassName($extendedType),
+        };
+
+        if (!$typeNameOrAlias) {
+            throw new RuntimeException("Could not infer the name of the type extension.");
+        }
+
+        if ($extendedType instanceof ExtendGraphQlType && $typeNameOrAlias !== $extendedType->typeName()) {
+            throw new RuntimeException("Extended type name and provided type name hint did not match.");
+        }
+
         $this->typeFieldExtensions[$typeNameOrAlias] ??= [];
-        array_push($this->typeFieldExtensions[$typeNameOrAlias], ...$fieldFactories);
+        $this->typeFieldExtensions[$typeNameOrAlias][] = $extendedType;
     }
 
-    public function extend(ExtendGraphQlType $extendedType): void {
-        $this->extendType($extendedType->typeName(), $extendedType);
-    }
-
-    public function extendTypes(array $extensions): void
+    public function extendMany(array $extensions): void
     {
         foreach ($extensions as $typeName => $definitions) {
-            $fieldFactories = is_array($definitions) ? $definitions : [$definitions];
-            $this->extendType($typeName, ...$fieldFactories);
+            $extendedTypeName = is_int($typeName) ? null : $typeName;
+            if (is_array($definitions)) {
+                foreach ($definitions as $definition) {
+                    $this->extend($definition, $extendedTypeName);
+                }
+                continue;
+            }
+
+            $this->extend($definitions, $extendedTypeName);
         }
     }
 

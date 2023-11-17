@@ -28,7 +28,7 @@ class SchemaRegistrySchemaTest extends TestCase
 
     public function testPartialPrint(): void {
         $schema = new SchemaRegistry();
-        $schema->extendType('Mamel', ExtendMamelInterface::class);
+        $schema->extend(ExtendMamelInterface::class, 'Mamel');
         $schema->register(new LionType);
         $schema->register(ProtectedUserType::class);
         $schema->register(MamelsQueryInputType::class);

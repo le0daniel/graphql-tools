@@ -7,6 +7,7 @@ namespace GraphQlTools\Test\Feature;
 use GraphQL\Executor\ExecutionResult;
 use GraphQL\Type\Schema;
 use GraphQlTools\Contract\TypeRegistry;
+use GraphQlTools\Definition\Extending\ExtendGraphQlType;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Helper\QueryExecutor;
@@ -88,21 +89,20 @@ class QueryTest extends TestCase
 
         [$types, $extendedTypes] = TypeMap::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema');
         $federatedSchema->registerTypes($types);
-        $federatedSchema->extendTypes($extendedTypes);
+        $federatedSchema->extendMany($extendedTypes);
 
-        $federatedSchema->extendType(
-            UserType::class,
-            fn(TypeRegistry $registry) => [
+        $federatedSchema->extend(
+            ExtendGraphQlType::fromClosure(UserType::class, fn(TypeRegistry $registry) => [
                 Field::withName('extended')
                     ->ofType($registry->string())
                     ->resolvedBy(fn() => 'extended'),
                 Field::withName('closure')
                     ->ofType($registry->type(JsonScalar::class))
                     ->resolvedBy(fn() => 'closure')
-            ],
+            ])
         );
 
-        $federatedSchema->extendType('User', fn(TypeRegistry $registry) => [
+        $federatedSchema->extend(ExtendGraphQlType::fromClosure('User', fn(TypeRegistry $registry) => [
             Field::withName('byName')
                 ->ofType($registry->string())
                 ->tags('name')
@@ -118,7 +118,7 @@ class QueryTest extends TestCase
             Field::withName('lazy')
                 ->ofType($registry->string())
                 ->resolvedBy(fn() => 'lazy-field')
-        ]);
+        ]));
 
         $federatedSchema->registerEagerlyLoadedType(LionType::class);
 

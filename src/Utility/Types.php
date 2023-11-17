@@ -24,7 +24,34 @@ final class Types
             str_ends_with($baseName, self::SCALAR_NAME_ENDING) => substr($baseName, 0, -6),
             str_ends_with($baseName, self::UNION_NAME_ENDING) => substr($baseName, 0, -5),
             str_ends_with($baseName, self::DIRECTIVE_NAME_ENDING) => lcfirst(substr($baseName, 0, -9)),
+            self::isTypeExtension($baseName) => self::inferExtensionName($className),
             default => throw new DefinitionException("Could not infer name from class name string."),
+        };
+    }
+
+    public static function isTypeExtension(string $className): bool
+    {
+        $parts = explode('\\', $className);
+        $baseName = end($parts);
+
+        return str_starts_with($baseName, 'Extends') && (
+                str_ends_with($baseName, 'Type') || str_ends_with($baseName, 'Interface')
+            );
+    }
+
+    public static function inferExtensionName(string $className): string
+    {
+        $parts = explode('\\', $className);
+        $baseName = end($parts);
+
+        if (str_starts_with($baseName, 'Extends')) {
+            $baseName = substr($baseName, strlen('Extends'));
+        }
+
+        return match (true) {
+            str_ends_with($baseName, 'Type') => substr($baseName, 0, -4),
+            str_ends_with($baseName, 'Interface') => substr($baseName, 0, -9),
+            default => $baseName
         };
     }
 

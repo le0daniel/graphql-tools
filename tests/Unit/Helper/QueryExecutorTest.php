@@ -25,7 +25,7 @@ class QueryExecutorTest extends TestCase
         $schemaRegistry = new SchemaRegistry();
         [$types, $extendedTypes] = TypeMap::createTypeMapFromDirectory(__DIR__ . '/../../Dummies/Schema');
         $schemaRegistry->registerTypes($types);
-        $schemaRegistry->extendTypes($extendedTypes);
+        $schemaRegistry->extendMany($extendedTypes);
         $schema = $schemaRegistry->createSchema('Query');
 
         $query = 'query { mamels { sound, ... on Lion { depth { deeper { id } } } } }';
@@ -54,7 +54,7 @@ class QueryExecutorTest extends TestCase
         $schemaRegistry = new SchemaRegistry();
         [$types, $extendedTypes] = TypeMap::createTypeMapFromDirectory(__DIR__ . '/../../Dummies/Schema');
         $schemaRegistry->registerTypes($types);
-        $schemaRegistry->extendTypes($extendedTypes);
+        $schemaRegistry->extendMany($extendedTypes);
         $schema = $schemaRegistry->createSchema('Query');
 
         $result = $queryExecutor->execute(
@@ -94,7 +94,7 @@ class QueryExecutorTest extends TestCase
         $schemaRegistry = new SchemaRegistry();
         [$types, $extendedTypes] = TypeMap::createTypeMapFromDirectory(__DIR__ . '/../../Dummies/Schema');
         $schemaRegistry->registerTypes($types);
-        $schemaRegistry->extendTypes($extendedTypes);
+        $schemaRegistry->extendMany($extendedTypes);
         $schema = $schemaRegistry->createSchema('Query');
 
         $result = $queryExecutor->execute(

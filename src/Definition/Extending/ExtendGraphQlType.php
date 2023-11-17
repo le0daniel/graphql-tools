@@ -6,31 +6,37 @@ use Closure;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Utility\Middleware\Federation;
-use function _PHPStan_c6b09fbdf\RingCentral\Psr7\str;
+use GraphQlTools\Utility\Types;
 
 /**
  * Naming pattern Extends[TypeOrInterfaceName][Type|Interface]
  */
 abstract class ExtendGraphQlType
 {
+    public static function fromClosure(string $typeNameToExtend, Closure $closure): self {
+        return new class ($typeNameToExtend, $closure) extends ExtendGraphQlType {
+            public function __construct(private readonly string $typeNameToExtend, private readonly Closure $closure)
+            {
+            }
+
+            public function typeName(): string
+            {
+                return $this->typeNameToExtend;
+            }
+
+            protected function fields(TypeRegistry $registry): array
+            {
+                return ($this->closure)($registry);
+            }
+        };
+    }
 
     /**
      * Return type name of class name
      * @return string
      */
     public function typeName(): string {
-        $parts = explode('\\', static::class);
-        $baseName = end($parts);
-
-        if (str_starts_with($baseName, 'Extends')) {
-            $baseName = substr($baseName, strlen('Extends'));
-        }
-
-        return match (true) {
-            str_ends_with($baseName, 'Type') => substr($baseName, 0, -4),
-            str_ends_with($baseName, 'Interface') => substr($baseName, 0, -9),
-            default => $baseName
-        };
+        return Types::inferExtensionName(static::class);
     }
 
     /**
