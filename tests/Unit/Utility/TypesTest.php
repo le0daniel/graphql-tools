@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\Test\Unit\Utility;
 
+use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Test\Dummies\Schema\AnimalUnion;
 use GraphQlTools\Test\Dummies\Schema\CreateAnimalInputType;
 use GraphQlTools\Test\Dummies\Schema\Directives\ExportDirective;
@@ -24,5 +25,35 @@ class TypesTest extends TestCase
         self::assertEquals('Json', Types::inferNameFromClassName(JsonScalar::class));
         self::assertEquals('CreateAnimalInput', Types::inferNameFromClassName(CreateAnimalInputType::class));
         self::assertEquals('export', Types::inferNameFromClassName(ExportDirective::class));
+    }
+
+    public function testInferExtensionTypeName(): void {
+        self::assertEquals('Animal', Types::inferExtensionTypeName('Some\\ExtendsAnimalType'));
+        self::assertEquals('Animal', Types::inferExtensionTypeName('Some\\ExtendsAnimalInterface'));
+    }
+
+    /**
+     * @param string $className
+     * @param string $message
+     * @return void
+     * @throws DefinitionException
+     * @dataProvider failingInferExtensionTypeNameDataProvider
+     */
+    public function testFailingInferExtensionTypeName(string $className, string $message): void {
+        $this->expectException(DefinitionException::class);
+        $this->expectExceptionMessage($message);
+        Types::inferExtensionTypeName($className);
+    }
+
+    public static function failingInferExtensionTypeNameDataProvider(): array
+    {
+        return [
+            'Not starting with extends' => [
+                'Some\\OtherAnimalInterface', "Could not infer type name from string: OtherAnimalInterface. Expected string to start with 'Extends'."
+            ],
+            'Not ending in type nor interface' => [
+                'Some\\ExtendsAnimalSomething', "Could not infer type name from string: ExtendsAnimalSomething. Expected string to end in 'Type' or 'Interface'."
+            ],
+        ];
     }
 }

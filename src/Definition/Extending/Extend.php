@@ -49,7 +49,7 @@ final class Extend implements ExtendType
 
     /**
      * @param TypeRegistry $registry
-     * @return array
+     * @return array<Field>
      * @internal
      */
     public function getFields(TypeRegistry $registry): array

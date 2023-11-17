@@ -28,6 +28,7 @@ class DirectoriesTest extends TestCase
             'Registry/FactoryTypeRegistryTest.php',
             'Registry/SchemaRegistrySchemaTest.php',
             'Registry/TagBasedSchemaRulesTest.php',
+            'Resolver/MiddlewareResolverTest.php',
             'Results/GraphQlResultTest.php',
             'Validation/QueryComplexityRuleTest.php'
         ], $result);

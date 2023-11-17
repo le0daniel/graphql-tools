@@ -19,7 +19,7 @@ abstract class ExtendGraphQlType implements ExtendType
      * @return string
      */
     public function typeName(): string {
-        return Types::inferExtensionName(static::class);
+        return Types::inferExtensionTypeName(static::class);
     }
 
     /**

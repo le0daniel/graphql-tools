@@ -42,10 +42,7 @@ class SchemaRegistry
      */
     public function register(DefinesGraphQlType|string $definition, ?string $typeName = null): void
     {
-        if (
-            $definition instanceof GraphQlDirective
-            || (is_string($definition) && Types::isDirective($definition))
-        ) {
+        if (Types::isDirective($definition)) {
             $this->registerDirective($definition);
             return;
         }
@@ -54,6 +51,11 @@ class SchemaRegistry
             ? Types::inferNameFromClassName($definition)
             : $definition->getName();
         $this->verifyTypeNameIsNotUsed($typeName);
+
+        if ($definition instanceof DefinesGraphQlType && $typeName !== $definition->getName()) {
+            throw new RuntimeException("Definition name did not match provided name");
+        }
+
         $this->types[$typeName] = $definition;
     }
 
@@ -90,22 +92,16 @@ class SchemaRegistry
 
     public function extend(ExtendType|string $extendedType, ?string $extendedTypeName = null): void
     {
-        $typeNameOrAlias = match (true) {
-            isset($extendedTypeName) => $extendedTypeName,
-            $extendedType instanceof ExtendType => $extendedType->typeName(),
-            is_string($extendedType) => Types::inferNameFromClassName($extendedType),
-        };
+        $extendedTypeName ??= $extendedType instanceof ExtendType
+            ? $extendedType->typeName()
+            : Types::inferExtensionTypeName($extendedType);
 
-        if (!$typeNameOrAlias) {
-            throw new RuntimeException("Could not infer the name of the type extension.");
-        }
-
-        if ($extendedType instanceof ExtendType && $typeNameOrAlias !== $extendedType->typeName()) {
+        if ($extendedType instanceof ExtendType && $extendedTypeName !== $extendedType->typeName()) {
             throw new RuntimeException("Extended type name and provided type name hint did not match.");
         }
 
-        $this->typeFieldExtensions[$typeNameOrAlias] ??= [];
-        $this->typeFieldExtensions[$typeNameOrAlias][] = $extendedType;
+        $this->typeFieldExtensions[$extendedTypeName] ??= [];
+        $this->typeFieldExtensions[$extendedTypeName][] = $extendedType;
     }
 
     public function extendMany(array $extensions): void
