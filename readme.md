@@ -33,7 +33,7 @@ At the core, we start with a schema registry. There you register types and regis
     use GraphQlTools\Contract\TypeRegistry;
     use GraphQlTools\Definition\Field\Field;
     use GraphQlTools\Helper\QueryExecutor;
-    use GraphQlTools\Definition\Extending\ExtendGraphQlType;
+    use GraphQlTools\Definition\Extending\Extend;
     require_once __DIR__ . '/vendor/autoload.php';   
 
     $schemaRegistry = new SchemaRegistry();
@@ -45,11 +45,11 @@ At the core, we start with a schema registry. There you register types and regis
     
     // You can extend types and interfaces with additional fields
     // See: Extending Types
-    $schemaRegistry->extend(ExtendGraphQlType::fromClosure('Lion', function(TypeRegistry $registry): array {
-        return [
+    $schemaRegistry->extend(
+        Extend::type('Lion')->withFields(fn(TypeRegistry $registry) => [
             Field::withName('species')->ofType($registry->string())
-        ];
-    }));
+        ])
+    );
 
     $schema = $schemaRegistry->createSchema(
         RootQueryType::class, // Define
@@ -273,16 +273,15 @@ additional fields.
 use GraphQlTools\Helper\Registry\SchemaRegistry;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
-use GraphQlTools\Definition\Extending\ExtendGraphQlType;
-
+use GraphQlTools\Definition\Extending\Extend;
 $schemaRegistry = new SchemaRegistry();
 
 $schemaRegistry->extend(
-    ExtendGraphQlType::fromClosure('Animal', fn(TypeRegistry $registry): array => [
-        Field::withName('family')
-            ->ofType($registry->string())
-            ->resolvedBy(fn() => 'Animal Family')
-    ])
+    Extend::type('Animal')->withFields(fn(TypeRegistry $registry): array => [
+            Field::withName('family')
+                ->ofType($registry->string())
+                ->resolvedBy(fn() => 'Animal Family')
+        ]),
 );
 ```
 
@@ -322,7 +321,7 @@ $schemaRegistry->extend(ExtendsAnimalType::class);
 // Or with manually given type to extend name
 $schemaRegistry->extend(ExtendsAnimalType::class, 'Animal');
 // OR
-$schemaRegistry->extend(new ExtendGraphQlType());
+$schemaRegistry->extend(new ExtendsAnimalType());
 ```
 
 ### Federation Middleware

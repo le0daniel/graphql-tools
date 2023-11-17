@@ -7,7 +7,7 @@ namespace GraphQlTools\Test\Feature;
 use GraphQL\Executor\ExecutionResult;
 use GraphQL\Type\Schema;
 use GraphQlTools\Contract\TypeRegistry;
-use GraphQlTools\Definition\Extending\ExtendGraphQlType;
+use GraphQlTools\Definition\Extending\Extend;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Helper\QueryExecutor;
@@ -92,33 +92,37 @@ class QueryTest extends TestCase
         $federatedSchema->extendMany($extendedTypes);
 
         $federatedSchema->extend(
-            ExtendGraphQlType::fromClosure(UserType::class, fn(TypeRegistry $registry) => [
-                Field::withName('extended')
-                    ->ofType($registry->string())
-                    ->resolvedBy(fn() => 'extended'),
-                Field::withName('closure')
-                    ->ofType($registry->type(JsonScalar::class))
-                    ->resolvedBy(fn() => 'closure')
-            ])
+            Extend::type(UserType::class)
+                ->withFields(fn(TypeRegistry $registry) => [
+                    Field::withName('extended')
+                        ->ofType($registry->string())
+                        ->resolvedBy(fn() => 'extended'),
+                    Field::withName('closure')
+                        ->ofType($registry->type(JsonScalar::class))
+                        ->resolvedBy(fn() => 'closure')
+                ]),
         );
 
-        $federatedSchema->extend(ExtendGraphQlType::fromClosure('User', fn(TypeRegistry $registry) => [
-            Field::withName('byName')
-                ->ofType($registry->string())
-                ->tags('name')
-                ->middleware(
-                    Federation::key('id')
-                )
-                ->resolvedBy(fn(string $id) => "byName: {$id}"),
+        $federatedSchema->extend(
+            Extend::type('User')
+                ->withFields(fn(TypeRegistry $registry) => [
+                    Field::withName('byName')
+                        ->ofType($registry->string())
+                        ->tags('name')
+                        ->middleware(
+                            Federation::key('id')
+                        )
+                        ->resolvedBy(fn(string $id) => "byName: {$id}"),
 
-            // Ensure circular dependencies work fine
-            Field::withName('testCircular')
-                ->ofType($registry->type('User')),
+                    // Ensure circular dependencies work fine
+                    Field::withName('testCircular')
+                        ->ofType($registry->type('User')),
 
-            Field::withName('lazy')
-                ->ofType($registry->string())
-                ->resolvedBy(fn() => 'lazy-field')
-        ]));
+                    Field::withName('lazy')
+                        ->ofType($registry->string())
+                        ->resolvedBy(fn() => 'lazy-field')
+                ])
+        );
 
         $federatedSchema->registerEagerlyLoadedType(LionType::class);
 

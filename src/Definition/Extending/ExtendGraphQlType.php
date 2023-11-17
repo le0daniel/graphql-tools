@@ -14,24 +14,6 @@ use GraphQlTools\Utility\Types;
  */
 abstract class ExtendGraphQlType implements ExtendType
 {
-    public static function fromClosure(string $typeNameToExtend, Closure $closure): self {
-        return new class ($typeNameToExtend, $closure) extends ExtendGraphQlType {
-            public function __construct(private readonly string $typeNameToExtend, private readonly Closure $closure)
-            {
-            }
-
-            public function typeName(): string
-            {
-                return $this->typeNameToExtend;
-            }
-
-            protected function fields(TypeRegistry $registry): array
-            {
-                return ($this->closure)($registry);
-            }
-        };
-    }
-
     /**
      * Return type name of class name
      * @return string
