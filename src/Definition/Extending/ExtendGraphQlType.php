@@ -3,6 +3,7 @@
 namespace GraphQlTools\Definition\Extending;
 
 use Closure;
+use GraphQlTools\Contract\ExtendType;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Utility\Middleware\Federation;
@@ -11,7 +12,7 @@ use GraphQlTools\Utility\Types;
 /**
  * Naming pattern Extends[TypeOrInterfaceName][Type|Interface]
  */
-abstract class ExtendGraphQlType
+abstract class ExtendGraphQlType implements ExtendType
 {
     public static function fromClosure(string $typeNameToExtend, Closure $closure): self {
         return new class ($typeNameToExtend, $closure) extends ExtendGraphQlType {

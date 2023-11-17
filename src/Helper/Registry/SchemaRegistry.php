@@ -13,9 +13,9 @@ use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
 use GraphQL\Utils\SchemaPrinter;
 use GraphQlTools\Contract\DefinesGraphQlType;
+use GraphQlTools\Contract\ExtendType;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Definition\DefinitionException;
-use GraphQlTools\Definition\Extending\ExtendGraphQlType;
 use GraphQlTools\Definition\GraphQlDirective;
 use GraphQlTools\Utility\Types;
 use RuntimeException;
@@ -32,7 +32,7 @@ class SchemaRegistry
     private array $directives = [];
 
     /**
-     * @var array<string, array<string|Closure|ExtendGraphQlType>>
+     * @var array<string, array<string|ExtendType>>
      */
     private array $typeFieldExtensions = [];
 
@@ -88,11 +88,11 @@ class SchemaRegistry
         $this->eagerlyLoadedTypes[] = $typeNameOrAlias;
     }
 
-    public function extend(ExtendGraphQlType|string $extendedType, ?string $extendedTypeName = null): void
+    public function extend(ExtendType|string $extendedType, ?string $extendedTypeName = null): void
     {
         $typeNameOrAlias = match (true) {
             isset($extendedTypeName) => $extendedTypeName,
-            $extendedType instanceof ExtendGraphQlType => $extendedType->typeName(),
+            $extendedType instanceof ExtendType => $extendedType->typeName(),
             is_string($extendedType) => Types::inferNameFromClassName($extendedType),
         };
 
@@ -100,7 +100,7 @@ class SchemaRegistry
             throw new RuntimeException("Could not infer the name of the type extension.");
         }
 
-        if ($extendedType instanceof ExtendGraphQlType && $typeNameOrAlias !== $extendedType->typeName()) {
+        if ($extendedType instanceof ExtendType && $typeNameOrAlias !== $extendedType->typeName()) {
             throw new RuntimeException("Extended type name and provided type name hint did not match.");
         }
 

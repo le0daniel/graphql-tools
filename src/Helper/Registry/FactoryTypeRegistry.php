@@ -11,7 +11,7 @@ use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry as TypeRegistryContract;
 use GraphQlTools\Definition\DefinitionException;
-use GraphQlTools\Definition\Extending\ExtendGraphQlType;
+use GraphQlTools\Contract\ExtendType;
 use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
 use RuntimeException;
@@ -24,7 +24,7 @@ class FactoryTypeRegistry implements TypeRegistryContract
     /**
      * @param array<string, class-string<DefinesGraphQlType>|DefinesGraphQlType> $types
      * @param array<string, string> $aliasesOfTypes
-     * @param array<string, array<ExtendGraphQlType|class-string|Closure>> $typeExtensions
+     * @param array<string, array<ExtendType|class-string>> $typeExtensions
      */
     public function __construct(
         protected readonly array       $types,
@@ -89,12 +89,11 @@ class FactoryTypeRegistry implements TypeRegistryContract
         }
 
         $factories = [];
-        /** @var class-string<ExtendGraphQlType>|Closure|ExtendGraphQlType $extension */
+        /** @var class-string<ExtendType>|ExtendType $extension */
         foreach ($this->typeExtensions[$typeName] as $extension) {
             $factories[] = match (true) {
                 is_string($extension) => (new $extension)->getFields(...),
-                $extension instanceof ExtendGraphQlType => $extension->getFields(...),
-                $extension instanceof Closure => $extension,
+                $extension instanceof ExtendType => $extension->getFields(...),
                 default => throw new DefinitionException("Invalid type field extension given. Expected Closure or class-string<ExtendGraphQlType>."),
             };
         }

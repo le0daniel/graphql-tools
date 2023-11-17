@@ -3,8 +3,8 @@
 namespace GraphQlTools\Utility;
 
 use GraphQlTools\Contract\DefinesGraphQlType;
+use GraphQlTools\Contract\ExtendType;
 use GraphQlTools\Definition\DefinitionException;
-use GraphQlTools\Definition\Extending\ExtendGraphQlType;
 use ReflectionClass;
 use ReflectionException;
 
@@ -32,8 +32,8 @@ class TypeMap
                 continue;
             }
 
-            if ($reflection->isSubclassOf(ExtendGraphQlType::class)) {
-                /** @var ExtendGraphQlType $instance */
+            if ($reflection->implementsInterface(ExtendType::class)) {
+                /** @var ExtendType $instance */
                 $instance = (new $className);
                 $extendedTypes[$instance->typeName()][] = $className;
                 continue;
