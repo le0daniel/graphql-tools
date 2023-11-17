@@ -2,7 +2,7 @@
 
 namespace GraphQlTools\Test\Unit\GraphQl\Fields;
 
-use GraphQlTools\Helper\TypeTestCase;
+use GraphQlTools\Helper\Testing\TypeTestCase;
 use GraphQlTools\Test\Dummies\Schema\LionType;
 
 class LionFieldTest extends TypeTestCase

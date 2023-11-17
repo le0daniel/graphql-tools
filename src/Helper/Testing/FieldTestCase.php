@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Helper;
+namespace GraphQlTools\Helper\Testing;
 
 use Closure;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
@@ -9,6 +9,9 @@ use GraphQL\Type\Definition\InputObjectType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\DefinesGraphQlType;
+use GraphQlTools\Helper\Extensions;
+use GraphQlTools\Helper\HasDataloaders;
+use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Helper\Registry\AllVisibleSchemaRule;
 use GraphQlTools\Helper\Registry\FactoryTypeRegistry;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
@@ -67,7 +70,7 @@ class FieldTestCase
             {
             }
 
-            public function makeInstanceOfDataLoaderExecutor(string $key): Closure {
+            public function makeInstanceOfDataLoaderExecutor(string $key, array $arguments): Closure {
                 return $this->dataLoaders[$key];
             }
         };

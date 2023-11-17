@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Helper;
+namespace GraphQlTools\Helper\Testing;
 
 use PHPUnit\Framework\TestCase;
 

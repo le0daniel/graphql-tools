@@ -7,9 +7,9 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\GraphQlContext;
 use Throwable;
 
-class Middleware
+final readonly class Middleware
 {
-    private readonly array $pipes;
+    private array $pipes;
 
     /**
      * @param array<Closure> $pipes
@@ -35,15 +35,8 @@ class Middleware
     public function then(Closure $middle): Closure
     {
         return array_reduce(
-            array_reverse($this->pipes), $this->createReducer(), $this->prepareDestination($middle),
+            array_reverse($this->pipes), $this->createReducer(), $middle,
         );
-    }
-
-    private function prepareDestination(Closure $destination): Closure
-    {
-        return static function (mixed $value, array $arguments, GraphQlContext $context, ResolveInfo $info) use ($destination) {
-            return $destination($value, $arguments, $context, $info);
-        };
     }
 
     private function createReducer(): Closure

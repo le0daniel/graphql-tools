@@ -26,7 +26,7 @@ class ExtensionManagerTest extends TestCase
         $extension->isEnabled()->willReturn(true);
         $extension->priority()->willReturn(1);
 
-        $manager = Extensions::createFromExtensionFactories(
+        Extensions::createFromExtensionFactories(
             $this->prophesize(GraphQlContext::class)->reveal(),
             [
                 ActualCostExtension::class,

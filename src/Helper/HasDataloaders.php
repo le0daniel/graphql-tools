@@ -4,6 +4,7 @@ namespace GraphQlTools\Helper;
 
 use Closure;
 use GraphQlTools\Contract\ExecutableByDataLoader;
+use JsonException;
 
 trait HasDataloaders
 {
@@ -23,15 +24,23 @@ trait HasDataloaders
      * @param string $key
      * @return Closure|ExecutableByDataLoader
      */
-    protected function makeInstanceOfDataLoaderExecutor(string $key): Closure|ExecutableByDataLoader
+    protected function makeInstanceOfDataLoaderExecutor(string $key, array $arguments): Closure|ExecutableByDataLoader
     {
-        return new $key;
+        return new $key(...$arguments);
     }
 
-    public function dataLoader(string $key): DataLoader
+    /**
+     * @throws JsonException
+     */
+    public function dataLoader(string $key, array $arguments = []): DataLoader
     {
-        return $this->dataLoaderInstances[$key] ??= new DataLoader(
-            $this->makeInstanceOfDataLoaderExecutor($key)
+        $argumentsKey = empty($arguments)
+            ? ''
+            : '::' . json_encode($arguments, JSON_THROW_ON_ERROR);
+        $completeKey = $key . $argumentsKey;
+
+        return $this->dataLoaderInstances[$completeKey] ??= new DataLoader(
+            $this->makeInstanceOfDataLoaderExecutor($completeKey, $arguments ?? [])
         );
     }
 

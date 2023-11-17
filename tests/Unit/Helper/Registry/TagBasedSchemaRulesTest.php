@@ -12,9 +12,7 @@ class TagBasedSchemaRulesTest extends TestCase
     use ProphecyTrait;
 
     private function fieldWithTags(array $tags): Field {
-        $prophecy = $this->prophesize(Field::class);
-        $prophecy->getTags()->willReturn($tags);
-        return $prophecy->reveal();
+        return Field::withName('test')->tags(...$tags);
     }
 
     public function testIsVisibleWithNoRulesDefined()

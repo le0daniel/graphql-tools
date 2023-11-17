@@ -346,12 +346,12 @@ If an extension of validation rule implements `GraphQlTools\Contract\ProvidesRes
 
 ```php
 use GraphQlTools\Helper\QueryExecutor;
-use GraphQlTools\Helper\Validation\QueryComplexityRule;
+use GraphQlTools\Helper\Validation\QueryComplexityWithExtension;
 use GraphQlTools\Helper\Validation\CollectDeprecatedFieldNotices;
 
 $executor = new QueryExecutor(
     [fn($context) => new YourTelemetryExtension],
-    [CollectDeprecatedFieldNotices::class, fn($context) => new QueryComplexityRule($context->maxAllowedComplexity)],
+    [CollectDeprecatedFieldNotices::class, fn($context) => new QueryComplexityWithExtension($context->maxAllowedComplexity)],
     function(Throwable $throwable, \GraphQL\Error\Error $error): void {
         YourLogger::error($throwable);
     },

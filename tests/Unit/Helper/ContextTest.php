@@ -19,7 +19,7 @@ class ContextTest extends TestCase
             {
             }
 
-            protected function makeInstanceOfDataLoaderExecutor(string $key): Closure|ExecutableByDataLoader
+            protected function makeInstanceOfDataLoaderExecutor(string $key, array $arguments): Closure|ExecutableByDataLoader
             {
                 return $this->mocks[$key];
             }
