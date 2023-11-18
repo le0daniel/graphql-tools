@@ -2,7 +2,9 @@
 
 namespace GraphQlTools\Test\Unit\Utility;
 
+use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Definition\DefinitionException;
+use GraphQlTools\Definition\GraphQlDirective;
 use GraphQlTools\Test\Dummies\Schema\AnimalUnion;
 use GraphQlTools\Test\Dummies\Schema\CreateAnimalInputType;
 use GraphQlTools\Test\Dummies\Schema\Directives\ExportDirective;
@@ -12,9 +14,11 @@ use GraphQlTools\Test\Dummies\Schema\MamelInterface;
 use GraphQlTools\Test\Dummies\Schema\TigerType;
 use GraphQlTools\Utility\Types;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 
 class TypesTest extends TestCase
 {
+    use ProphecyTrait;
 
     public function testInferNameFromClassName()
     {
@@ -55,5 +59,14 @@ class TypesTest extends TestCase
                 'Some\\ExtendsAnimalSomething', "Could not infer type name from string: ExtendsAnimalSomething. Expected string to end in 'Type' or 'Interface'."
             ],
         ];
+    }
+
+    public function testIsDirective(): void {
+        self::assertTrue(Types::isDirective('Some\\Class\\MyDirective'));
+        self::assertTrue(Types::isDirective('MyDirective'));
+
+        self::assertFalse(Types::isDirective('Mydirective'));
+        self::assertFalse(Types::isDirective($this->prophesize(DefinesGraphQlType::class)->reveal()));
+        self::assertTrue(Types::isDirective($this->prophesize(GraphQlDirective::class)->reveal()));
     }
 }

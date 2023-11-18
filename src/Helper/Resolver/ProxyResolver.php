@@ -9,7 +9,7 @@ use GraphQL\Executor\Executor;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\GraphQlContext;
-use GraphQlTools\Events\VisitFieldEvent;
+use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Utility\Promises;

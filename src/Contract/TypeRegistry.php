@@ -20,7 +20,6 @@ interface TypeRegistry
      * @return Closure(): Type|Type
      */
     public function type(string $nameOrAlias, ?GraphQlTypes $typeHint = null): Closure|Type;
-
     public function nonNull(Type|Closure $wrappedType): NonNull;
     public function listOf(Type|Closure $wrappedType): ListOfType;
     public function int(): ScalarType;

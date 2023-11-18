@@ -6,10 +6,10 @@ namespace GraphQlTools\Helper\Extension;
 
 use Closure;
 use GraphQlTools\Contract\ExecutionExtension;
-use GraphQlTools\Events\EndEvent;
-use GraphQlTools\Events\ParsedEvent;
-use GraphQlTools\Events\StartEvent;
-use GraphQlTools\Events\VisitFieldEvent;
+use GraphQlTools\Data\ValueObjects\Events\EndEvent;
+use GraphQlTools\Data\ValueObjects\Events\ParsedEvent;
+use GraphQlTools\Data\ValueObjects\Events\StartEvent;
+use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
 
 abstract class Extension implements ExecutionExtension
 {

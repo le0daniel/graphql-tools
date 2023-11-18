@@ -436,7 +436,7 @@ use GraphQlTools\Helper\Extension\Extension;
 
 class MyCustomExtension extends Extension {
     //...
-    public function visitField(\GraphQlTools\Events\VisitFieldEvent $event) : ?Closure{
+    public function visitField(\GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent $event) : ?Closure{
         Log::debug('Will resolve field', ['name' => $event->info->fieldName, 'typeData' => $event->typeData, 'args' => $event->arguments]);
         return fn($resolvedValue) => Log::debug('did resolve field value to', ['value' => $resolvedValue]); 
     }

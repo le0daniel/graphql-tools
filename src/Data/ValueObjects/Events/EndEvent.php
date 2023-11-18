@@ -1,9 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Events;
+namespace GraphQlTools\Data\ValueObjects\Events;
 
 use GraphQL\Executor\ExecutionResult;
-use GraphQlTools\Contract\Event;
+use GraphQlTools\Data\ValueObjects\Events\Event;
 
 /**
  * @method static create(ExecutionResult $result)

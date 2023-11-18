@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace GraphQlTools\Data\ValueObjects\Tracing;
 
 
-use GraphQlTools\Events\VisitFieldEvent;
+use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Time;
 

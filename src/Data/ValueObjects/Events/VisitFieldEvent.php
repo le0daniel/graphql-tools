@@ -1,9 +1,9 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Events;
+namespace GraphQlTools\Data\ValueObjects\Events;
 
 use GraphQL\Type\Definition\ResolveInfo;
-use GraphQlTools\Contract\Event;
+use GraphQlTools\Data\ValueObjects\Events\Event;
 
 /**
  * @method static create(mixed $typeData, array $arguments, ResolveInfo $resolveInfo)

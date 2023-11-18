@@ -7,7 +7,7 @@ namespace GraphQlTools\Test\Unit\Helper;
 use GraphQL\Deferred;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQlTools\Contract\GraphQlContext;
-use GraphQlTools\Events\VisitFieldEvent;
+use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Helper\Extension\Extension;
 use GraphQlTools\Helper\Extensions;

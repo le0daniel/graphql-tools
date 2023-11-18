@@ -15,6 +15,7 @@ use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Helper\Registry\AllVisibleSchemaRule;
 use GraphQlTools\Helper\Registry\FactoryTypeRegistry;
 use GraphQlTools\Test\Dummies\ResolveInfoDummy;
+use GraphQlTools\Utility\Promises;
 use Throwable;
 use GraphQlTools\Contract\GraphQlContext;
 
@@ -93,7 +94,7 @@ class FieldTestCase
 
         $result = $resolver($rootData, $arguments, $operationContext, $resolveInfo);
 
-        if (!$result instanceof SyncPromise) {
+        if (!Promises::isPromise($result)) {
             return self::rethrowThrowable($result);
         }
 

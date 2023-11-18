@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Contract;
+namespace GraphQlTools\Data\ValueObjects\Events;
 
 use GraphQlTools\Utility\Time;
 

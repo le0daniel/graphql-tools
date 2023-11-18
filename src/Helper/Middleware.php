@@ -35,22 +35,20 @@ final readonly class Middleware
     public function then(Closure $middle): Closure
     {
         return array_reduce(
-            array_reverse($this->pipes), $this->createReducer(), $middle,
+            array_reverse($this->pipes), $this->reducer(...), $middle,
         );
     }
 
-    private function createReducer(): Closure
+    private function reducer($stack, $pipe): Closure
     {
-        return function ($stack, $pipe) {
-            return function (...$args) use ($stack, $pipe) {
-                $args[] = $stack;
+        return function (...$args) use ($stack, $pipe) {
+            $args[] = $stack;
 
-                try {
-                    return $pipe(...$args);
-                } catch (Throwable $error) {
-                    return $error;
-                }
-            };
+            try {
+                return $pipe(...$args);
+            } catch (Throwable $error) {
+                return $error;
+            }
         };
     }
 

@@ -25,7 +25,7 @@ class FederationTest extends TestCase
 
     public function testWithArray()
     {
-        self::assertInstanceOf(RuntimeException::class, $this->executeMiddlewareWith(Federation::key('id'), []));
+        self::assertNull($this->executeMiddlewareWith(Federation::key('id'), []));
         self::assertEquals('my-id', $this->executeMiddlewareWith(Federation::key('id'), ['id' => 'my-id']));
     }
 
@@ -106,7 +106,7 @@ class FederationTest extends TestCase
 
             }
         };
-        self::assertInstanceOf(RuntimeException::class, $this->executeMiddlewareWith(Federation::key('something'), $instance));
+        self::assertNull($this->executeMiddlewareWith(Federation::key('something'), $instance));
     }
 
     public function testWithObjectAndMissingProperty() {
@@ -116,9 +116,7 @@ class FederationTest extends TestCase
             }
         };
 
-        $exception = $this->executeMiddlewareWith(Federation::key('name'), $instance);
-        self::assertInstanceOf(RuntimeException::class, $exception);
-        self::assertStringStartsWith('Could not resolve federated key `name`', $exception->getMessage());
+        self::assertNull( $this->executeMiddlewareWith(Federation::key('name'), $instance));
     }
 
     public function testFederationField() {

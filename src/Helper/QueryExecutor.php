@@ -16,9 +16,9 @@ use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Data\ValueObjects\ValidationResult;
 use GraphQlTools\Definition\DefinitionException;
-use GraphQlTools\Events\ParsedEvent;
-use GraphQlTools\Events\StartEvent;
-use GraphQlTools\Events\EndEvent;
+use GraphQlTools\Data\ValueObjects\Events\ParsedEvent;
+use GraphQlTools\Data\ValueObjects\Events\StartEvent;
+use GraphQlTools\Data\ValueObjects\Events\EndEvent;
 use GraphQlTools\Helper\Extension\Extension;
 use GraphQlTools\Helper\Results\GraphQlResult;
 use GraphQlTools\Helper\Validation\CollectDeprecatedFieldNotices;
@@ -60,6 +60,7 @@ class QueryExecutor
      *
      * @param Schema $schema
      * @param string $query
+     * @param GraphQlContext $context
      * @return ValidationResult
      * @throws DefinitionException
      * @throws SyntaxError

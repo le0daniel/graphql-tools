@@ -59,20 +59,6 @@ class SchemaRegistry
         $this->types[$typeName] = $definition;
     }
 
-    private function registerDirective(GraphQlDirective|string $directive): void
-    {
-        /** @var GraphQlDirective $instance */
-        $instance = is_string($directive) ? new $directive() : $directive;
-        $this->directives[$instance->getName()] = $instance;
-    }
-
-    private function verifyTypeNameIsNotUsed(string $typeName): void
-    {
-        if (isset($this->types[$typeName])) {
-            throw new RuntimeException("Type with name '{$typeName}' was already registered. You can not register a type twice.");
-        }
-    }
-
     /**
      * @param array $types
      * @return void
@@ -116,6 +102,20 @@ class SchemaRegistry
             }
 
             $this->extend($definitions, $extendedTypeName);
+        }
+    }
+
+    private function registerDirective(GraphQlDirective|string $directive): void
+    {
+        /** @var GraphQlDirective $instance */
+        $instance = is_string($directive) ? new $directive() : $directive;
+        $this->directives[$instance->getName()] = $instance;
+    }
+
+    private function verifyTypeNameIsNotUsed(string $typeName): void
+    {
+        if (isset($this->types[$typeName])) {
+            throw new RuntimeException("Type with name '{$typeName}' was already registered. You can not register a type twice.");
         }
     }
 

@@ -4,9 +4,9 @@ namespace GraphQlTools\Test\Unit\Helper;
 
 use GraphQL\Executor\ExecutionResult;
 use GraphQlTools\Contract\GraphQlContext;
-use GraphQlTools\Events\EndEvent;
-use GraphQlTools\Events\StartEvent;
-use GraphQlTools\Events\VisitFieldEvent;
+use GraphQlTools\Data\ValueObjects\Events\EndEvent;
+use GraphQlTools\Data\ValueObjects\Events\StartEvent;
+use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
 use GraphQlTools\Helper\Extension\ActualCostExtension;
 use GraphQlTools\Helper\Extension\Extension;
 use GraphQlTools\Helper\Extensions;

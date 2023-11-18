@@ -7,14 +7,13 @@ use GraphQL\Type\Definition\FieldDefinition;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Field\Shared\DefinesBaseProperties;
-use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
 use GraphQlTools\Helper\Resolver\MiddlewareResolver;
 use GraphQlTools\Helper\Resolver\ProxyResolver;
 
 
 final class Field
 {
-    use DefinesBaseProperties, DefinesReturnType;
+    use DefinesBaseProperties;
 
     /** @var InputField[] */
     private readonly array $inputFields;

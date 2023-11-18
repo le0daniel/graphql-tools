@@ -6,35 +6,38 @@ use ArrayAccess;
 use Closure;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Helper\Resolver\ProxyResolver;
-use RuntimeException;
 
 final class Federation
 {
+    private static function extractKey(string $key, mixed $objectOrArrayAccessible): mixed {
+        if (null === $objectOrArrayAccessible) {
+            return null;
+        }
+
+        if (is_array($objectOrArrayAccessible) || $objectOrArrayAccessible instanceof ArrayAccess) {
+            return $objectOrArrayAccessible[$key] ?? null;
+        }
+
+        if (!is_object($objectOrArrayAccessible)) {
+            return null;
+        }
+
+        /** @var object $objectOrArrayAccessible */
+        return match (true) {
+            isset($objectOrArrayAccessible->{$key}) => $objectOrArrayAccessible->{$key},
+            method_exists($objectOrArrayAccessible, $key) => $objectOrArrayAccessible->{$key}(),
+            default => null,
+        };
+    }
+
     public static function key(string $name): Closure {
         return static function(mixed $data, $args, $context, $info, Closure $next) use ($name) {
-            if (null === $data) {
-                return $next(null, $args, $context, $info);
-            }
-
-            if (is_array($data) || $data instanceof ArrayAccess) {
-                if (!isset($data[$name])) {
-                    return new RuntimeException("Could not resolve federated key `{$name}` on array|ArrayAccessible. Hint: Federation::key(name) requires array|ArrayAccessible to have a value set for the key `{$name}`.");
-                }
-
-                return $next($data[$name], $args, $context, $info);
-            }
-
-            if (!is_object($data)) {
-                $type = gettype($data);
-                return new RuntimeException("Could not resolve federated key `{$name}` on {$type}. Hint: Federation::key(name) requires the data to be an array (& ArrayAccessible) or an object with properties or getter methods");
-            }
-
-            $typeClass = $data::class;
-            return match (true) {
-                isset($data->{$name}) => $next($data->{$name}, $args, $context, $info),
-                method_exists($data, $name) => $next($data->{$name}(), $args, $context, $info),
-                default => new RuntimeException("Could not resolve federated key `{$name}` on {$typeClass}. Hint: Federation::key(name) requires the data to be an array (& ArrayAccessible) or an object with properties or getter methods")
-            };
+            return $next(
+                self::extractKey($name, $data),
+                $args,
+                $context,
+                $info
+            );
         };
     }
 
@@ -43,6 +46,7 @@ final class Federation
             /** @var ProxyResolver $resolveFunction */
             $resolveFunction = $info->parentType->getField($name)->resolveFn;
             return $next(
+                // This does not execute the extensions. It only executes middlewares and the resolve function.
                 $resolveFunction->resolveToValue($data, $args, $context, $info),
                 $args,
                 $context,

@@ -3,10 +3,10 @@
 namespace GraphQlTools\Contract;
 
 use Closure;
-use GraphQlTools\Events\EndEvent;
-use GraphQlTools\Events\ParsedEvent;
-use GraphQlTools\Events\StartEvent;
-use GraphQlTools\Events\VisitFieldEvent;
+use GraphQlTools\Data\ValueObjects\Events\EndEvent;
+use GraphQlTools\Data\ValueObjects\Events\ParsedEvent;
+use GraphQlTools\Data\ValueObjects\Events\StartEvent;
+use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
 
 /**
  * @template T as GraphQlContext

@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace GraphQlTools\Helper;
 
 use Closure;
-use GraphQlTools\Contract\Event;
+use GraphQlTools\Data\ValueObjects\Events\Event;
 use GraphQlTools\Contract\ExecutionExtension;
 use GraphQlTools\Contract\GraphQlContext;
-use GraphQlTools\Events\EndEvent;
-use GraphQlTools\Events\ParsedEvent;
-use GraphQlTools\Events\StartEvent;
-use GraphQlTools\Events\VisitFieldEvent;
+use GraphQlTools\Data\ValueObjects\Events\EndEvent;
+use GraphQlTools\Data\ValueObjects\Events\ParsedEvent;
+use GraphQlTools\Data\ValueObjects\Events\StartEvent;
+use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
 
 /**
  * @internal

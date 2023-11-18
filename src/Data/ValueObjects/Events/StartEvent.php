@@ -1,8 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Events;
+namespace GraphQlTools\Data\ValueObjects\Events;
 
-use GraphQlTools\Contract\Event;
+use GraphQlTools\Data\ValueObjects\Events\Event;
 use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Utility\Query;
 

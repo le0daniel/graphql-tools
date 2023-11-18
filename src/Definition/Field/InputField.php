@@ -3,13 +3,13 @@
 namespace GraphQlTools\Definition\Field;
 
 use GraphQlTools\Definition\DefinitionException;
-use GraphQlTools\Definition\Field\Shared\DefinesDefaultValue;
 use GraphQlTools\Definition\Field\Shared\DefinesBaseProperties;
-use GraphQlTools\Definition\Field\Shared\DefinesReturnType;
 
 final class InputField
 {
-    use DefinesBaseProperties, DefinesReturnType, DefinesDefaultValue;
+    use DefinesBaseProperties;
+
+    protected mixed $defaultValue = null;
 
     final public function __construct(public readonly string $name)
     {
@@ -25,10 +25,15 @@ final class InputField
         return $this->name;
     }
 
+    final public function withDefaultValue(mixed $defaultValue): self
+    {
+        $this->defaultValue = $defaultValue;
+        return $this;
+    }
+
     /**
      * @internal This is used internally to get the state of the builder. Do not use this.
      * @return array
-     * @throws DefinitionException
      */
     final public function toDefinition(): array
     {

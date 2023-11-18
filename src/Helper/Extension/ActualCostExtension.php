@@ -5,7 +5,7 @@ namespace GraphQlTools\Helper\Extension;
 use Closure;
 use GraphQL\Error\DebugFlag;
 use GraphQlTools\Contract\ProvidesResultExtension;
-use GraphQlTools\Events\VisitFieldEvent;
+use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
 
 final class ActualCostExtension extends Extension implements ProvidesResultExtension
 {

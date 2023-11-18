@@ -15,9 +15,11 @@ use GraphQlTools\Test\Dummies\Schema\LionType;
 use GraphQlTools\Test\Dummies\Schema\ProtectedUserType;
 use GraphQlTools\Test\Dummies\Schema\Stitching\ExtendMamelInterface;
 use PHPUnit\Framework\TestCase;
+use Prophecy\PhpUnit\ProphecyTrait;
 
 class SchemaRegistrySchemaTest extends TestCase
 {
+    use ProphecyTrait;
 
     public function testRegister()
     {
@@ -26,7 +28,8 @@ class SchemaRegistrySchemaTest extends TestCase
         self::assertTrue(true);
     }
 
-    public function testPartialPrint(): void {
+    public function testPartialPrint(): void
+    {
         $schema = new SchemaRegistry();
         $schema->extend(ExtendMamelInterface::class, 'Mamel');
         $schema->register(new LionType);
@@ -75,7 +78,8 @@ interface Mamel {
 ', $schema->printPartial());
     }
 
-    public function testRegisterWithInvalidName() {
+    public function testRegisterWithInvalidName()
+    {
         $instance = new class () extends GraphQlType {
             public function getName(): string
             {
@@ -98,7 +102,30 @@ interface Mamel {
         $federation->register($instance::class);
     }
 
-    public function testWithInvisibleEagerType(): void {
+    public function testFailureWhenRegisteringTheSameNameTwice(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Type with name \'My\' was already registered. You can not register a type twice.');
+
+        $federation = new SchemaRegistry();
+        $federation->register('MyType');
+        $federation->register('MyType');
+    }
+
+    public function testFailureWhenTypeNameMismatchesBetweenHintAndDefinition(): void
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage("Definition name did not match provided name");
+
+        $type = $this->prophesize(DefinesGraphQlType::class);
+        $type->getName()->willReturn('Else');
+
+        $federation = new SchemaRegistry();
+        $federation->register($type->reveal(), 'Something');
+    }
+
+    public function testWithInvisibleEagerType(): void
+    {
         $type = new class () extends GraphQlType {
             public function getName(): string
             {

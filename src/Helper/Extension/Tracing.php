@@ -9,9 +9,9 @@ use DateTimeImmutable;
 use GraphQlTools\Data\ValueObjects\Tracing\ExecutionTrace;
 use GraphQlTools\Data\ValueObjects\Tracing\GraphQlError;
 use GraphQlTools\Data\ValueObjects\Tracing\ResolverTrace;
-use GraphQlTools\Events\EndEvent;
-use GraphQlTools\Events\StartEvent;
-use GraphQlTools\Events\VisitFieldEvent;
+use GraphQlTools\Data\ValueObjects\Events\EndEvent;
+use GraphQlTools\Data\ValueObjects\Events\StartEvent;
+use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
 use GraphQlTools\Utility\Query;
 
 abstract class Tracing extends Extension

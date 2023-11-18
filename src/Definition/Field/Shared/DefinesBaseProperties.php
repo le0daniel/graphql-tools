@@ -2,7 +2,10 @@
 
 namespace GraphQlTools\Definition\Field\Shared;
 
+use Closure;
 use DateTimeInterface;
+use GraphQL\Type\Definition\Type;
+use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Utility\Descriptions;
 
 trait DefinesBaseProperties
@@ -11,6 +14,19 @@ trait DefinesBaseProperties
     protected ?string $deprecationReason = null;
     protected ?DateTimeInterface $removalDate = null;
     protected array $tags = [];
+    protected Type|Closure $ofType;
+
+    final public function ofType(Type|Closure $resolveType): static
+    {
+        $this->ofType = $resolveType;
+        return $this;
+    }
+
+    private function verifyTypeIsSet(): void {
+        if (!isset($this->ofType)) {
+            throw DefinitionException::fromMissingFieldDeclaration('ofType', $this->name, 'Every field must have a type defined.');
+        }
+    }
 
     /**
      * @api Define tags for this field or type.
