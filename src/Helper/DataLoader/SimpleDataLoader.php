@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Helper;
+namespace GraphQlTools\Helper\DataLoader;
 
 use Closure;
 use GraphQL\Deferred;
@@ -15,7 +15,7 @@ use GraphQlTools\Contract\DataLoader as DataLoaderContract;
 /**
  * @implements DataLoaderContract<SyncPromise>
  */
-final class DataLoader implements DataLoaderContract
+class SimpleDataLoader implements DataLoaderContract
 {
     public static string $arrayIdentifierKey = 'itemId';
 
@@ -76,7 +76,7 @@ final class DataLoader implements DataLoaderContract
      */
     public function load(mixed $item): SyncPromise
     {
-        // Caching between layers is not currently supported.
+        // Caching between layers is not currently supported by the simple data loader.
         // If there are already loaded items present, they are discarded if data is loaded one layer deeper
         $this->clearLoadedDataIfNeeded();
 
@@ -85,7 +85,7 @@ final class DataLoader implements DataLoaderContract
         $identifier = self::getIdentifier($item);
 
         // The item is put into the queue
-        $this->queuedItems[] = &$item;
+        $this->queuedItems[] = $item;
 
         return new Deferred(function () use (&$identifier) {
             $this->loadDataOnce();

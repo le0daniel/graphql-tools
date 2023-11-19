@@ -5,6 +5,7 @@ namespace GraphQlTools\Test\Unit\Helper;
 use Closure;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Contract\ExecutableByDataLoader;
+use JsonException;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 
@@ -26,6 +27,9 @@ class ContextTest extends TestCase
         };
     }
 
+    /**
+     * @throws JsonException
+     */
     public function testWithDataLoader()
     {
         $context = $this->contextWithMocks([
@@ -41,6 +45,11 @@ class ContextTest extends TestCase
         self::assertSame(
             $context->dataLoader('test'),
             $context->dataLoader('test'),
+        );
+
+        self::assertNotSame(
+            $context->dataLoader('test'),
+            $context->dataLoader('test', ['true']),
         );
     }
 }

@@ -60,7 +60,7 @@ class ProxyResolver
         // Ensure arguments are always an array, as the framework does not guarantee that
         $arguments ??= [];
 
-        $afterFieldResolution = $operationContext->extensionManager->willResolveField(
+        $afterFieldResolution = $operationContext->extensions->willResolveField(
             VisitFieldEvent::create($typeData, $arguments, $info)
         );
 

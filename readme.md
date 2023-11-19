@@ -19,6 +19,13 @@ Main Features
   dependency directions in your code.
 - Type name aliases, so that you can either use type names of class names of types.
 
+## Installation
+
+Install via composer
+```
+composer require le0daniel/graphql-tools
+```
+
 ## Basic Usage
 
 The usage is similar to how you would use `webonyx/graphql` and define object types. Instead of extending the default

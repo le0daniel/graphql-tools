@@ -10,7 +10,7 @@ final readonly class OperationContext
 {
     public function __construct(
         public GraphQlContext   $context,
-        public Extensions $extensionManager
+        public Extensions $extensions
     )
     {
     }

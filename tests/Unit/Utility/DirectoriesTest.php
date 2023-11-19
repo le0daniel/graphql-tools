@@ -20,6 +20,7 @@ class DirectoriesTest extends TestCase
 
         self::assertEquals([
             'ContextTest.php',
+            'DataLoader/CachedDataLoaderTest.php',
             'DataLoaderTest.php',
             'ExtensionManagerTest.php',
             'MiddlewareTest.php',

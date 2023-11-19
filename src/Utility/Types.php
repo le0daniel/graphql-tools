@@ -8,12 +8,13 @@ use GraphQlTools\Definition\GraphQlDirective;
 
 final class Types
 {
-    public const TYPE_NAME_ENDING = 'Type';
-    public const ENUM_NAME_ENDING = 'Enum';
-    public const INTERFACE_NAME_ENDING = 'Interface';
-    public const SCALAR_NAME_ENDING = 'Scalar';
-    public const UNION_NAME_ENDING = 'Union';
-    public const DIRECTIVE_NAME_ENDING = 'Directive';
+    private const TYPE_NAME_ENDING = 'Type';
+    private const ENUM_NAME_ENDING = 'Enum';
+    private const INTERFACE_NAME_ENDING = 'Interface';
+    private const SCALAR_NAME_ENDING = 'Scalar';
+    private const UNION_NAME_ENDING = 'Union';
+    private const DIRECTIVE_NAME_ENDING = 'Directive';
+    private const EXTENDS_NAME_PREFIX = 'Extends';
 
     public static function inferNameFromClassName(string $className): string
     {
@@ -35,15 +36,15 @@ final class Types
         $parts = explode('\\', $className);
         $baseName = end($parts);
 
-        if (!str_starts_with($baseName, 'Extends')) {
+        if (!str_starts_with($baseName, self::EXTENDS_NAME_PREFIX)) {
             throw new DefinitionException("Could not infer type name from string: {$baseName}. Expected string to start with 'Extends'.");
         }
 
-        $typeNameWithoutExtendsKeyword = substr($baseName, strlen('Extends'));
+        $typeNameWithoutExtendsKeyword = substr($baseName, 7);
 
         return match (true) {
-            str_ends_with($typeNameWithoutExtendsKeyword, 'Type') => substr($typeNameWithoutExtendsKeyword, 0, -4),
-            str_ends_with($typeNameWithoutExtendsKeyword, 'Interface') => substr($typeNameWithoutExtendsKeyword, 0, -9),
+            str_ends_with($typeNameWithoutExtendsKeyword, self::TYPE_NAME_ENDING) => substr($typeNameWithoutExtendsKeyword, 0, -4),
+            str_ends_with($typeNameWithoutExtendsKeyword, self::INTERFACE_NAME_ENDING) => substr($typeNameWithoutExtendsKeyword, 0, -9),
             default => throw new DefinitionException("Could not infer type name from string: {$baseName}. Expected string to end in 'Type' or 'Interface'."),
         };
     }

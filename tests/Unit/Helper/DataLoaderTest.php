@@ -5,7 +5,7 @@ namespace GraphQlTools\Test\Unit\Helper;
 use GraphQL\Deferred;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQlTools\Contract\DataLoaderIdentifiable;
-use GraphQlTools\Helper\DataLoader;
+use GraphQlTools\Helper\DataLoader\SimpleDataLoader;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 use SplObjectStorage;
@@ -19,7 +19,7 @@ class DataLoaderTest extends TestCase
 
     public function testMultipleLoads()
     {
-        $dataLoader = new DataLoader(fn() => [1 => 'test', 2 => 'other']);
+        $dataLoader = new SimpleDataLoader(fn() => [1 => 'test', 2 => 'other']);
 
         $promise1 = $dataLoader->load(2);
         Deferred::runQueue();
@@ -33,7 +33,7 @@ class DataLoaderTest extends TestCase
 
     public function testLoadingWithArrayItems()
     {
-        $dataLoader = new DataLoader(fn() => [1 => 'test', 2 => 'other']);
+        $dataLoader = new SimpleDataLoader(fn() => [1 => 'test', 2 => 'other']);
 
         $promise1 = $dataLoader->load(['itemId' => 1, 'args' => []]);
         $promise2 = $dataLoader->load(['itemId' => 2, 'args' => []]);
@@ -45,7 +45,7 @@ class DataLoaderTest extends TestCase
 
     public function testLoadMany()
     {
-        $dataLoader = new DataLoader(fn() => [1 => 'test', 2 => 'other']);
+        $dataLoader = new SimpleDataLoader(fn() => [1 => 'test', 2 => 'other']);
 
         $promises1 = $dataLoader->loadMany(1, 2);
         $promises2 = $dataLoader->loadMany(1, 3);
@@ -60,7 +60,7 @@ class DataLoaderTest extends TestCase
 
     public function testLoadWithExceptions()
     {
-        $dataLoader = new DataLoader(fn() => [1 => 'test', 2 => new RuntimeException('')]);
+        $dataLoader = new SimpleDataLoader(fn() => [1 => 'test', 2 => new RuntimeException('')]);
 
         $promises1 = $dataLoader->loadMany(1, 2);
         Deferred::runQueue();
@@ -73,7 +73,7 @@ class DataLoaderTest extends TestCase
     public function testLoad()
     {
         $count = 0;
-        $dataLoader = new DataLoader(static function() use (&$count) {
+        $dataLoader = new SimpleDataLoader(static function() use (&$count) {
             $count++;
             return [1 => 'test', 2 => 'other'];
         });
@@ -88,7 +88,7 @@ class DataLoaderTest extends TestCase
 
     public function testLoadWithError()
     {
-        $dataLoader = new DataLoader(fn() => [1 => 'test', 2 => new RuntimeException('Random')]);
+        $dataLoader = new SimpleDataLoader(fn() => [1 => 'test', 2 => new RuntimeException('Random')]);
         $successfulPromise = $dataLoader->load(1);
         $failedPromise = $dataLoader->load(2);
 
@@ -100,7 +100,7 @@ class DataLoaderTest extends TestCase
 
     public function testGetLoadingTraces()
     {
-        $dataLoader = new DataLoader(fn() => [1 => 'test', 2 => 'other']);
+        $dataLoader = new SimpleDataLoader(fn() => [1 => 'test', 2 => 'other']);
         $promises = [
             $dataLoader->load(1),
             $dataLoader->load(1),
@@ -120,7 +120,7 @@ class DataLoaderTest extends TestCase
         $storage[$object1] = 'object1';
         $storage[$object2] = 'object2';
 
-        $dataLoader = new DataLoader(fn() => $storage);
+        $dataLoader = new SimpleDataLoader(fn() => $storage);
         $promise1 = $dataLoader->load($object1);
         $promise2 = $dataLoader->load($object2);
 
@@ -146,7 +146,7 @@ class DataLoaderTest extends TestCase
 
         $storage = [1 => 'I am object 1', 2 => 'I am object 2'];
 
-        $dataLoader = new DataLoader(fn() => $storage);
+        $dataLoader = new SimpleDataLoader(fn() => $storage);
         $promise1 = $dataLoader->load($object1);
         $promise2 = $dataLoader->load($object2);
 
