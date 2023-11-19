@@ -19,7 +19,6 @@ class GraphQlError
         public readonly array  $locations,
     )
     {
-        Typing::verifyListOfType(GraphQlErrorLocation::class, $this->locations);
     }
 
     public static function fromGraphQlError(Error $error): GraphQlError

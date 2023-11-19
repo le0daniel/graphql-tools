@@ -7,6 +7,7 @@ use GraphQL\Deferred;
 use GraphQlTools\Contract\DataLoader;
 use GraphQlTools\Contract\DataLoaderIdentifiable;
 use GraphQlTools\Contract\ExecutableByDataLoader;
+use GraphQlTools\Utility\Debugging;
 use RuntimeException;
 use Throwable;
 
@@ -48,22 +49,22 @@ class CachedDataLoader implements DataLoader
             return;
         }
 
-        $itemsToLoad = $this->dequeueItems();
+        $items = $this->dequeueItems();
 
         try {
             $data = $this->loader instanceof ExecutableByDataLoader
-                ? $this->loader->fetchData($itemsToLoad)
-                : ($this->loader)($itemsToLoad);
+                ? $this->loader->fetchData($items)
+                : ($this->loader)($items);
         } catch (Throwable $exception) {
             // In case of failure, all items are assigned the throwable.
-            foreach ($itemsToLoad as $identifier) {
+            foreach ($items as $identifier) {
                 $this->loadedItems[$identifier] = $exception;
             }
             return;
         }
 
-        foreach ($itemsToLoad as $key) {
-            $this->loadedItems[$key] = $data[$key] ?? null;
+        foreach ($items as $identifier) {
+            $this->loadedItems[$identifier] = $data[$identifier] ?? null;
         }
     }
 
@@ -84,7 +85,7 @@ class CachedDataLoader implements DataLoader
         return match (true) {
             is_string($item), is_int($item) => $item,
             $item instanceof DataLoaderIdentifiable => $item->dataLoaderIdentifier(),
-            default => throw new RuntimeException("Expected item to be string|int|instance of DataLoaderIdentifiable")
+            default => throw new RuntimeException("Expected item to be string|int|instance of DataLoaderIdentifiable, got: " . Debugging::typeOf($item))
         };
     }
 }

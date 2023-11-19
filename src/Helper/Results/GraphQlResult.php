@@ -77,11 +77,7 @@ final class GraphQlResult extends ExecutionResult
     {
         $serialized = [];
         foreach ($items as $item) {
-            if (!$item instanceof ProvidesResultExtension) {
-                continue;
-            }
-
-            if (!$item->isVisibleInResult($this->context)) {
+            if (!$item instanceof ProvidesResultExtension || !$item->isVisibleInResult($this->context)) {
                 continue;
             }
 
