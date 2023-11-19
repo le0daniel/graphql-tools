@@ -27,16 +27,6 @@ final class Arrays
         return $items;
     }
 
-    public static function containsOneOf(array $array, array $values): bool
-    {
-        foreach ($values as $value) {
-            if (in_array($value, $array, true)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public static function mergeKeyValues(array $array, array $arrayToMerge, bool $throwOnKeyConflict = false): array
     {
         foreach ($arrayToMerge as $key => $value) {
@@ -46,21 +36,6 @@ final class Arrays
             $array[$key] = $value;
         }
         return $array;
-    }
-
-    public static function onlyKeys(array $array, array $keys, bool $throwOnNonExistentKey = true): array
-    {
-        $result = [];
-        foreach ($keys as $key) {
-            if (!array_key_exists($key, $array) && $throwOnNonExistentKey) {
-                $gottenArrayKeys = implode(', ', array_keys($array));
-                $expectedArrayKeys = implode(', ', $keys);
-                throw new RuntimeException("Not all required keys were set. Got: {$gottenArrayKeys}. Expected: {$expectedArrayKeys}");
-            }
-
-            $result[$key] = $array[$key] ?? null;
-        }
-        return $result;
     }
 
     private static function isArrayAccessible(mixed $value): bool
@@ -95,27 +70,6 @@ final class Arrays
         return $value ?? $defaultValue;
     }
 
-    public static function splice(array $array, int $offset, ?int $length): array
-    {
-        return array_splice($array, $offset, $length);
-    }
-
-    public static function blacklistKeys(array $array, array $blacklist, bool $recursive = true): array
-    {
-        $filtered = [];
-        foreach ($array as $key => $value) {
-            if (in_array($key, $blacklist)) {
-                continue;
-            }
-
-            $filtered[$key] = $recursive && is_array($value)
-                ? self::blacklistKeys($value, $blacklist, $recursive)
-                : $value;
-        }
-
-        return $filtered;
-    }
-
     public static function sortByColumn(array $array, string $columnKey): array
     {
         $columnsToSortBy = [];
@@ -132,11 +86,6 @@ final class Arrays
     public static function last(array &$array): mixed
     {
         return $array[count($array) - 1];
-    }
-
-    public static function removeNullValues(array $array): array
-    {
-        return array_filter($array, static fn(mixed $value): bool => $value !== null);
     }
 
 }
