@@ -1,5 +1,5 @@
 syntax = "proto3";
-
+option php_namespace = "GraphQlTools\\Protobuf";
 
 import "google/protobuf/timestamp.proto";
 

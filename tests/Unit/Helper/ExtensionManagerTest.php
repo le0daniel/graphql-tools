@@ -20,6 +20,24 @@ class ExtensionManagerTest extends TestCase
 {
     use ProphecyTrait;
 
+    private function context(): GraphQlContext {
+        return $this->prophesize(GraphQlContext::class)->reveal();
+    }
+
+    public function testOrdering() {
+        $extensions = [];
+        for ($i = 0; $i <= 2; $i++) {
+            $extensionProphecy = $this->prophesize(Extension::class);
+            $extensionProphecy->getName()->willReturn("index-{$i}");
+            $extensionProphecy->isEnabled()->willReturn(true);
+            $extensionProphecy->priority()->willReturn(20 - $i);
+            $extensions[] = fn() => $extensionProphecy->reveal();
+        }
+
+        $manager = Extensions::createFromExtensionFactories($this->context(), $extensions);
+        self::assertEquals(['index-2', 'index-1', 'index-0'], array_keys($manager->getKeyedExtensions()));
+    }
+
     public function testCreate()
     {
         $extension = $this->prophesize(Extension::class);
@@ -69,7 +87,7 @@ class ExtensionManagerTest extends TestCase
 
 
         $extensions = Extensions::createFromExtensionFactories(
-            $this->prophesize(GraphQlContext::class)->reveal(),
+            $this->context(),
             [
                 fn() => $disabledExtension->reveal(),
                 fn() => $enabledExtension->reveal(),
@@ -88,7 +106,7 @@ class ExtensionManagerTest extends TestCase
         $extension->getName()->willReturn('something');
 
         $extensions = Extensions::createFromExtensionFactories(
-            $this->prophesize(GraphQlContext::class)->reveal(),
+            $this->context(),
             [
                 fn() => $extension->reveal()
             ]

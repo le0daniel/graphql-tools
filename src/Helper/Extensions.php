@@ -29,7 +29,8 @@ final readonly class Extensions
     /**
      * @return array<string, ExecutionExtension>
      */
-    public function getKeyedExtensions(): array {
+    public function getKeyedExtensions(): array
+    {
         $keyedExtensions = [];
         foreach ($this->extensions as $extension) {
             $keyedExtensions[$extension->getName()] = $extension;
@@ -92,7 +93,8 @@ final readonly class Extensions
         };
     }
 
-    public function dispatch(Event $event): void {
+    public function dispatch(Event $event): void
+    {
         foreach ($this->extensions as $extension) {
             match ($event::class) {
                 StartEvent::class => $extension->start($event),
