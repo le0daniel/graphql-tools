@@ -2,7 +2,6 @@
 
 namespace GraphQlTools\Definition\Field;
 
-use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\Field\Shared\DefinesBaseProperties;
 
 final class InputField
@@ -27,8 +26,9 @@ final class InputField
 
     final public function withDefaultValue(mixed $defaultValue): self
     {
-        $this->defaultValue = $defaultValue;
-        return $this;
+        $clone = clone $this;
+        $clone->defaultValue = $defaultValue;
+        return $clone;
     }
 
     /**

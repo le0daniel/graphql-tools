@@ -18,8 +18,9 @@ trait DefinesBaseProperties
 
     final public function ofType(Type|Closure $resolveType): static
     {
-        $this->ofType = $resolveType;
-        return $this;
+        $clone = clone $this;
+        $clone->ofType = $resolveType;
+        return $clone;
     }
 
     private function verifyTypeIsSet(): void {
@@ -33,8 +34,9 @@ trait DefinesBaseProperties
      * @param string ...$tags
      */
     public function tags(string ... $tags): self {
-        $this->tags = array_unique($tags);
-        return $this;
+        $clone = clone $this;
+        $clone->tags = array_unique($tags);
+        return $clone;
     }
 
     public function getTags(): array {
@@ -43,9 +45,10 @@ trait DefinesBaseProperties
 
     public function deprecated(string $reason, ?DateTimeInterface $removalDate = null): static
     {
-        $this->deprecationReason = $reason;
-        $this->removalDate = $removalDate;
-        return $this;
+        $clone = clone $this;
+        $clone->deprecationReason = $reason;
+        $clone->removalDate = $removalDate;
+        return $clone;
     }
 
     protected function isDeprecated(): bool
@@ -55,8 +58,9 @@ trait DefinesBaseProperties
 
     final public function withDescription(string $description): static
     {
-        $this->description = $description;
-        return $this;
+        $clone = clone $this;
+        $clone->description = $description;
+        return $clone;
     }
 
     protected function computeDescription(): string

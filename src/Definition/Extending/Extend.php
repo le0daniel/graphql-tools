@@ -28,14 +28,16 @@ final class Extend implements ExtendType
 
     public function withFields(Closure $fields): self
     {
-        $this->fields = $fields;
-        return $this;
+        $clone = clone $this;
+        $clone->fields = $fields;
+        return $clone;
     }
 
     public function applyMiddleware(Closure...$closure): self
     {
-        $this->middleware = $closure;
-        return $this;
+        $clone = clone $this;
+        $clone->middleware = $closure;
+        return $clone;
     }
 
     /**

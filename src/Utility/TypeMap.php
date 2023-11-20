@@ -34,6 +34,8 @@ class TypeMap
             }
 
             if ($reflection->implementsInterface(ExtendType::class)) {
+                self::verifyHasConstructorWithoutArguments($reflection);
+
                 /** @var ExtendType $instance */
                 $instance = (new $className);
                 $extendedTypes[$instance->typeName()][] = $className;
@@ -44,9 +46,7 @@ class TypeMap
                 continue;
             }
 
-            if ($reflection->getConstructor() && $reflection->getConstructor()->getNumberOfParameters() !== 0) {
-                throw new DefinitionException("A type should not have a constructor or only have a constructor without any parameters. This ensures that there are no side effects when a resolver is called multiple times.");
-            }
+            self::verifyHasConstructorWithoutArguments($reflection);
 
             /** @var DefinesGraphQlType $instance */
             $instance = (new $className);
@@ -55,6 +55,15 @@ class TypeMap
         }
 
         return [$typeMap, $extendedTypes];
+    }
+
+    /**
+     * @throws DefinitionException
+     */
+    private static function verifyHasConstructorWithoutArguments(ReflectionClass $reflection): void {
+        if ($reflection->getConstructor() && $reflection->getConstructor()->getNumberOfParameters() !== 0) {
+            throw new DefinitionException("A type should not have a constructor or only have a constructor without any parameters. This ensures that there are no side effects when a resolver is called multiple times.");
+        }
     }
 
     /**

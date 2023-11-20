@@ -67,6 +67,11 @@ final class QueryType extends GraphQlType
                     return 'Hello World!';
                 }),
 
+            Field::withName('isHiddenDynamically')
+                ->ofType($registry->string())
+                ->visible(fn(): bool => false)
+                ->resolvedBy(fn() => 'I am visible'),
+
             Field::withName('middlewareWithoutResolver')
                 ->ofType($registry->string())
                 ->middleware(fn($a, $b, $c, $d, $next) => ($next(['middlewareWithoutResolver' => 'Default'], $b, $c, $d)). ' - this is the middle'),

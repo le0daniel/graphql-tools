@@ -53,6 +53,8 @@ trait HasDataloaders
      * Customize data loader class used by overwriting `createDataLoaderInstance`. By default, SimpleDataLoader
      * is used
      *
+     * Arguments need to be json serializable to ensure the same data loader is used for multiple fields.
+     *
      * @throws JsonException
      */
     final public function dataLoader(string $key, array $arguments = []): DataLoader

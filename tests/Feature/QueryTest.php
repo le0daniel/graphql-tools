@@ -173,6 +173,12 @@ class QueryTest extends TestCase
         self::assertEquals(QueryType::WHOAMI_DATA, $result->data['whoami']);
     }
 
+    public function testDynamicallyVisibleExecution(): void
+    {
+        $result = $this->execute('query { isHiddenDynamically }');
+        self::assertNull($result->data);
+        $this->assertError($result, 'Cannot query field "isHiddenDynamically" on type "Query".');
+    }
     public function testQueryWithType(): void
     {
         $result = $this->execute('query { whoami, user { id, data } }');

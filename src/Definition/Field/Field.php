@@ -35,43 +35,87 @@ final class Field
     }
 
     /**
+     * Overwrites and sets middlewares to what is given.
+     * @param Closure ...$middleware
+     * @return $this
      * @api define middlewares to use when resolving this field.
+     */
+    public function middleware(Closure...$middleware): self
+    {
+        $clone = clone $this;
+        $clone->middlewares = $middleware;
+        return $clone;
+    }
+
+    /**
+     * Append a middleware into the stack of middlewares
      * @param Closure ...$middleware
      * @return $this
      */
-    public function middleware(Closure... $middleware): self {
-        $this->middlewares = $middleware;
+    public function appendMiddleware(Closure ... $middleware): self {
+        $clone = clone $this;
+        $clone->middlewares = [...$this->middlewares, ...$middleware];
         return $this;
     }
 
-    public function cost(int $price, ?Closure $multiplyChildrenCostBy = null): self {
-        $this->cost = $price;
+    /**
+     * Prepend middlewares to the stack of middlewares.
+     * @param array<Closure> $middleware
+     * @return $this
+     * @internal
+     */
+    public function prependMiddleware(Closure ...$middleware): self
+    {
+        $clone = clone $this;
+        array_unshift($clone->middlewares, ...$middleware);
+        return $clone;
+    }
+
+    /**
+     * The price is what you say a field does cost. You can add a variable component to it
+     * by passing a second parameter (closure), which can determine a factor to multiply the
+     * child complexity. This allows you to determine the MAX cost of a query ahead of time.
+     *
+     * Example:
+     * For pagination, you want to compute the child cost times the max amount of results.
+     * `query { field(first: 5) { id } }`
+     * The field has a cost of 2 and the id costs one. So you want to multiply it by 5, as
+     * 5 children are queried.
+     *
+     * **The cost will then be**:
+     * (amount of children: 5) * (cost of children: 1) + (field cost: 2) = 7
+     *
+     * **In code this means**:
+     * `->cost(2, fn($args): int => $args['first'])`
+     *
+     * Remember, we are calculating the **MAX** possible cost of the query ahead of time to prevent
+     * potentially expensive queries. The actual cost Extension allows you to collect what was
+     * actually consumed by aggregating all the costs of the fields. So the max cost might be
+     * 7 but as there were only 3 results, the actual cost is (3 * 1) + 2.
+     *
+     * @param int $price
+     * @param Closure(array): (float|int)|null $multiplyChildrenCostBy
+     * @return $this
+     */
+    public function cost(int $price, ?Closure $multiplyChildrenCostBy = null): self
+    {
+        $clone = clone $this;
+        $clone->cost = $price;
         if (!$multiplyChildrenCostBy) {
-            $this->costFunction = static fn(int $childrenComplexity): int => $childrenComplexity + $price;
-            return $this;
+            $clone->costFunction = static fn(int $childrenComplexity): int => $childrenComplexity + $price;
+            return $clone;
         }
 
-        $this->costFunction = static function (int $childrenComplexity, ?array $args) use ($multiplyChildrenCostBy, $price): int {
+        $clone->costFunction = static function (int $childrenComplexity, ?array $args) use ($multiplyChildrenCostBy, $price): int {
             $factor = $multiplyChildrenCostBy($args ?? []);
             return ($factor * $childrenComplexity) + $price;
         };
-        return $this;
+        return $clone;
     }
 
     /**
-     * Clones and adds a middleware at the beginning. Ensures the state is not mutated from the outside if reused.
      * @internal
-     * @param array<Closure> $middleware
-     * @return $this
-     */
-    public function prependMiddleware(...$middleware): self {
-        $instance = clone $this;
-        array_unshift($instance->middlewares, ...$middleware);
-        return $instance;
-    }
-
-    /**
-     * @param array $excludeTags
+     * @param SchemaRules|null $schemaRules
      * @return FieldDefinition
      * @throws DefinitionException
      * @internal
@@ -98,9 +142,11 @@ final class Field
         ]);
     }
 
-    public function visible(Closure $closure): self {
-        $this->visible = $closure;
-        return $this;
+    public function visible(bool|Closure $closure): self
+    {
+        $clone = clone $this;
+        $clone->visible = $closure;
+        return $clone;
     }
 
     public function getName(): string
@@ -110,14 +156,16 @@ final class Field
 
     public function resolvedBy(Closure $closure): self
     {
-        $this->resolveFunction = $closure;
-        return $this;
+        $clone = clone $this;
+        $clone->resolveFunction = $closure;
+        return $clone;
     }
 
     final public function withArguments(InputField ...$arguments): self
     {
-        $this->inputFields = $arguments;
-        return $this;
+        $clone = clone $this;
+        $clone->inputFields = $arguments;
+        return $clone;
     }
 
     final protected function initArguments(?SchemaRules $schemaRules): ?array
@@ -136,7 +184,8 @@ final class Field
         return $inputFields;
     }
 
-    private static function freeCost(int $childrenComplexity): int {
+    private static function freeCost(int $childrenComplexity): int
+    {
         return $childrenComplexity;
     }
 }

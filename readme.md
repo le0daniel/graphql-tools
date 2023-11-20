@@ -18,10 +18,12 @@ Main Features
   construct the right
   dependency directions in your code.
 - Type name aliases, so that you can either use type names of class names of types.
+- Lazy by default for best performance
 
 ## Installation
 
 Install via composer
+
 ```
 composer require le0daniel/graphql-tools
 ```
@@ -77,14 +79,12 @@ At the core, we start with a schema registry. There you register types and regis
 
 ## Schema Registry
 
-The schema registry serves as a single place where you register all types that exist in your graphql schema.
-You can then use the createSchema method to create different variations of your schema based on rules you pass to it.
-This is more transparent than using the visible method on your fields, as you can print different variants and see what
-different users might be able to see.
-Schema rules allow you to granularly show and hide fields. A schema rule file gets an instance of every field a type has
-and lets you decide if it is visible or not.
+**The schema registery is the central entity that contains all type definitions for a graphql schema.**
 
-**All types and fields are by default lazy loaded for best performance.**
+You register types, extend types and then create a schema variation. Internally, a TypeRegistry is given to all types
+and fields, allowing you to seamlessly refer to other types in the schema.
+The type registry solves the problem that each type class is only instanced once per schema and lazily for best
+performance.
 
 ### Loading all types in a directory
 
@@ -103,11 +103,82 @@ all PHP files. In production, **you should cache those**.
     $schemaRegistry->extendMany($typeExtensions);
 ```
 
+### Aliases
+
+In GraphQL, all types have a name. In a code first approach as described here, you define a class, which then creates a
+name. So in code, you have both the classname and the type name which is used in GraphQL.
+We automatically create aliases for the classnames. This allows you to reference other types either by their class name
+or the type name which is used in GraphQL.
+
+Class names can be better to work with inside a module, as you can now statically analyse the class usages.
+
+```php
+    use GraphQlTools\Helper\Registry\SchemaRegistry;
+    use GraphQlTools\Utility\TypeMap;
+
+    $schemaRegistry = new SchemaRegistry();
+    $schemaRegistry->register(SomeName\Space\MyType::class);
+
+    // You can now use both, the class name or the type name as in GraphQL.
+    $registry->type(SomeName\Space\MyType::class) === $registry->type('My');
+```
+
+### Creating a schema from the registry
+
+The schema registries task is to create a schema from all registered types dynamically.
+You can hide and show schema variants by using schema rules. Rules are mostly based on tags.
+In contrast to using the visibility function, this is more transparent. You can print different
+Schema variants and use tools to verify the schema or breaking changes. A hidden field can not be
+queried by any user. This prevents data leakage.
+
+**Provided Rules**:
+
+- AllVisibleSchemaRule (default): All fields are visible
+- TagBasedSchemaRules: Black- and whitelist based on field tags.
+
+You can define your own rules by implementing the SchemaRules interface.
+
+```php
+    use GraphQlTools\Helper\Registry\SchemaRegistry;
+    use GraphQlTools\Helper\Registry\TagBasedSchemaRules;
+    use GraphQlTools\Contract\SchemaRules;
+    
+    $schemaRegistry = new SchemaRegistry();
+    // Register all kind of types
+    $publicSchema = $schemaRegistry->createSchema(
+        queryTypeName: 'Query',
+        schemaRules: new TagBasedSchemaRules(ignoreWithTags: 'unstable', onlyWithTags: 'public')
+    );
+    
+    $publicSchemaWithUnstableFields = $schemaRegistry->createSchema(
+        queryTypeName: 'Query',
+        schemaRules: new TagBasedSchemaRules(onlyWithTags: 'public')
+    );
+
+    class MyCustomRule implements SchemaRules {
+        
+        public function isVisible(Field|InputField|EnumValue $item): bool {
+            // Determine if a field is visible or not.
+            return Arr::contains('my-tag', $item->getTags());
+        }
+    }
+```
+
 ## Define Types
 
-An object type can be defined, by creating a class that extends the `GraphQlTools\Definition\GraphQlType` class.
-The Type name is automatically deduced by the class name. For this to work, the class name needs to end in Type.
-Example: class QueryType => Query (Name in schema).
+In a code first approach to graphql, each type is represented by a class in code.
+
+Naming conventions and classes to extend:
+
+| Type           | ClassName         | Extends            | Example                                               |
+|----------------|-------------------|--------------------|-------------------------------------------------------|
+| Object Type    | `[Name]Type`      | `GraphQlType`      | AnimalType => type Animal                             |
+| Input Type     | `[Name]InputType` | `GraphQlInputType` | CreateAnimalInputType => input type CreateAnimalInput |
+| Interface Type | `[Name]Interface` | `GraphQlInterface` | MammalInterface => interface Mammal                   |
+| Union Type     | `[Name]Union`     | `GraphQlUnion`     | SearchResultUnion => union SearchResult               |
+| Scalar Type    | `[Name]Scalar`    | `GraphQlScalar`    | ByteScalar => scalar Byte                             |
+| Directive Type | `[Name]Directive` | `GraphQlDirective` | ExportVariablesDirective => directive ExportVariables |
+
 You can overwrite this behaviour by overwriting the getName function.
 
 ```php
@@ -150,8 +221,10 @@ class QueryType extends GraphQlType {
 
 ## Defining Fields and InputFields
 
-It is required to use the Field and Input fields builder to define Fields (output) and InputFields for input (InputType
-fields or Arguments).
+Some types (Object Type, Input Type and Interface) define fields in GraphQL. The field builders allow you to easily
+construct fields with all required and possible attributes, combined with their resolvers.
+
+Field and Input fields builder to define Fields (output) and InputFields for input (InputType fields or Arguments).
 This is required for the Framework to work correctly. It attaches ProxyResolver under the hood for extensions and
 Middlewares to work correctly.
 
@@ -204,7 +277,6 @@ Usage (For a type example):
                 Field::withName('fieldWithArgs')
                     ->ofType($registry->string())
                     ->withArguments(
-                        
                         // Define named arguments, works for all fields
                         InputField::withName('name')
                             ->ofType($registry->nonNull($registry->string()))
@@ -220,13 +292,67 @@ Usage (For a type example):
     }
 ```
 
+### Cost
+
+In GraphQL, a query can quickly be really expensive to compute, as you can navigate through deep relationships.
+To prevent users exceeding certain limits, you can limit the complexity a query can have.
+
+Webonyx provides a way to calculate complexity ahead of executing the query. This is done via the MaxComplexityRule. For
+it to work, each field needs to define a complexity function.
+
+We use the concept of cost, where each field defines its own cost statically and provide a helper to compute variable
+complexity based on arguments.
+
+```graphql
+query {
+    # Cost: 2
+    animals(first: 5) {
+        id # Cost: 0
+        name # Cost: 1
+        # Cost 2
+        relatedAnimals(first: 5) {
+            id # Cost: 0
+            name # Cost: 1
+        }
+    }
+
+}
+```
+
+In this example we see both components:
+
+- Static costs per field (animals: 2, id: 0, name: 1, relatedAnimals: 2, id: 0, name: 1)
+- Variable costs: first: 5
+
+As in the worst case, all 5 entities are loaded from a DataBase, this needs to be taken into account when determining
+the max cost of the query.
+Example:
+
+- relatedAnimals cost at max: 5 * (Cost of Animal: 1) + (relatedAnimals price: 2) = 7
+- animals cost at max: 5 * (Cost of Animal: 1 + Max(relatedAnimals): 7) + (animals price: 2) = 42
+
+To represent such dynamic costs, you can pass a closure as a second parameter. The return of it will be used to multiply
+the cost of all children by.
+
+```php
+    ->cost(2, fn(array $args): int => $args['first'] ?? 15);
+```
+
+**Note:** Cost is used to determine the worst case cost of a query. If you want to collect the actual cost, use the
+ActualCostExtension. It hooks into resolvers and aggregates the cost of fields that were actually present in the query.
+
 ## Middleware
 
 A middleware is a function that is executed before and after the real resolve function is called. It follows an onion
-principle. You can define multiple middleware functions to prevent data leakage on a complete type or on specific
-fields.
+principle. Outer middlewares are called first and invoke the level deeper. You can define multiple middleware functions
+to prevent data leakage on a complete type or on specific fields.
 
-Middlewares can be defined for a type (applying to all fields) or to a fields.
+Middlewares can be defined for a type (applying to all fields) or to a fields. You need to call `$next(...)` to invoke
+the next layer.
+
+Middlewares allow you to manipulate data that is passed down to the actual field resolver and then the actual result of
+the resolver.
+For example, you can use a middleware to validate arguments before the actual resolve function is called.
 
 **Signature**
 
