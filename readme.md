@@ -303,7 +303,7 @@ it to work, each field needs to define a complexity function.
 We use the concept of cost, where each field defines its own cost statically and provide a helper to compute variable
 complexity based on arguments.
 
-```graphql
+```
 query {
     # Cost: 2
     animals(first: 5) {
@@ -315,7 +315,6 @@ query {
             name # Cost: 1
         }
     }
-
 }
 ```
 
