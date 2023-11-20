@@ -2,7 +2,6 @@
 
 namespace GraphQlTools\Helper\Registry;
 
-use Closure;
 use GraphQL\GraphQL;
 use GraphQL\Type\Definition\Directive;
 use GraphQL\Type\Definition\InputObjectType;
@@ -32,7 +31,7 @@ class SchemaRegistry
     private array $directives = [];
 
     /**
-     * @var array<string, array<string|ExtendType>>
+     * @var array<string, array<string, string|ExtendType>>
      */
     private array $typeFieldExtensions = [];
 

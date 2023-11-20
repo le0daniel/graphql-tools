@@ -221,21 +221,42 @@ class QueryType extends GraphQlType {
 
 ## Defining Fields and InputFields
 
-Some types (Object Type, Input Type and Interface) define fields in GraphQL. The field builders allow you to easily
-construct fields with all required and possible attributes, combined with their resolvers.
+In a code first approach, the field definition and the resolve function live in the same place. The field builders allow
+you to easily
+construct fields with all required and possible attributes, combined with their resolvers, all in code directly.
 
-Field and Input fields builder to define Fields (output) and InputFields for input (InputType fields or Arguments).
-This is required for the Framework to work correctly. It attaches ProxyResolver under the hood for extensions and
-Middlewares to work correctly.
+Field builders are immutable, and thus flexible to use and reuse.
+
+It attaches a ProxyResolver class to decorate your resolve function under the hood for extensions and Middlewares to
+work correctly.
+
+To declare types and reference other types, a Type Registry is given to each instance where fields are defined.
+This allows you to reference other types that exist in your schema. The type registry itself takes care of lazy loading
+and ensures that every only one instance of a type is created in a schema.
 
 Additionally, you can define Tags, which can be used to define visibility of fields in different schema variations.
-Types need to be referenced via the Type Registry. The sole job of the type registry is to create referenced types only
-once in the complete schema.
 This is automatically created for you when you create a schema from the schema registry.
 
 By default, the resolver is using the default resolve function from Webonyx (`Executor::getDefaultFieldResolver()`).
 
-Usage (For a type example):
+In its simplest form:
+
+```php
+use GraphQlTools\Definition\Field\Field;
+/** @var \GraphQlTools\Contract\TypeRegistry $registry */
+
+// In type Animal
+Field::withName('myField')->ofType($registry->nonNull($registry->id()));
+Field::withName('myOtherField')->ofType($registry->listOf($registry->type('Other')));
+
+// Results in GraphQL
+// type Animal {
+//   myField: String!
+//   myOtherField: [Other]
+// }
+```
+
+Broader Usage:
 
 ```php
 
@@ -246,16 +267,12 @@ Usage (For a type example):
     
     
     final class AnimalType extends GraphQlType {
-        
-        protected function description() : string{
-            return 'Provide the description of your type.';
-        }
-        
+        // ...        
         protected function fields(TypeRegistry $registry) : array {
             
             return [
                 // Uses the default resolver
-                Field::withName('id') ->ofType($registry->id()),
+                Field::withName('id')->ofType($registry->id()),
                 
                 // Define custom types using the repository
                 Field::withName('customType')
@@ -290,6 +307,38 @@ Usage (For a type example):
             ];
         }
     }
+```
+
+### Reuse Fields
+
+Creating reusable fields are easy. Create a function or method that returns a field, then it can be used everywhere.
+
+```php
+use GraphQlTools\Definition\Field\Field;
+use GraphQlTools\Contract\TypeRegistry;
+use GraphQlTools\Definition\GraphQlType;
+
+class ReusableFields {
+    public static function id(TypeRegistry $registry): Field {
+        return Field::withName('id')
+            ->ofType($registry->nonNull($registry->id()))
+            ->withDescription('Globally unique identifier.')
+            ->resolvedBy(fn(Identifiable $data): string => $data->globallyUniqueId());
+    }
+}
+
+// Usage in type:
+class MyType extends GraphQlType {
+    protected function fields(TypeRegistry $registry) : array {
+        return [
+            ReusableFields::id($registry)->withDescription('Overwritten description...'),
+            
+            // Other Fields
+            Field::withName('other')->ofType($registry->string()),
+        ];
+    }
+}
+
 ```
 
 ### Cost
@@ -334,7 +383,7 @@ To represent such dynamic costs, you can pass a closure as a second parameter. T
 the cost of all children by.
 
 ```php
-    ->cost(2, fn(array $args): int => $args['first'] ?? 15);
+$field->cost(2, fn(array $args): int => $args['first'] ?? 15);
 ```
 
 **Note:** Cost is used to determine the worst case cost of a query. If you want to collect the actual cost, use the
@@ -421,6 +470,11 @@ $schemaRegistry->extend(
 
 Our approach allows to use classes, similar to types, that define type extensions.
 
+ClassName naming patterns for lazy registration to work correctly: `Extends[TypeOrInterfaceName](Type|Interface)`
+Examples: 
+- ExtendsQueryType => Extends the type with the name Query
+- ExtendsUserInterface => Extends the interface with the name User
+
 ```php
 use GraphQlTools\Definition\Extending\ExtendGraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
@@ -450,7 +504,7 @@ class ExtendsAnimalType extends ExtendGraphQlType {
 $schemaRegistry = new SchemaRegistry();
 
 $schemaRegistry->extend(ExtendsAnimalType::class);
-// Or with manually given type to extend name
+// If the class does not follow the naming patterns, you need to use the extended type name
 $schemaRegistry->extend(ExtendsAnimalType::class, 'Animal');
 // OR
 $schemaRegistry->extend(new ExtendsAnimalType());
@@ -565,12 +619,17 @@ you access to the actual data resolved for a field. In case of a failure, a thro
 
 ```php
 use GraphQlTools\Helper\Extension\Extension;
+use GraphQlTools\Utility\Time;
+use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
 
 class MyCustomExtension extends Extension {
     //...
-    public function visitField(\GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent $event) : ?Closure{
+    public function visitField(VisitFieldEvent $event) : ?Closure{
         Log::debug('Will resolve field', ['name' => $event->info->fieldName, 'typeData' => $event->typeData, 'args' => $event->arguments]);
-        return fn($resolvedValue) => Log::debug('did resolve field value to', ['value' => $resolvedValue]); 
+        return fn($resolvedValue) => Log::debug('did resolve field value to', [
+            'value' => $resolvedValue, 
+            'durationNs' => Time::durationNs($event->eventTimeInNanoSeconds),
+        ]); 
     }
 }
 ```

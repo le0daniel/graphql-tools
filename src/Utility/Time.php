@@ -17,6 +17,10 @@ final class Time
         return hrtime(true);
     }
 
+    public static function durationNs(int $startTimeNs): int {
+        return self::nanoSeconds() - $startTimeNs;
+    }
+
     public static function nanoSecondsToSeconds(int $nanoSeconds, int $precision = self::DEFAULT_PRECISION): float
     {
         return round($nanoSeconds / (1000 * 1000 * 1000), $precision);
