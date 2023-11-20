@@ -12,6 +12,7 @@ use SplFileInfo;
 final class Directories
 {
     /**
+     * @internal
      * @param string $directory
      * @param string $regex
      * @return Generator<SplFileInfo>

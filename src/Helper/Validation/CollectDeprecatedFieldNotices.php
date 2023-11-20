@@ -7,6 +7,7 @@ use GraphQL\Language\AST\ArgumentNode;
 use GraphQL\Language\AST\EnumValueNode;
 use GraphQL\Language\AST\FieldNode;
 use GraphQL\Language\AST\NodeKind;
+use GraphQL\Type\Definition\Argument;
 use GraphQL\Type\Definition\EnumType;
 use GraphQL\Type\Definition\EnumValueDefinition;
 use GraphQL\Type\Definition\FieldDefinition;
@@ -76,6 +77,7 @@ class CollectDeprecatedFieldNotices extends ValidationRule implements ProvidesRe
                 }
             },
             NodeKind::ARGUMENT => function (ArgumentNode $node) use ($context) {
+                /** @var Argument|null $argument */
                 $argument = $context->getArgument();
                 if (!$argument) {
                     return;
@@ -97,7 +99,6 @@ class CollectDeprecatedFieldNotices extends ValidationRule implements ProvidesRe
                     $argument->config['removalDate'] ?? null
                 );
             },
-
         ];
     }
 

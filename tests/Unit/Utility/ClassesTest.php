@@ -13,14 +13,4 @@ class ClassesTest extends TestCase
         self::assertEquals(self::class, Classes::getDeclaredClassInFile(__FILE__));
     }
 
-    public function testClassNameAsArray()
-    {
-        self::assertEquals([
-            'GraphQlTools', 'Test', 'Unit', 'Utility', 'ClassesTest'
-        ], Classes::classNameAsArray(self::class));
-
-        self::assertEquals([
-            'GraphQlTools', 'Test', 'Unit', 'Utility', 'ClassesTest'
-        ], Classes::classNameAsArray('\\'.self::class));
-    }
 }

@@ -52,6 +52,7 @@ final class QueryType extends GraphQlType
                     InputField::withName('name')
                         ->tags('private')
                         ->ofType($registry->string())
+                        ->deprecated('Some reasons')
                 )
                 ->deprecated('My reason')
                 ->withDescription('')

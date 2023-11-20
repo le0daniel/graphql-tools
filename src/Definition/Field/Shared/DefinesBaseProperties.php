@@ -33,12 +33,12 @@ trait DefinesBaseProperties
      * @param string ...$tags
      */
     public function tags(string ... $tags): self {
-        $this->tags = $tags;
+        $this->tags = array_unique($tags);
         return $this;
     }
 
     public function getTags(): array {
-        return array_unique($this->tags);
+        return $this->tags;
     }
 
     public function deprecated(string $reason, ?DateTimeInterface $removalDate = null): static

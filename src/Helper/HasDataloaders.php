@@ -69,4 +69,8 @@ trait HasDataloaders
         );
     }
 
+    public function clearDataLoaders(): void {
+        $this->dataLoaderInstances = [];
+    }
+
 }

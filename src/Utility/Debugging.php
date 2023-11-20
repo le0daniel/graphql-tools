@@ -4,7 +4,11 @@ namespace GraphQlTools\Utility;
 
 final class Debugging
 {
-
+    /**
+     * @internal
+     * @param mixed $data
+     * @return string
+     */
     public static function typeOf(mixed $data): string
     {
         $type = gettype($data);

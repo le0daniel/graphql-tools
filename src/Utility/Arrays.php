@@ -11,6 +11,7 @@ use RuntimeException;
 final class Arrays
 {
     /**
+     * @internal
      * @template K of string|int
      * @template V
      * @param iterable<mixed, mixed> $array
@@ -27,6 +28,13 @@ final class Arrays
         return $items;
     }
 
+    /**
+     * @internal
+     * @param array $array
+     * @param array $arrayToMerge
+     * @param bool $throwOnKeyConflict
+     * @return array
+     */
     public static function mergeKeyValues(array $array, array $arrayToMerge, bool $throwOnKeyConflict = false): array
     {
         foreach ($arrayToMerge as $key => $value) {
@@ -38,11 +46,21 @@ final class Arrays
         return $array;
     }
 
+    /**
+     * @internal
+     * @param mixed $value
+     * @return bool
+     */
     private static function isArrayAccessible(mixed $value): bool
     {
         return is_array($value) || $value instanceof \ArrayAccess;
     }
 
+    /**
+     * @internal
+     * @param $array
+     * @return array
+     */
     public static function nonRecursiveFlatten(&$array): array
     {
         $flattened = [];
@@ -55,6 +73,13 @@ final class Arrays
         return $flattened;
     }
 
+    /**
+     * @internal
+     * @param mixed $array
+     * @param string $key
+     * @param mixed|null $defaultValue
+     * @return mixed
+     */
     private static function getValueByDotNotation(mixed $array, string $key, mixed $defaultValue = null): mixed
     {
         $keyParts = explode('.', $key);
@@ -70,6 +95,12 @@ final class Arrays
         return $value ?? $defaultValue;
     }
 
+    /**
+     * @internal
+     * @param array $array
+     * @param string $columnKey
+     * @return array
+     */
     public static function sortByColumn(array $array, string $columnKey): array
     {
         $columnsToSortBy = [];
@@ -83,6 +114,11 @@ final class Arrays
         return array_values($array);
     }
 
+    /**
+     * @internal
+     * @param array $array
+     * @return mixed
+     */
     public static function last(array &$array): mixed
     {
         return $array[count($array) - 1];

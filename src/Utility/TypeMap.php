@@ -11,6 +11,7 @@ use ReflectionException;
 class TypeMap
 {
     /**
+     * @api
      * @param string $directory
      * @return array{0:array<string, string>, 1:array<string,array<string>>}
      * @throws DefinitionException
@@ -57,6 +58,7 @@ class TypeMap
     }
 
     /**
+     * @api
      * @throws ReflectionException|DefinitionException
      */
     final public static function createTypeMapFromDirectories(string ... $directories): array {

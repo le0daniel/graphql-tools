@@ -7,6 +7,9 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\GraphQlContext;
 use Throwable;
 
+/**
+ * @internal
+ */
 final readonly class Middleware
 {
     private array $pipes;

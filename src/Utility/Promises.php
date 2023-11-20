@@ -8,6 +8,11 @@ final class Promises
 {
     private static string $promiseClassName = SyncPromise::class;
 
+    /**
+     * @api
+     * @param string $className
+     * @return void
+     */
     public static function setPromiseAdapterClass(string $className): void {
         self::$promiseClassName = $className;
     }

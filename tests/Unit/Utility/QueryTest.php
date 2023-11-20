@@ -97,32 +97,4 @@ class QueryTest extends TestCase
             ]
         ];
     }
-
-    /** @dataProvider getQueryNameDataProvider */
-    public function testGetQueryName(?string $expectedName, string $query): void {
-        self::assertEquals($expectedName, Query::getQueryName($query));
-    }
-
-    public function getQueryNameDataProvider(): array {
-        return [
-            'query without name' => [
-                null, 'query { currentName { id } }'
-            ],
-            'mutation without name' => [
-                null, 'mutation { currentName { id } }'
-            ],
-            'query with name' => [
-                'MyName', 'query MyName{ currentUser {id} }'
-            ],
-            'query with name and variables' => [
-                'MyName', 'query MyName($input: CurrentUserInput!){ currentUser {id} }'
-            ],
-            'mutation with name' => [
-                'MyName', 'mutation MyName{ currentUser {id} }'
-            ],
-            'mutation with name and variables' => [
-                'MyName', 'mutation MyName($input: CurrentUserInput!){ currentUser {id} }'
-            ],
-        ];
-    }
 }

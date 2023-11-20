@@ -12,6 +12,7 @@ final class ValidationRules
 {
 
     /**
+     * @internal
      * @param array<ValidationRule|callable-string<ValidationRule>|Closure(): ValidationRule> $rules
      * @return array<string, ValidationRule>
      * @throws DefinitionException

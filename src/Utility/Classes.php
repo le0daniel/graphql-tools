@@ -9,6 +9,7 @@ use RuntimeException;
 final class Classes
 {
     /**
+     * @internal
      * @param string $file
      * @return class-string|null
      */
@@ -58,14 +59,4 @@ final class Classes
 
         return $classes[0] ?? null;
     }
-
-    /**
-     * @param string $fullyQualifiedClassName
-     * @return array<string>
-     */
-    public static function classNameAsArray(string $fullyQualifiedClassName): array
-    {
-        return array_values(array_filter(explode('\\', $fullyQualifiedClassName)));
-    }
-
 }

@@ -27,6 +27,7 @@ use GraphQL\Language\AST\StringValueNode;
 use GraphQL\Language\Parser;
 use GraphQL\Language\Printer;
 use GraphQL\Language\Visitor;
+use JsonException;
 use Traversable;
 
 final class Query
@@ -47,7 +48,7 @@ final class Query
      * @param string $query
      * @param array<callable> $pipeline
      * @return string
-     * @throws SyntaxError
+     * @throws SyntaxError|JsonException
      */
     public static function createSignatureString(string $query, array $pipeline = self::DEFAULT_PIPELINE): string
     {
@@ -58,13 +59,6 @@ final class Query
         );
 
         return self::printWithReducedWhitespace($ast);
-    }
-
-    public static function getQueryName(string $query): ?string {
-        $document = Parser::parse($query);
-        /** @var DefinitionNode $operationNode */
-        $definition = $document->definitions[0];
-        return $definition->name?->value ?? null;
     }
 
     public static function isIntrospection(string $query): bool {
