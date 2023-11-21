@@ -128,7 +128,9 @@ class QueryExecutor
         }
 
         $mappedThrowable = ($this->errorMapper)($error->getPrevious());
-        return new GraphQlError(
+        return $mappedThrowable === $error->getPrevious()
+            ? $error
+            : new GraphQlError(
             $mappedThrowable->getMessage(),
             $error->nodes,
             $error->getSource(),

@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\Test\Unit\Utility;
 
+use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Utility\Debugging;
 use PHPUnit\Framework\TestCase;
 
@@ -17,5 +18,7 @@ class DebuggingTest extends TestCase
         self::assertEquals("array (2)", Debugging::typeOf([1, 2]));
         self::assertEquals("string (GraphQlTools\Utility\Debugging)", Debugging::typeOf(Debugging::class));
         self::assertEquals("object (GraphQlTools\Utility\Debugging)", Debugging::typeOf(new Debugging()));
+        self::assertEquals('closure', Debugging::typeOf(fn() => 'string'));
+        self::assertEquals('throwable (GraphQlTools\Definition\DefinitionException)', Debugging::typeOf(new DefinitionException));
     }
 }

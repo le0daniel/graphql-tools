@@ -25,6 +25,10 @@ class SchemaRegistry
      * @var array<string,DefinesGraphQlType|string>
      */
     private array $types = [];
+
+    /**
+     * @var array<string>
+     */
     private array $eagerlyLoadedTypes = [];
 
     /** @var array<GraphQlDirective> */
@@ -142,6 +146,14 @@ class SchemaRegistry
         return $aliases;
     }
 
+    protected function createEagerlyLoadedTypes(array &$aliases): array {
+        $eagerlyLoadedTypes = [];
+        foreach ($this->eagerlyLoadedTypes as $typeNameOrAlias) {
+            $eagerlyLoadedTypes[] = $aliases[$typeNameOrAlias] ?? $typeNameOrAlias;
+        }
+        return array_unique($eagerlyLoadedTypes);
+    }
+
     public function createSchemaConfig(
         ?string      $queryTypeName = null,
         ?string      $mutationTypeName = null,
@@ -151,7 +163,7 @@ class SchemaRegistry
     {
         $schemaRules ??= new AllVisibleSchemaRule();
         $aliases = $this->createAliases();
-        $eagerlyLoadedTypes = $this->eagerlyLoadedTypes;
+        $eagerlyLoadedTypes = $this->createEagerlyLoadedTypes($aliases);
         $registry = new FactoryTypeRegistry(
             $this->types,
             $aliases,

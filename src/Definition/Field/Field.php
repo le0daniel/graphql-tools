@@ -6,32 +6,44 @@ use Closure;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Definition\DefinitionException;
-use GraphQlTools\Definition\Field\Shared\DefinesBaseProperties;
 use GraphQlTools\Helper\Resolver\MiddlewareResolver;
 use GraphQlTools\Helper\Resolver\ProxyResolver;
 
 
-final class Field
+final class Field extends BaseProperties
 {
-    use DefinesBaseProperties;
-
     /** @var InputField[] */
-    private readonly array $inputFields;
-
+    private array $arguments = [];
     private null|Closure $resolveFunction = null;
     private array $middlewares = [];
-    private null|Closure $costFunction = null;
     private int $cost = 0;
-
+    private null|Closure $costFunction = null;
     private Closure|bool $visible = true;
 
-    protected function __construct(public readonly string $name)
+    public function visible(bool|Closure $closure): self
     {
+        $clone = clone $this;
+        $clone->visible = $closure;
+        return $clone;
     }
 
-    public static function withName(string $name): static
+    public function resolvedBy(Closure $closure): self
     {
-        return new self($name);
+        $clone = clone $this;
+        $clone->resolveFunction = $closure;
+        return $clone;
+    }
+
+    public function arguments(InputField ...$arguments): self
+    {
+        return $this->withArguments(...$arguments);
+    }
+
+    public function withArguments(InputField ...$arguments): self
+    {
+        $clone = clone $this;
+        $clone->arguments = $arguments;
+        return $clone;
     }
 
     /**
@@ -52,7 +64,8 @@ final class Field
      * @param Closure ...$middleware
      * @return $this
      */
-    public function appendMiddleware(Closure ... $middleware): self {
+    public function appendMiddleware(Closure...$middleware): self
+    {
         $clone = clone $this;
         $clone->middlewares = [...$this->middlewares, ...$middleware];
         return $this;
@@ -62,9 +75,8 @@ final class Field
      * Prepend middlewares to the stack of middlewares.
      * @param array<Closure> $middleware
      * @return $this
-     * @internal
      */
-    public function prependMiddleware(Closure ...$middleware): self
+    public function prependMiddleware(Closure...$middleware): self
     {
         $clone = clone $this;
         array_unshift($clone->middlewares, ...$middleware);
@@ -73,7 +85,7 @@ final class Field
 
     /**
      * The price is what you say a field does cost. You can add a variable component to it
-     * by passing a second parameter (closure), which can determine a factor to multiply the
+     * passing a second parameter (closure), which can determine a factor to multiply the
      * child complexity. This allows you to determine the MAX cost of a query ahead of time.
      *
      * Example:
@@ -114,13 +126,13 @@ final class Field
     }
 
     /**
-     * @internal
-     * @param SchemaRules|null $schemaRules
+     * @param SchemaRules $schemaRules
      * @return FieldDefinition
      * @throws DefinitionException
      * @internal
+     * @internal
      */
-    public function toDefinition(?SchemaRules $schemaRules): FieldDefinition
+    public function toDefinition(SchemaRules $schemaRules): FieldDefinition
     {
         $resolveFn = empty($this->middlewares)
             ? new ProxyResolver($this->resolveFunction ?? null)
@@ -142,41 +154,14 @@ final class Field
         ]);
     }
 
-    public function visible(bool|Closure $closure): self
+    /**
+     * @throws DefinitionException
+     */
+    private function initArguments(SchemaRules $schemaRules): ?array
     {
-        $clone = clone $this;
-        $clone->visible = $closure;
-        return $clone;
-    }
-
-    public function getName(): string
-    {
-        return $this->name;
-    }
-
-    public function resolvedBy(Closure $closure): self
-    {
-        $clone = clone $this;
-        $clone->resolveFunction = $closure;
-        return $clone;
-    }
-
-    final public function withArguments(InputField ...$arguments): self
-    {
-        $clone = clone $this;
-        $clone->inputFields = $arguments;
-        return $clone;
-    }
-
-    final protected function initArguments(?SchemaRules $schemaRules): ?array
-    {
-        if (!isset($this->inputFields)) {
-            return null;
-        }
-
         $inputFields = [];
-        foreach ($this->inputFields as $definition) {
-            if (!$schemaRules || $schemaRules->isVisible($definition)) {
+        foreach ($this->arguments as $definition) {
+            if ($schemaRules->isVisible($definition)) {
                 $inputFields[] = $definition->toDefinition();
             }
         }

@@ -28,7 +28,7 @@ final readonly class Middleware
      */
     public static function create(array $pipes): static
     {
-        return new static(...$pipes);
+        return new Middleware(...$pipes);
     }
 
     /**

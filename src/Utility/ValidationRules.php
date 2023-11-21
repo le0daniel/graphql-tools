@@ -26,7 +26,7 @@ final class ValidationRules
                 $ruleOrFactory instanceof ValidationRule => $ruleOrFactory,
                 is_string($ruleOrFactory) => new $ruleOrFactory,
                 $ruleOrFactory instanceof Closure => $ruleOrFactory($context),
-                default => throw new DefinitionException("Expected class-string|Closure|ValidationRule, got: " . gettype($ruleOrFactory)),
+                default => throw new DefinitionException("Expected class-string|Closure|ValidationRule, got: " . Debugging::typeOf($ruleOrFactory)),
             };
 
             if ($rule) {

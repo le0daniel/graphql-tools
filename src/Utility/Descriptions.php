@@ -15,8 +15,8 @@ final class Descriptions
      */
     public static function pretendDeprecationWarning(string $description, string $reason, ?DateTimeInterface $removalDate = null): string {
         return $removalDate
-            ? "**Deprecated**: {$reason} | Removal Date: {$removalDate->format('Y-m-d')}. {$description}"
-            : "**Deprecated**: {$reason}. No removal date specified. {$description}";
+            ? trim("**Deprecated**: {$reason} | Removal Date: {$removalDate->format('Y-m-d')}. {$description}")
+            : trim("**Deprecated**: {$reason}. No removal date specified. {$description}");
     }
 
     /**

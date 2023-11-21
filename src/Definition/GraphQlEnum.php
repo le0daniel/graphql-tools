@@ -5,25 +5,20 @@ declare(strict_types=1);
 namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\EnumType;
-use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\EnumValue;
-use GraphQlTools\Definition\Shared\HasDeprecation;
-use GraphQlTools\Definition\Shared\HasDescription;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Types;
 use UnitEnum;
 
-abstract class GraphQlEnum implements DefinesGraphQlType
+abstract class GraphQlEnum extends TypeDefinition
 {
-    use HasDescription, HasDeprecation;
-
     public function toDefinition(TypeRegistry $registry, SchemaRules $schemaRules): EnumType
     {
         return new EnumType([
             'name' => $this->getName(),
-            'description' => $this->addDeprecationToDescription($this->description()),
+            'description' => $this->computeDescription(),
             'values' => fn() => $this->initValues($schemaRules),
             'deprecationReason' => $this->deprecationReason(),
             'removalDate' => $this->removalDate(),

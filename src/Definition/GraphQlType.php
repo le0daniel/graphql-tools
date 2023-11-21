@@ -6,32 +6,20 @@ namespace GraphQlTools\Definition;
 
 use Closure;
 use GraphQL\Type\Definition\ObjectType;
-use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Data\ValueObjects\GraphQlTypes;
 use GraphQlTools\Definition\Field\Field;
-use GraphQlTools\Definition\Shared\HasDeprecation;
-use GraphQlTools\Definition\Shared\HasDescription;
-use GraphQlTools\Definition\Shared\InitializesFields;
-use GraphQlTools\Definition\Shared\MergesFields;
+use GraphQlTools\Definition\Shared\HasFields;
 use GraphQlTools\Utility\Types;
 
-abstract class GraphQlType implements DefinesGraphQlType
+abstract class GraphQlType extends TypeDefinition
 {
-    use HasDescription, HasDeprecation, InitializesFields, MergesFields;
+    use HasFields;
 
     protected function middleware(): array|null {
         return null;
     }
-
-    /**
-     * Return an array of fields of that specific type. The fields
-     * are then initialized correctly and a proxy attached to them.
-     *
-     * @return Field[]
-     */
-    abstract protected function fields(TypeRegistry $registry): array;
 
     /**
      * Overwrite if you want to define custom name patterns
@@ -67,7 +55,7 @@ abstract class GraphQlType implements DefinesGraphQlType
         return new ObjectType(
             [
                 'name' => $this->getName(),
-                'description' => $this->addDeprecationToDescription($this->description()),
+                'description' => $this->computeDescription(),
                 'deprecationReason' => $this->deprecationReason(),
                 'removalDate' => $this->removalDate(),
                 'fields' => fn() => $this->initializeFields(

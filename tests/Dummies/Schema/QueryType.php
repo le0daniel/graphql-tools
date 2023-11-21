@@ -20,6 +20,11 @@ use GraphQlTools\Utility\Middleware\Federation;
 final class QueryType extends GraphQlType
 {
 
+    protected function lazyFields(): bool
+    {
+        return false;
+    }
+
     public const WHOAMI_DATA = 'Test';
     public const USER_ID = 'MQ==';
     public const ANIMALS = [

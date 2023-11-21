@@ -1,18 +1,24 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Definition\Shared;
+namespace GraphQlTools\Definition;
 
-use DateTimeInterface;
+use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Utility\Descriptions;
 
-trait HasDeprecation
+abstract class TypeDefinition implements DefinesGraphQlType
 {
+    /**
+     * Description of the type
+     * @return string
+     */
+    abstract protected function description(): string;
+
     protected function deprecationReason(): ?string
     {
         return null;
     }
 
-    protected function removalDate(): ?DateTimeInterface
+    protected function removalDate(): ?\DateTimeInterface
     {
         return null;
     }
@@ -22,14 +28,15 @@ trait HasDeprecation
         return !!$this->deprecationReason();
     }
 
-    protected function addDeprecationToDescription(string $baseDescription): string
+    protected function computeDescription(): string
     {
         return $this->isDeprecated()
             ? Descriptions::pretendDeprecationWarning(
-                $baseDescription,
+                $this->description(),
                 $this->deprecationReason(),
                 $this->removalDate()
             )
-            : $baseDescription;
+            : $this->description();
     }
+
 }

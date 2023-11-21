@@ -2,27 +2,12 @@
 
 namespace GraphQlTools\Definition\Field;
 
-use GraphQlTools\Definition\Field\Shared\DefinesBaseProperties;
 
-final class InputField
+use GraphQlTools\Definition\DefinitionException;
+
+final class InputField extends BaseProperties
 {
-    use DefinesBaseProperties;
-
     protected mixed $defaultValue = null;
-
-    final public function __construct(public readonly string $name)
-    {
-    }
-
-    final public static function withName(string $name): self
-    {
-        return new self($name);
-    }
-
-    public function getName(): string
-    {
-        return $this->name;
-    }
 
     final public function withDefaultValue(mixed $defaultValue): self
     {
@@ -32,14 +17,17 @@ final class InputField
     }
 
     /**
-     * @internal This is used internally to get the state of the builder. Do not use this.
      * @return array
+     * @throws DefinitionException
+     * @internal This is used internally to get the state of the builder. Do not use this.
      */
     final public function toDefinition(): array
     {
         $defaultValue = isset($this->defaultValue)
             ? ['defaultValue' => $this->defaultValue]
             : [];
+
+        $this->verifyTypeIsSet();
 
         return [
             'name' => $this->name,

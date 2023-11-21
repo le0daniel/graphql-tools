@@ -6,27 +6,24 @@ namespace GraphQlTools\Definition;
 
 use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\ResolveInfo;
-use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
-use GraphQlTools\Definition\Shared\HasDeprecation;
-use GraphQlTools\Definition\Shared\HasDescription;
-use GraphQlTools\Definition\Shared\InitializesFields;
-use GraphQlTools\Definition\Shared\MergesFields;
+use GraphQlTools\Definition\Shared\HasFields;
 use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Utility\Types;
 
-abstract class GraphQlInterface implements DefinesGraphQlType
+abstract class GraphQlInterface extends TypeDefinition
 {
-    use InitializesFields, HasDescription, HasDeprecation, MergesFields;
-    abstract protected function fields(TypeRegistry $registry): array;
+    use HasFields;
+
+    abstract public function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string;
 
     public function toDefinition(TypeRegistry $registry, SchemaRules $schemaRules): InterfaceType
     {
         return new InterfaceType([
             'name' => $this->getName(),
-            'description' => $this->addDeprecationToDescription($this->description()),
+            'description' => $this->computeDescription(),
             'deprecationReason' => $this->deprecationReason(),
             'removalDate' => $this->removalDate(),
             'fields' => fn() => $this->initializeFields(
@@ -44,6 +41,4 @@ abstract class GraphQlInterface implements DefinesGraphQlType
     {
         return Types::inferNameFromClassName(static::class);
     }
-
-    abstract public function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string;
 }

@@ -42,7 +42,7 @@ type Lion implements Mamel {
   sound: String!
 
   """
-  **Deprecated**: Some reason | Removal Date: 2023-01-09. 
+  **Deprecated**: Some reason | Removal Date: 2023-01-09.
   
   Tags: First, Second
   """
@@ -66,7 +66,7 @@ type ProtectedUser {
 
 "My description"
 input MamelsQueryInput {
-  "**Deprecated**: my reason. No removal date specified. "
+  "**Deprecated**: my reason. No removal date specified."
   name: String!
 }
 
