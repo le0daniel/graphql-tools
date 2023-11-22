@@ -14,19 +14,12 @@ use GraphQlTools\Helper\Middleware;
  */
 final class MiddlewareResolver extends ProxyResolver
 {
-    private readonly Closure $resolver;
-
     public function __construct(private readonly ?Closure $middle, private readonly array $pipes)
     {
         parent::__construct();
     }
 
-    private function getResolveFunction(): Closure {
-        return $this->resolver ??= Middleware::create($this->pipes)->then($this->middle ?? Executor::getDefaultFieldResolver()(...));
-    }
-
-    public function resolveToValue(mixed $typeData, array $arguments, GraphQlContext $context, ResolveInfo $info): mixed
-    {
-        return $this->getResolveFunction()($typeData, $arguments, $context, $info);
+    protected function getResolveFunction(): Closure {
+        return Middleware::create($this->pipes)->then($this->middle ?? Executor::getDefaultFieldResolver()(...));
     }
 }

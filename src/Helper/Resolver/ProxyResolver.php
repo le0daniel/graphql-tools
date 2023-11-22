@@ -21,7 +21,9 @@ use Throwable;
  */
 class ProxyResolver
 {
-    public function __construct(private readonly ?Closure $resolveFunction = null)
+    private readonly Closure $resolver;
+
+    public function __construct(private ?Closure $resolveFunction = null)
     {
     }
 
@@ -38,9 +40,19 @@ class ProxyResolver
      */
     public function resolveToValue(mixed $typeData, array $arguments, GraphQlContext $context, ResolveInfo $info): mixed
     {
-        return $this->resolveFunction
-            ? ($this->resolveFunction)($typeData, $arguments, $context, $info)
-            : Executor::getDefaultFieldResolver()($typeData, $arguments, $context, $info);
+        return ($this->resolveFunction ??= $this->getResolveFunction())($typeData, $arguments, $context, $info);
+    }
+
+    protected function getResolveFunction(): Closure {
+        return Executor::getDefaultFieldResolver();
+    }
+
+    /**
+     * @param ResolveInfo $info
+     * @return Closure(mixed, array, GraphQlContext, ResolveInfo): mixed|SyncPromise
+     */
+    private function decoratedResolveFunction(ResolveInfo $info): Closure {
+        // $info->fragments[0]->
     }
 
     /**
