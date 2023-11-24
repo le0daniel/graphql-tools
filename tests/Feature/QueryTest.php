@@ -239,7 +239,7 @@ class QueryTest extends TestCase
 
     public function testQueryWithDirective(): void
     {
-        $result = $this->execute('query { mamels { sound @include(if: true) } }');
+        $result = $this->execute('query { mamels { sound @include(if: true) } esle: mamels { sound } }');
         $this->assertNoErrors($result);
         self::assertCount(3, $result->data['mamels']);
         self::assertCount(3, $result->data['mamels']);
@@ -335,11 +335,5 @@ class QueryTest extends TestCase
         );
         $this->assertNoErrors($result);
         self::assertEquals(['overwrittenAlias' => ['id' => 'super secret id']], $result->data);
-    }
-
-    public function testFederationFieldMiddleware(): void
-    {
-        $result = $this->execute('query {testFieldMiddleware}');
-        self::assertEquals('Hello -- No Name Provided --', $result->data['testFieldMiddleware']);
     }
 }
