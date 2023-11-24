@@ -93,7 +93,7 @@ class QueryExecutor
 
         try {
             $source = Parser::parse($query);
-            $extensions->dispatch(ParsedEvent::create($query, $operationName));
+            $extensions->dispatch(ParsedEvent::create($query, $source, $operationName));
             $executionResult = GraphQL::executeQuery(
                 schema: $schema,
                 source: $source,
