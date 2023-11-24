@@ -5,6 +5,8 @@ namespace GraphQlTools\Test\Unit\Helper\Resolver;
 use Closure;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Helper\Context;
+use GraphQlTools\Helper\Extensions;
+use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Helper\Resolver\MiddlewareResolver;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -25,7 +27,9 @@ class MiddlewareResolverTest extends TestCase
             }
         ]);
 
-        $value = $resolver->resolveToValue(null, [], new Context(), $info);
+        $operationContext = new OperationContext(new Context(), new Extensions());
+
+        $value = $resolver(null, [], $operationContext, $info);
         self::assertEquals(123, $value);
     }
 
@@ -39,7 +43,9 @@ class MiddlewareResolverTest extends TestCase
             }
         ]);
 
-        $value = $resolver->resolveToValue(null, [], new Context(), $info);
+        $operationContext = new OperationContext(new Context(), new Extensions());
+
+        $value = $resolver(null, [], $operationContext, $info);
         self::assertEquals(1234, $value);
     }
 }

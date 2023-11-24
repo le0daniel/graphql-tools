@@ -12,8 +12,8 @@ use GraphQlTools\Contract\GraphQlContext;
 final readonly class OperationContext
 {
     public function __construct(
-        public GraphQlContext   $context,
-        public Extensions $extensions
+        public GraphQlContext $context,
+        public Extensions     $extensions
     )
     {
     }

@@ -3,6 +3,7 @@
 namespace GraphQlTools\Utility\Middleware;
 
 use ArrayAccess;
+use ArrayObject;
 use Closure;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Helper\Resolver\ProxyResolver;
@@ -43,11 +44,26 @@ final class Federation
 
     public static function field(string $name): Closure {
         return static function(mixed $data, $args, $context, ResolveInfo $info, Closure $next) use ($name) {
+            $field = $info->parentType->getField($name);
+
             /** @var ProxyResolver $resolveFunction */
-            $resolveFunction = $info->parentType->getField($name)->resolveFn;
+            $resolveFunction = $field->resolveFn;
+
+            $fieldResolveInfo = new ResolveInfo(
+                $info->parentType->getField($name),
+                new ArrayObject(),
+                $info->parentType,
+                [],
+                $info->schema,
+                [],
+                $info->rootValue,
+                $info->operation,
+                $info->variableValues
+            );
+
             return $next(
                 // This does not execute the extensions. It only executes middlewares and the resolve function.
-                $resolveFunction->resolveToValue($data, $args, $context, $info),
+                $resolveFunction->resolveToValue($data, $args, $context, $fieldResolveInfo),
                 $args,
                 $context,
                 $info
