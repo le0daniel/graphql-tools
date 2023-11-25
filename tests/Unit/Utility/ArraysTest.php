@@ -33,6 +33,27 @@ final class ArraysTest extends TestCase
         ];
     }
 
+    public function testMoveToPath(): void {
+        self::assertEquals(null, Arrays::moveToPath(null, ['id', 4, 'data']));
+        self::assertEquals('my-val', Arrays::moveToPath(['id' => 'my-val'], ['id']));
+        self::assertEquals(['type' => 'lion'], Arrays::moveToPath([
+            'data' => [
+                0 => [],
+                1 => [
+                    'animal' => ['type' => 'lion']
+                ]
+            ]
+        ], ['data', 1, 'animal']));
+        self::assertEquals(null, Arrays::moveToPath([
+            'data' => [
+                0 => [],
+                1 => [
+                    'animal' => ['type' => 'lion']
+                ]
+            ]
+        ], ['data', '12', 'animal']));
+    }
+
 
     public function testLast()
     {
