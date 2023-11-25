@@ -10,6 +10,18 @@ use RuntimeException;
 
 final class Arrays
 {
+    public static function moveToPath(?array $data, array $path): mixed {
+        foreach ($path as $part) {
+            if (!is_array($data) || !isset($data[$part])) {
+                return null;
+            }
+
+            $data = &$data[$part];
+        }
+
+        return $data;
+    }
+
     /**
      * @internal
      * @template K of string|int
