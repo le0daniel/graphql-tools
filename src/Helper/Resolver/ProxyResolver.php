@@ -68,8 +68,8 @@ class ProxyResolver
          * If the result has been cached previously, we get it from cache, skipping everything. This enables extensions to
          * collect data only once and not be run multiple times.
          */
-        if ($context->isInResult($info->path)) {
-            return $context->getFromResult($info->path);
+        if ($context->executor->isInResult($info->path)) {
+            return $context->executor->getFromResult($info->path);
         }
 
         // Ensure arguments are always an array, as the framework does not guarantee that
@@ -78,19 +78,25 @@ class ProxyResolver
         // We first verify if in a previous run this has been deferred
         // If this is the case, we mark it as hasBeenDeferred and take the type data
         // from the last run to ensure the resolver works as intended.
-        $hasBeenDeferred = $context->isDeferred($info->path);
+        $hasBeenDeferred = $context->executor->isDeferred($info->path);
         if ($hasBeenDeferred) {
-            $typeData = $context->popDeferred($info->path);
+            $typeData = $context->executor->popDeferred($info->path);
         }
 
         /** @var VisitFieldEvent $fieldResolution */
-        $fieldResolution = VisitFieldEvent::create($typeData, $arguments, $info, $hasBeenDeferred);
+        $fieldResolution = VisitFieldEvent::create(
+            $typeData,
+            $arguments,
+            $info,
+            $hasBeenDeferred,
+            !$hasBeenDeferred && $context->executor->canExecuteAgain()
+        );
         $context->willResolveField($fieldResolution);
 
         // As the field has been deferred, we return null. If multiple runs are enabled, this will
         // result in the field being run next time. This can only happen once.
-        if ($fieldResolution->shouldDefer() && $context->canDefer() && !$hasBeenDeferred) {
-            $context->deferField($info->path, $fieldResolution->getDeferLabel(), $typeData);
+        if ($fieldResolution->shouldDefer() && !$hasBeenDeferred) {
+            $context->executor->addDefer($info->path, $fieldResolution->getDeferLabel(), $typeData);
             return null;
         }
 

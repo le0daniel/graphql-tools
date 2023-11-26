@@ -111,14 +111,12 @@ class QueryExecutor
         int                 $maxRuns = self::DEFAULT_MAX_DEFERRED_RUNS,
     ): Generator
     {
+        $executor = new ExecutionManager($maxRuns);
         $validationRules = ValidationRules::initialize($context, $this->validationRules, $variables);
-        $operationContext = new OperationContext(
-            $context,
-            Extensions::createFromExtensionFactories($context, $this->extensionFactories),
-            $maxRuns
-        );
+        $extensions = Extensions::createFromExtensionFactories($context, $this->extensionFactories);
+        $operationContext = new OperationContext($context, $extensions, $executor);
 
-        $operationContext->extensions->dispatch(
+        $extensions->dispatch(
             StartEvent::create($query, $context, $operationName)
         );
 
@@ -126,7 +124,7 @@ class QueryExecutor
             $source = $query instanceof DocumentNode ? $query : Parser::parse($query);
         } catch (SyntaxError $exception) {
             $executionResult = new ExecutionResult(null, [$exception]);
-            $operationContext->extensions->dispatch(EndEvent::create($executionResult));
+            $extensions->dispatch(EndEvent::create($executionResult));
 
             // We return a result, as there is nothing more to do.
             yield new CompleteResult(
@@ -134,19 +132,19 @@ class QueryExecutor
                 $executionResult->errors,
                 $context,
                 $validationRules,
-                $operationContext->extensions,
+                $extensions,
             );
             return;
         }
 
-        $operationContext->extensions->dispatch(
+        $extensions->dispatch(
             ParsedEvent::create($source, $operationName)
         );
 
         do {
             // Reset the operation context deferred cache.
-            $operationContext->startRun();
-            $deferred = $operationContext->getAllDeferred();
+            $executor->start();
+            $deferred = $executor->getAllDeferred();
             $executionResult = GraphQL::executeQuery(
                 schema: $schema,
                 source: $source,
@@ -156,24 +154,24 @@ class QueryExecutor
                 operationName: $operationName,
                 fieldResolver: static fn() => throw new RuntimeException("A field was provided that did not include the proxy resolver. This might break extensions and produce unknown side-effects. Did you use the field builder everywhere?"),
                 // We only use the validation rules on the first run, afterward, we pass no validation rules.
-                validationRules: $operationContext->isFirstRun() ? $validationRules : [],
+                validationRules: $executor->getCurrentExecution() === 1 ? $validationRules : [],
             );
-            $operationContext->endRun();
+            $executor->stop();
 
             // On the last run, extensions should be collected. And dispatch the complete result.
             // All Extensions get the complete result with everything and unmapped/logged errors.
-            if (!$operationContext->shouldRunAgain()) {
-                $operationContext->extensions->dispatch(EndEvent::create($executionResult));
+            if (!$executor->hasDeferred()) {
+                $extensions->dispatch(EndEvent::create($executionResult));
             }
 
             // We set the result data, so that fields are not resolved twice.
             // If the data is present in the result and not deferred, we directly return the data.
-            $operationContext->setResultData($executionResult->data);
+            $executor->setResult($executionResult->data);
 
             // The initial result is different from consecutive results
             // If complete, the first part is a complete result, otherwise
             // it is only partial.
-            if ($operationContext->isFirstRun()) {
+            if ($executor->getCurrentExecution() === 1) {
                 yield $this->prepareFirstPart($executionResult, $operationContext, $validationRules);
                 continue;
             }
@@ -184,7 +182,7 @@ class QueryExecutor
                 $operationContext,
                 $validationRules
             );
-        } while ($operationContext->shouldRunAgain());
+        } while ($executor->hasDeferred() && $executor->canExecuteAgain());
     }
 
     private function batch(array $deferred, ExecutionResult $executionResult, OperationContext $operationContext, array $validationRules): PartialResult|PartialBatch
@@ -192,7 +190,7 @@ class QueryExecutor
         $batch = [];
 
         foreach ($deferred as $index => [$path, $label]) {
-            $hasNext = $operationContext->shouldRunAgain() || ($index + 1) !== count($deferred);
+            $hasNext = $operationContext->executor->hasDeferred() || ($index + 1) !== count($deferred);
             $batch[] = new PartialResult(
                 Arrays::getByPathArray($executionResult->data, $path),
                 $this->handleErrors(Errors::filterByPath($executionResult->errors, $path)),
@@ -207,7 +205,7 @@ class QueryExecutor
 
         return count($batch) === 1
             ? $batch[0]
-            : new PartialBatch($batch, $operationContext->context, $operationContext->shouldRunAgain());
+            : new PartialBatch($batch, $operationContext->context, $operationContext->executor->hasDeferred());
     }
 
     private function prepareFirstPart(
@@ -216,7 +214,7 @@ class QueryExecutor
         array            $validationRules,
     ): CompleteResult|PartialResult
     {
-        return $operationContext->shouldRunAgain()
+        return $operationContext->executor->hasDeferred()
             ? new PartialResult(
                 $executionResult->data,
                 $this->handleErrors($executionResult->errors),

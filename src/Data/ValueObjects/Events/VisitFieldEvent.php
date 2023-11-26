@@ -6,7 +6,7 @@ use Closure;
 use GraphQL\Type\Definition\ResolveInfo;
 
 /**
- * @method static create(mixed $typeData, array $arguments, ResolveInfo $resolveInfo, bool $hasBeenDeferred): static
+ * @method static create(mixed $typeData, array $arguments, ResolveInfo $resolveInfo, bool $hasBeenDeferred, bool $canDefer): static
  */
 final class VisitFieldEvent extends Event
 {
@@ -19,6 +19,7 @@ final class VisitFieldEvent extends Event
         public readonly array       $arguments,
         public readonly ResolveInfo $info,
         public readonly bool $hasBeenDeferred,
+        private readonly bool $canDefer,
     )
     {
     }
@@ -79,8 +80,10 @@ final class VisitFieldEvent extends Event
      * @return void
      */
     public function defer(?string $label = null): void {
-        $this->stopImmediatePropagation = true;
-        $this->shouldDefer = $label ?? true;
+        if ($this->canDefer) {
+            $this->stopImmediatePropagation = true;
+            $this->shouldDefer = $label ?? true;
+        }
     }
 
 }

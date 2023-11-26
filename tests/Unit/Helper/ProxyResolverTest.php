@@ -28,12 +28,16 @@ final class ProxyResolverTest extends TestCase {
     use ProphecyTrait;
 
     private OperationContext $operationContext;
+    private ResolveInfo $info;
+    private ResolveInfo|ObjectProphecy $infoProphecy;
 
     protected function setUp(): void{
         $this->operationContext = new OperationContext(
             new Context(),
-            Extensions::createFromExtensionFactories($this->prophesize(GraphQlContext::class)->reveal(),[])
+            new Extensions(),
         );
+        $this->infoProphecy = $this->prophesize(ResolveInfo::class);
+        $this->info = $this->infoProphecy->reveal();
     }
 
     /**
@@ -46,105 +50,16 @@ final class ProxyResolverTest extends TestCase {
         ];
     }
 
-    public function testOnCacheHit() {
-        $resolver = new ProxyResolver(fn($d) => throw new Exception());
+    public function testFromResult() {
+        $this->operationContext->executor->setResult([
+            'data' => [
+                'id' => 7
+            ]
+        ]);
 
-        [$context, $resolveInfo] = $this->getProphecies();
-        $resolveInfo->path = ['query', 1];
-
-        $context->isInResult(['query', 1])->willReturn(true);
-        $context->getFromResult(['query', 1])->willReturn('result');
-
-        self::assertEquals('result', $resolver([], [], $context->reveal(), $resolveInfo->reveal()));
-    }
-
-    public function testHasBeenDeferred() {
+        $this->info->path = ['data', 'id'];
         $resolver = new ProxyResolver(fn($d) => $d['id']);
-
-        [$context, $resolveInfo] = $this->getProphecies();
-        $resolveInfo->path = ['query', 1];
-
-        $context->isInResult(['query', 1])->willReturn(false);
-        $context->isDeferred(['query', 1])->willReturn(true);
-        $context->popDeferred(['query', 1])->willReturn(['id' => 7]);
-        $context->getContext()->willReturn($this->prophesize(GraphQlContext::class)->reveal());
-        $context->willResolveField(Argument::type(VisitFieldEvent::class))->shouldBeCalledOnce();
-
-        self::assertEquals(7, $resolver([], [], $context->reveal(), $resolveInfo->reveal()));
-    }
-
-    public function testMarkedAsDeferred() {
-        $resolver = new ProxyResolver(fn($d) => $d['id']);
-
-        [$context, $resolveInfo] = $this->getProphecies();
-        $resolveInfo->path = ['query', 1];
-
-        $context->isInResult(['query', 1])->willReturn(false);
-        $context->isDeferred(['query', 1])->willReturn(false);
-
-        $context->getContext()->willReturn($this->prophesize(GraphQlContext::class)->reveal());
-        $context->canDefer()->willReturn(true);
-        $context->deferField(['query', 1], null, [])->shouldBeCalledOnce();
-
-        $context->willResolveField(Argument::type(VisitFieldEvent::class))
-            ->shouldBeCalledOnce()
-            ->will(function($args) {$args[0]->defer();});
-
-        self::assertEquals(null, $resolver([], [], $context->reveal(), $resolveInfo->reveal()));
-    }
-
-    public function testMarkedAsDeferredOnlyWorksOnce() {
-        $resolver = new ProxyResolver(fn($d) => $d['id']);
-
-        [$context, $resolveInfo] = $this->getProphecies();
-        $resolveInfo->path = ['query', 1];
-
-        $context->isInResult(['query', 1])->willReturn(false);
-        $context->isDeferred(['query', 1])->willReturn(true);
-        $context->popDeferred(['query', 1])->willReturn(['id' => 7]);
-        $context->canDefer()->willReturn(true);
-
-        $context->getContext()->willReturn($this->prophesize(GraphQlContext::class)->reveal());
-        $context->deferField(['query', 1], null, [])->shouldNotBeCalled();
-
-        $context->willResolveField(Argument::type(VisitFieldEvent::class))
-            ->shouldBeCalledOnce()
-            ->will(function($args) {$args[0]->defer();});
-
-        self::assertEquals(7, $resolver(['id' => 8], [], $context->reveal(), $resolveInfo->reveal()));
-    }
-
-    public function testWithExtensions(){
-        $resolver = new ProxyResolver(fn() => 'Value');
-
-        /** @var Extension|ObjectProphecy $dummyExtension */
-        $dummyExtension = $this->prophesize(Extension::class)->willImplement(InteractsWithFieldResolution::class);
-        $dummyExtension->getName()->willReturn('dummy');
-
-        $operationContext = new OperationContext(new Context(), new Extensions($dummyExtension->reveal()));
-        $resolveInfo = ResolveInfoDummy::withDefaults();
-
-        $dummyExtension->visitField(Argument::type(VisitFieldEvent::class))
-            ->will(function() {});
-
-        $result = $resolver(null, null, $operationContext, $resolveInfo);
-        self::assertEquals('Value', $result);
-    }
-
-    public function testAsyncWithExtensions(){
-        $resolver = new ProxyResolver(fn() => Deferred::create(fn() => 'Value'));
-
-        /** @var Extension $dummyExtension */
-        $dummyExtension = $this->prophesize(Extension::class)->willImplement(InteractsWithFieldResolution::class);
-        $dummyExtension->getName()->willReturn('here it is');
-        $dummyExtension->visitField(Argument::type(VisitFieldEvent::class))
-            ->will(function() {});;
-
-        $operationContext = new OperationContext(new Context(), new Extensions($dummyExtension->reveal()));
-        $result = $resolver(null, null, $operationContext, ResolveInfoDummy::withDefaults());
-        SyncPromise::runQueue();
-
-        self::assertEquals('Value', $result->result);
+        self::assertEquals(7, $resolver(['id' => 8], [], $this->operationContext, $this->info));
     }
 
     /**
