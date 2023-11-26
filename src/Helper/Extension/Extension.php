@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Helper\Extension;
 
-use Closure;
 use GraphQlTools\Contract\ExecutionExtension;
+use GraphQlTools\Contract\Extension\ListensToLifecycleEvents;
 use GraphQlTools\Data\ValueObjects\Events\EndEvent;
 use GraphQlTools\Data\ValueObjects\Events\ParsedEvent;
 use GraphQlTools\Data\ValueObjects\Events\StartEvent;
-use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
 
-abstract class Extension implements ExecutionExtension
+abstract class Extension implements ExecutionExtension, ListensToLifecycleEvents
 {
     private const DEFAULT_PRIORITY = 100;
     protected string $name;
@@ -61,10 +60,5 @@ abstract class Extension implements ExecutionExtension
     public function end(EndEvent $event): void
     {
 
-    }
-
-    public function visitField(VisitFieldEvent $event): ?Closure
-    {
-        return null;
     }
 }

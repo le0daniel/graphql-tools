@@ -2,16 +2,17 @@
 
 namespace GraphQlTools\Data\ValueObjects\Events;
 
-use GraphQlTools\Data\ValueObjects\Events\Event;
+use GraphQL\Language\AST\DocumentNode;
 
 /**
- * @method static create(string $query, string|null $operationName)
+ * @method static create(string $query, DocumentNode $source, string|null $operationName)
  */
 final class ParsedEvent extends Event
 {
     public function __construct(
-        public readonly string      $query,
-        public readonly null|string $operationName,
+        public readonly string       $query,
+        public readonly DocumentNode $source,
+        public readonly null|string  $operationName,
     )
     {
     }
