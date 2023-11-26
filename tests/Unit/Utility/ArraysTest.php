@@ -34,9 +34,9 @@ final class ArraysTest extends TestCase
     }
 
     public function testMoveToPath(): void {
-        self::assertEquals(null, Arrays::moveToPath(null, ['id', 4, 'data']));
-        self::assertEquals('my-val', Arrays::moveToPath(['id' => 'my-val'], ['id']));
-        self::assertEquals(['type' => 'lion'], Arrays::moveToPath([
+        self::assertEquals(null, Arrays::getByPathArray([], ['id', 4, 'data']));
+        self::assertEquals('my-val', Arrays::getByPathArray(['id' => 'my-val'], ['id']));
+        self::assertEquals(['type' => 'lion'], Arrays::getByPathArray([
             'data' => [
                 0 => [],
                 1 => [
@@ -44,7 +44,7 @@ final class ArraysTest extends TestCase
                 ]
             ]
         ], ['data', 1, 'animal']));
-        self::assertEquals(null, Arrays::moveToPath([
+        self::assertEquals(null, Arrays::getByPathArray([
             'data' => [
                 0 => [],
                 1 => [
@@ -52,6 +52,22 @@ final class ArraysTest extends TestCase
                 ]
             ]
         ], ['data', '12', 'animal']));
+        self::assertEquals(null, Arrays::getByPathArray([
+            'data' => [
+                0 => [],
+                1 => [
+                    'animal' => ['type' => 'lion', 'null' => null]
+                ]
+            ]
+        ], ['data', '1', 'animal', 'null'], 123));
+        self::assertEquals(123, Arrays::getByPathArray([
+            'data' => [
+                0 => [],
+                1 => [
+                    'animal' => ['type' => 'lion', 'null' => null]
+                ]
+            ]
+        ], ['data', '1', 'animal', 'other'], 123));
     }
 
 

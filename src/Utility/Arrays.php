@@ -10,16 +10,17 @@ use RuntimeException;
 
 final class Arrays
 {
-    public static function moveToPath(?array $data, array $path): mixed {
-        foreach ($path as $part) {
-            if (!is_array($data) || !isset($data[$part])) {
-                return null;
+    public static function getByPathArray(array $array, array $path, mixed $defaultValue = null): mixed {
+        foreach ($path as $segment) {
+            if (!is_array($array)) {
+                return $defaultValue;
             }
-
-            $data = &$data[$part];
+            $array = array_key_exists($segment, $array)
+                ? $array[$segment]
+                : $defaultValue;
         }
 
-        return $data;
+        return $array;
     }
 
     /**
