@@ -88,14 +88,13 @@ class ProxyResolver
             $typeData,
             $arguments,
             $info,
-            $hasBeenDeferred,
             !$hasBeenDeferred && $context->executor->canExecuteAgain()
         );
-        $context->willResolveField($fieldResolution);
+        $context->extensions->willResolveField($fieldResolution);
 
         // As the field has been deferred, we return null. If multiple runs are enabled, this will
         // result in the field being run next time. This can only happen once.
-        if ($fieldResolution->shouldDefer() && !$hasBeenDeferred) {
+        if ($fieldResolution->isDeferred()) {
             $context->executor->addDefer($info->path, $fieldResolution->getDeferLabel(), $typeData);
             return null;
         }
@@ -116,7 +115,7 @@ class ProxyResolver
             $promiseOrValue = $resolveFn(
                 $typeData,
                 $arguments,
-                $context->getContext(),
+                $context->context,
                 $info
             );
 

@@ -2,9 +2,9 @@
 
 namespace GraphQlTools\Contract\Extension;
 
-use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
+use GraphQlTools\Contract\Events\VisitField;
 
 interface InteractsWithFieldResolution
 {
-    public function visitField(VisitFieldEvent $event): void;
+    public function visitField(VisitField $event): void;
 }

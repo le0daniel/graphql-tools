@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\Contract;
 
+use GraphQL\Error\DebugFlag;
 use GraphQL\Error\Error;
 
 interface GraphQlResult
@@ -12,7 +13,7 @@ interface GraphQlResult
      */
     public function getErrors(): array;
 
-    public function toArray(): array;
+    public function toArray(int $debug = DebugFlag::NONE): array;
 
     public function getContext(): GraphQlContext;
 }

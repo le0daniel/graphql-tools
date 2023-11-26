@@ -13,6 +13,7 @@ use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Data\ValueObjects\Events\EndEvent;
 use GraphQlTools\Data\ValueObjects\Events\ParsedEvent;
 use GraphQlTools\Data\ValueObjects\Events\StartEvent;
+use GraphQlTools\Data\ValueObjects\Events\ValidatedEvent;
 use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
 
 /**
@@ -48,7 +49,7 @@ class Extensions
     /**
      * @return array<string, ExecutionExtension>
      */
-    public function getExtensions(): array
+    public function getArray(): array
     {
         return $this->extensions;
     }
@@ -107,6 +108,7 @@ class Extensions
             match ($event::class) {
                 StartEvent::class => $extension->start($event),
                 ParsedEvent::class => $extension->parsed($event),
+                ValidatedEvent::class => $extension->validated($event),
                 EndEvent::class => $extension->end($event),
             };
         }

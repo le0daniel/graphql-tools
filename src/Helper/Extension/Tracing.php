@@ -9,6 +9,7 @@ use DateTimeImmutable;
 use GraphQL\Error\DebugFlag;
 use GraphQL\Language\AST\DocumentNode;
 use GraphQL\Language\Printer;
+use GraphQlTools\Contract\Events\VisitField;
 use GraphQlTools\Contract\Extension\InteractsWithFieldResolution;
 use GraphQlTools\Contract\Extension\ListensToLifecycleEvents;
 use GraphQlTools\Contract\ProvidesResultExtension;
@@ -89,7 +90,7 @@ class Tracing extends Extension implements InteractsWithFieldResolution, Provide
         }
     }
 
-    public function visitField(VisitFieldEvent $event): void
+    public function visitField(VisitField $event): void
     {
         if ($this->isIntrospectionQuery) {
             return;

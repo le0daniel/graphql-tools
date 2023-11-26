@@ -10,6 +10,7 @@ use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Contract\GraphQlResult;
 use GraphQlTools\Contract\ProvidesResultExtension;
 use GraphQlTools\Helper\Extensions;
+use GraphQlTools\Helper\ValidationRules;
 use JsonSerializable;
 use Throwable;
 
@@ -19,8 +20,8 @@ abstract readonly class Result implements GraphQlResult, JsonSerializable
         public mixed $data,
         public array $errors,
         public GraphQlContext $context,
-        protected array $validationRules = [],
-        protected ?Extensions $extensions = null,
+        protected ValidationRules $validationRules,
+        protected Extensions $extensions,
     )
     {
     }
@@ -36,11 +37,11 @@ abstract readonly class Result implements GraphQlResult, JsonSerializable
     }
 
     public function getExtension(string $name): ?ExecutionExtension {
-        return $this->extensions?->get($name) ?? null;
+        return $this->extensions->get($name) ?? null;
     }
 
     public function getValidationRule(string $name): ?ValidationRule {
-        return $this->validationRules[$name] ?? null;
+        return $this->validationRules->get($name) ?? null;
     }
 
     abstract function appendToResult(array $result): array;
@@ -74,8 +75,16 @@ abstract readonly class Result implements GraphQlResult, JsonSerializable
         return $this->toArray();
     }
 
+    public function shouldSerializeExtensions(): bool {
+        return true;
+    }
+
     protected function serializeAllExtensions(int $debug): ?array {
-        $serializable = [...$this->validationRules, ...($this->extensions?->getExtensions() ?? [])];
+        if (!$this->shouldSerializeExtensions()) {
+            return null;
+        }
+
+        $serializable = [...$this->validationRules->toArray(), ...$this->extensions->getArray()];
         return empty($serializable) ? null : $this->serializeExtendResults($debug, $serializable);
     }
 

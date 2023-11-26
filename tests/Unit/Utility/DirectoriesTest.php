@@ -31,7 +31,8 @@ class DirectoriesTest extends TestCase
             'Registry/SchemaRegistrySchemaTest.php',
             'Registry/TagBasedSchemaRulesTest.php',
             'Results/GraphQlResultTest.php',
-            'Validation/QueryComplexityRuleTest.php'
+            'Validation/QueryComplexityRuleTest.php',
+            'ValidationRulesTest.php',
         ], $result);
 
         foreach ($result as $relativePath) {

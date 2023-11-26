@@ -58,6 +58,11 @@ final class ExecutionManager
         $this->deferred[self::pathToString($path)] = [$path, $label, $data];
     }
 
+    /**
+     * Returns if an item at a specific path has been deferred.
+     * @param array $path
+     * @return bool
+     */
     public function isDeferred(array $path): bool
     {
         return array_key_exists(self::pathToString($path), $this->deferred);
@@ -65,6 +70,7 @@ final class ExecutionManager
 
     /**
      * Tells us if it is possible to defer if a field requires this.
+     * It checks for the max runs allowed and if a next run is allowed.
      * @return bool
      */
     public function canExecuteAgain(): bool
@@ -118,7 +124,7 @@ final class ExecutionManager
     }
 
     /**
-     * @param string $path
+     * @param array $path
      * @return mixed
      * @internal
      */
@@ -133,7 +139,8 @@ final class ExecutionManager
     }
 
     /**
-     * Set an item into the cache
+     * Cache during execution. This is used to cache the resolution of 'resolveToType' for
+     * unions and interfaces, to allow for more than one run successfully.
      * @param array $path
      * @param string $key
      * @param mixed $data

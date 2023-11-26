@@ -12,6 +12,7 @@ use GraphQlTools\Contract\ProvidesResultExtension;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Helper\Extensions;
 use GraphQlTools\Helper\Results\CompleteResult;
+use GraphQlTools\Helper\ValidationRules;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -29,6 +30,7 @@ class GraphQlResultTest extends TestCase
             ->willImplement(ProvidesResultExtension::class);
         $rule->isVisibleInResult($context)->willReturn(true);
         $rule->key()->willReturn('rule');
+        $rule->getName()->willReturn('some-rule');
         $rule->serialize(Argument::type('int'))->willReturn('result-rule');
 
         $extension = $this->prophesize(ExecutionExtension::class)->willImplement(ProvidesResultExtension::class);
@@ -43,7 +45,7 @@ class GraphQlResultTest extends TestCase
             ],
             [],
             new Context(),
-            [$rule->reveal()],
+            ValidationRules::initialize(new Context(), [$rule->reveal()], null),
             new Extensions($extension->reveal()),
         );
 
@@ -74,8 +76,8 @@ class GraphQlResultTest extends TestCase
             null,
             [$error],
             new Context(),
-            [],
-            null,
+            new ValidationRules(),
+            new Extensions(),
         );
 
         self::assertEquals([
@@ -101,8 +103,8 @@ class GraphQlResultTest extends TestCase
             null,
             [$error],
             new Context(),
-            [],
-            null,
+            new ValidationRules(),
+            new Extensions(),
         );
 
         self::assertEquals([
@@ -125,8 +127,8 @@ class GraphQlResultTest extends TestCase
             null,
             [$error],
             new Context(),
-            [],
-            null,
+            new ValidationRules(),
+            new Extensions(),
         );
 
         self::assertEquals([
@@ -147,8 +149,8 @@ class GraphQlResultTest extends TestCase
             null,
             [],
             new Context(),
-            ['my-rule' => $rule],
-            null,
+            new ValidationRules(['my-rule' => $rule]),
+            new Extensions(),
         );
         self::assertSame($rule, $result->getValidationRule('my-rule'));
         self::assertNull($result->getValidationRule('Something'));
@@ -164,7 +166,7 @@ class GraphQlResultTest extends TestCase
             null,
             [],
             new Context(),
-            [],
+            new ValidationRules(),
             new Extensions($extension),
         );
         self::assertSame($extension, $result->getExtension('my-extension'));

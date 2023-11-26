@@ -9,6 +9,7 @@ use GraphQlTools\Contract\Extension\ListensToLifecycleEvents;
 use GraphQlTools\Data\ValueObjects\Events\EndEvent;
 use GraphQlTools\Data\ValueObjects\Events\ParsedEvent;
 use GraphQlTools\Data\ValueObjects\Events\StartEvent;
+use GraphQlTools\Data\ValueObjects\Events\ValidatedEvent;
 
 abstract class Extension implements ExecutionExtension, ListensToLifecycleEvents
 {
@@ -47,6 +48,11 @@ abstract class Extension implements ExecutionExtension, ListensToLifecycleEvents
     }
 
     public function parsed(ParsedEvent $event): void
+    {
+
+    }
+
+    public function validated(ValidatedEvent $event): void
     {
 
     }

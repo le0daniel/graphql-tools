@@ -4,13 +4,16 @@ namespace GraphQlTools\Data\ValueObjects\Events;
 
 use Closure;
 use GraphQL\Type\Definition\ResolveInfo;
+use GraphQlTools\Contract\Events\VisitField as VisitFieldContract;
 
 /**
- * @method static create(mixed $typeData, array $arguments, ResolveInfo $resolveInfo, bool $hasBeenDeferred, bool $canDefer): static
+ * @internal
+ * @method static create(mixed $typeData, array $arguments, ResolveInfo $resolveInfo, bool $canDefer): static
  */
-final class VisitFieldEvent extends Event
+final class VisitFieldEvent extends Event implements VisitFieldContract
 {
-    private bool|string $shouldDefer = false;
+    private bool $isDeferred = false;
+    private ?string $deferLabel = null;
     private bool $stopImmediatePropagation = false;
     private array $afterResolution = [];
 
@@ -18,8 +21,7 @@ final class VisitFieldEvent extends Event
         public readonly mixed       $typeData,
         public readonly array       $arguments,
         public readonly ResolveInfo $info,
-        public readonly bool $hasBeenDeferred,
-        private readonly bool $canDefer,
+        private readonly bool       $canDefer,
     )
     {
     }
@@ -30,10 +32,11 @@ final class VisitFieldEvent extends Event
     }
 
     /**
-     * @internal
      * @return bool
+     * @internal
      */
-    public function isStopped(): bool {
+    public function isStopped(): bool
+    {
         return $this->stopImmediatePropagation;
     }
 
@@ -42,16 +45,18 @@ final class VisitFieldEvent extends Event
      * @param Closure(mixed $value):void $afterResolution
      * @return void
      */
-    public function then(Closure $afterResolution): void {
+    public function then(Closure $afterResolution): void
+    {
         $this->afterResolution[] = $afterResolution;
     }
 
     /**
-     * @internal
      * @param mixed $value
      * @return mixed
+     * @internal
      */
-    public function resolveValue(mixed $value): mixed {
+    public function resolveValue(mixed $value): mixed
+    {
         foreach ($this->afterResolution as $closure) {
             $closure($value);
         }
@@ -59,30 +64,40 @@ final class VisitFieldEvent extends Event
     }
 
     /**
-     * @internal
      * @return bool
-     */
-    public function shouldDefer(): bool {
-        return !!$this->shouldDefer;
-    }
-
-    /**
      * @internal
-     * @return string|null
      */
-    public function getDeferLabel(): ?string {
-        return is_string($this->shouldDefer) ? $this->shouldDefer : null;
+    public function isDeferred(): bool
+    {
+        return !!$this->isDeferred;
+    }
+
+    public function canDefer(): bool
+    {
+        return $this->canDefer;
     }
 
     /**
-     * Stops event propagation and defers the execution of this field.
+     * @return string|null
+     * @internal
+     */
+    public function getDeferLabel(): ?string
+    {
+        return $this->deferLabel;
+    }
+
+    /**
+     * Propose to the Executor to defer execution of this field.
+     * The executor will make the final decision if it is allowed to be skipped or not.
      * @param string|null $label
      * @return void
      */
-    public function defer(?string $label = null): void {
-        if ($this->canDefer) {
+    public function defer(?string $label = null): void
+    {
+        if ($this->canDefer()) {
             $this->stopImmediatePropagation = true;
-            $this->shouldDefer = $label ?? true;
+            $this->isDeferred = true;
+            $this->deferLabel = $label;
         }
     }
 

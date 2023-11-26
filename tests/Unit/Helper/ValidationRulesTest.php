@@ -1,12 +1,12 @@
 <?php declare(strict_types=1);
 
-namespace GraphQlTools\Test\Unit\Utility;
+namespace GraphQlTools\Test\Unit\Helper;
 
+use GraphQlTools\Helper\ValidationRules;
 use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Contract\ValidationRule\RequiresVariableValues;
 use GraphQlTools\Helper\Validation\CollectDeprecatedFieldNotices;
-use GraphQlTools\Utility\ValidationRules;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 use Prophecy\Prophecy\ObjectProphecy;
@@ -28,7 +28,7 @@ class ValidationRulesTest extends TestCase
 
         $inited = ValidationRules::initialize($context, [
             $simple
-        ], []);
+        ], [])->toArray();
 
         self::assertSame($simple, $inited['simple']);
     }
@@ -40,7 +40,7 @@ class ValidationRulesTest extends TestCase
 
         $inited = ValidationRules::initialize($context, [
             CollectDeprecatedFieldNotices::class
-        ], []);
+        ], [])->toArray();
 
         self::assertInstanceOf(CollectDeprecatedFieldNotices::class, $inited[CollectDeprecatedFieldNotices::class]);
     }
@@ -52,7 +52,7 @@ class ValidationRulesTest extends TestCase
 
         $inited = ValidationRules::initialize($context, [
             fn(GraphQlContext $context) => $simple
-        ], []);
+        ], [])->toArray();
 
         self::assertSame($simple, $inited['simple']);
     }
@@ -63,7 +63,7 @@ class ValidationRulesTest extends TestCase
 
         $inited = ValidationRules::initialize($context, [
             fn(GraphQlContext $context) => null
-        ], []);
+        ], [])->toArray();
 
         self::assertArrayNotHasKey('simple', $inited);
     }
@@ -80,7 +80,7 @@ class ValidationRulesTest extends TestCase
 
         $inited = ValidationRules::initialize($context, [
             $simple
-        ], ['my-val']);
+        ], ['my-val'])->toArray();
 
         self::assertSame($simple, $inited['simple']);
     }

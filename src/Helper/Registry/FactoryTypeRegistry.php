@@ -17,6 +17,11 @@ use GraphQlTools\Definition\GraphQlType;
 use RuntimeException;
 use GraphQlTools\Data\ValueObjects\GraphQlTypes;
 
+/**
+ * This is an internal class providing functionality when using the schema registry.
+ * This class should never be used on its own.
+ * @internal
+ */
 class FactoryTypeRegistry implements TypeRegistryContract
 {
     protected array $typeInstances = [];

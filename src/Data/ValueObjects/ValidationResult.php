@@ -4,17 +4,18 @@ namespace GraphQlTools\Data\ValueObjects;
 
 use GraphQL\Error\Error;
 use GraphQL\Validator\Rules\ValidationRule;
+use GraphQlTools\Helper\ValidationRules;
 
 final class ValidationResult
 {
 
     /**
      * @param array<int, Error> $errors
-     * @param array<string, ValidationRule> $validationRules
+     * @param ValidationRule $validationRules
      */
     public function __construct(
         public readonly array $errors,
-        public readonly array $validationRules
+        public readonly ValidationRules $validationRules
     )
     {
 
@@ -25,16 +26,11 @@ final class ValidationResult
     }
 
     public function hasRule(string $name): bool {
-        return array_key_exists($name, $this->validationRules);
+        return !!$this->validationRules->get($name);
     }
 
-    /**
-     * @template T of ValidationRule
-     * @param class-string<ValidationRule> $name
-     * @return T|null
-     */
     public function getRule(string $name): ?ValidationRule {
-        return $this->validationRules[$name] ?? null;
+        return $this->validationRules->get($name);
     }
 
 }

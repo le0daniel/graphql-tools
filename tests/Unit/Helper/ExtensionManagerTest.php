@@ -37,7 +37,7 @@ class ExtensionManagerTest extends TestCase
         }
 
         $manager = Extensions::createFromExtensionFactories($this->context(), $extensions);
-        self::assertEquals(['index-2', 'index-1', 'index-0'], array_keys($manager->getExtensions()));
+        self::assertEquals(['index-2', 'index-1', 'index-0'], array_keys($manager->getArray()));
     }
 
     public function testCreate()
@@ -96,7 +96,7 @@ class ExtensionManagerTest extends TestCase
                 fn() => $enabledExtension->reveal(),
             ]
         );
-        self::assertCount(1, $extensions->getExtensions());
+        self::assertCount(1, $extensions->getArray());
     }
 
     public function testMiddlewareFieldResolution()

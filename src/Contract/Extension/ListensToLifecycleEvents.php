@@ -5,6 +5,7 @@ namespace GraphQlTools\Contract\Extension;
 use GraphQlTools\Data\ValueObjects\Events\EndEvent;
 use GraphQlTools\Data\ValueObjects\Events\ParsedEvent;
 use GraphQlTools\Data\ValueObjects\Events\StartEvent;
+use GraphQlTools\Data\ValueObjects\Events\ValidatedEvent;
 
 interface ListensToLifecycleEvents
 {
@@ -13,4 +14,6 @@ interface ListensToLifecycleEvents
     public function end(EndEvent $event): void;
 
     public function parsed(ParsedEvent $event): void;
+
+    public function validated(ValidatedEvent $event): void;
 }

@@ -16,6 +16,7 @@ use GraphQL\Type\Schema;
 use GraphQL\Validator\DocumentValidator;
 use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Contract\GraphQlContext;
+use GraphQlTools\Data\ValueObjects\Events\ValidatedEvent;
 use GraphQlTools\Data\ValueObjects\ValidationResult;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Data\ValueObjects\Events\ParsedEvent;
@@ -29,7 +30,6 @@ use GraphQlTools\Helper\Validation\CollectDeprecatedFieldNotices;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Debugging;
 use GraphQlTools\Utility\Errors;
-use GraphQlTools\Utility\ValidationRules;
 use JsonException;
 use RuntimeException;
 use Throwable;
@@ -85,7 +85,7 @@ class QueryExecutor
     {
         $source = Parser::parse($query);
         $validationRules = ValidationRules::initialize($context, $this->validationRules, $variables);
-        $validationErrors = DocumentValidator::validate($schema, $source, $validationRules);
+        $validationErrors = DocumentValidator::validate($schema, $source, $validationRules->toArray());
         return new ValidationResult($validationErrors, $validationRules);
     }
 
@@ -114,35 +114,29 @@ class QueryExecutor
         $executor = new ExecutionManager($maxRuns);
         $validationRules = ValidationRules::initialize($context, $this->validationRules, $variables);
         $extensions = Extensions::createFromExtensionFactories($context, $this->extensionFactories);
-        $operationContext = new OperationContext($context, $extensions, $executor);
+        $operationContext = new OperationContext($context, $extensions, $executor, $validationRules);
 
-        $extensions->dispatch(
-            StartEvent::create($query, $context, $operationName)
-        );
+        $extensions->dispatch(StartEvent::create($query, $context, $operationName));
 
         try {
             $source = $query instanceof DocumentNode ? $query : Parser::parse($query);
         } catch (SyntaxError $exception) {
-            $executionResult = new ExecutionResult(null, [$exception]);
-            $extensions->dispatch(EndEvent::create($executionResult));
-
-            // We return a result, as there is nothing more to do.
-            yield new CompleteResult(
-                null,
-                $executionResult->errors,
-                $context,
-                $validationRules,
-                $extensions,
-            );
+            $extensions->dispatch(EndEvent::create(new ExecutionResult(null, [$exception])));
+            yield CompleteResult::withErrorsOnly([$exception], $operationContext);
             return;
         }
 
-        $extensions->dispatch(
-            ParsedEvent::create($source, $operationName)
-        );
+        $extensions->dispatch(ParsedEvent::create($source, $operationName));
+        $errors = DocumentValidator::validate($schema, $source, $validationRules->toArray());
+        $extensions->dispatch(ValidatedEvent::create($source, $errors));
+
+        if (!empty($errors)) {
+            $extensions->dispatch(EndEvent::create(new ExecutionResult(null, $errors)));
+            yield CompleteResult::withErrorsOnly($errors, $operationContext);;
+            return;
+        }
 
         do {
-            // Reset the operation context deferred cache.
             $executor->start();
             $deferred = $executor->getAllDeferred();
             $executionResult = GraphQL::executeQuery(
@@ -153,13 +147,12 @@ class QueryExecutor
                 variableValues: $variables ?? [],
                 operationName: $operationName,
                 fieldResolver: static fn() => throw new RuntimeException("A field was provided that did not include the proxy resolver. This might break extensions and produce unknown side-effects. Did you use the field builder everywhere?"),
-                // We only use the validation rules on the first run, afterward, we pass no validation rules.
-                validationRules: $executor->getCurrentExecution() === 1 ? $validationRules : [],
+                validationRules: [],
             );
             $executor->stop();
 
             // On the last run, extensions should be collected. And dispatch the complete result.
-            // All Extensions get the complete result with everything and unmapped/logged errors.
+            // All Extensions get the complete result with all data, but without all errors at this time
             if (!$executor->hasDeferred()) {
                 $extensions->dispatch(EndEvent::create($executionResult));
             }
@@ -172,34 +165,27 @@ class QueryExecutor
             // If complete, the first part is a complete result, otherwise
             // it is only partial.
             if ($executor->getCurrentExecution() === 1) {
-                yield $this->prepareFirstPart($executionResult, $operationContext, $validationRules);
+                yield $this->prepareFirstPart($executionResult, $operationContext);
                 continue;
             }
 
-            yield $this->batch(
-                $deferred,
-                $executionResult,
-                $operationContext,
-                $validationRules
-            );
+            yield $this->batch($deferred, $executionResult, $operationContext);
         } while ($executor->hasDeferred() && $executor->canExecuteAgain());
     }
 
-    private function batch(array $deferred, ExecutionResult $executionResult, OperationContext $operationContext, array $validationRules): PartialResult|PartialBatch
+    private function batch(array $deferred, ExecutionResult $executionResult, OperationContext $operationContext): PartialResult|PartialBatch
     {
         $batch = [];
 
         foreach ($deferred as $index => [$path, $label]) {
             $hasNext = $operationContext->executor->hasDeferred() || ($index + 1) !== count($deferred);
-            $batch[] = new PartialResult(
+            $batch[] = PartialResult::part(
                 Arrays::getByPathArray($executionResult->data, $path),
                 $this->handleErrors(Errors::filterByPath($executionResult->errors, $path)),
-                $operationContext->context,
-                $hasNext ? [] : $validationRules,
-                $hasNext ? null : $operationContext->extensions,
                 $hasNext,
+                $operationContext,
                 $label,
-                $path,
+                $path
             );
         }
 
@@ -211,24 +197,18 @@ class QueryExecutor
     private function prepareFirstPart(
         ExecutionResult  $executionResult,
         OperationContext $operationContext,
-        array            $validationRules,
     ): CompleteResult|PartialResult
     {
         return $operationContext->executor->hasDeferred()
-            ? new PartialResult(
+            ? PartialResult::first(
                 $executionResult->data,
                 $this->handleErrors($executionResult->errors),
-                $operationContext->context,
-                [],
-                null,
-                true
+                $operationContext,
             )
-            : new CompleteResult(
+            : CompleteResult::from(
                 $executionResult->data,
                 $this->handleErrors($executionResult->errors),
-                $operationContext->context,
-                $validationRules,
-                $operationContext->extensions,
+                $operationContext
             );
     }
 
@@ -245,8 +225,13 @@ class QueryExecutor
         ?string             $operationName = null,
     ): CompleteResult
     {
-        $result = $this->executeGenerator($schema, $query, $context, $variables, $rootValue, $operationName, 1)->current();
+        $results = iterator_to_array($this->executeGenerator($schema, $query, $context, $variables, $rootValue, $operationName, 1));
 
+        if (count($results) !== 1) {
+            throw new RuntimeException("Something went wrong. Expected 1 result: " . count($results));
+        }
+
+        $result = $results[0];
         if (!$result instanceof CompleteResult) {
             throw new RuntimeException('Expected generator to return instance of GraphQlResult, got ' . Debugging::typeOf($result));
         }

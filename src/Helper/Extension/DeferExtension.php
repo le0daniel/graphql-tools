@@ -3,7 +3,7 @@
 namespace GraphQlTools\Helper\Extension;
 
 use GraphQL\Executor\Values;
-use GraphQL\Type\Definition\ResolveInfo;
+use GraphQlTools\Contract\Events\VisitField;
 use GraphQlTools\Contract\Extension\InteractsWithFieldResolution;
 use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
 use GraphQlTools\Utility\Directives;
@@ -22,30 +22,26 @@ class DeferExtension extends Extension implements InteractsWithFieldResolution
         return -100;
     }
 
-    private function shouldDefer(ResolveInfo $info): bool|string {
-        $directives = Directives::getNamesByResolveInfo($info);
+    public function visitField(VisitField $event): void
+    {
+        if (!$event->canDefer()) {
+            return;
+        }
+
+        $directives = Directives::getNamesByResolveInfo($event->info);
         if (!in_array(self::DEFER_DIRECTIVE_NAME, $directives, true)) {
-            return false;
+            return;
         }
 
         $arguments = Values::getDirectiveValues(
-            $info->schema->getDirective(self::DEFER_DIRECTIVE_NAME),
-            $info->fieldNodes[0],
-            $info->variableValues,
+            $event->info->schema->getDirective(self::DEFER_DIRECTIVE_NAME),
+            $event->info->fieldNodes[0],
+            $event->info->variableValues,
         );
 
         $isEnabled = $arguments['if'] ?? true;
-        if (!$isEnabled) {
-            return false;
-        }
-
-        return $arguments['label'] ?? true;
-    }
-
-    public function visitField(VisitFieldEvent $event): void
-    {
-        if (!$event->hasBeenDeferred && $labelOrBool = $this->shouldDefer($event->info)) {
-            $event->defer(is_string($labelOrBool) ? $labelOrBool : null);
+        if ($isEnabled) {
+            $event->defer($arguments['label'] ?? null);
         }
     }
 }

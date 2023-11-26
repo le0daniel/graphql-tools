@@ -3,6 +3,7 @@
 namespace GraphQlTools\Helper\Extension;
 
 use GraphQL\Error\DebugFlag;
+use GraphQlTools\Contract\Events\VisitField;
 use GraphQlTools\Contract\ExecutionExtension;
 use GraphQlTools\Contract\Extension\InteractsWithFieldResolution;
 use GraphQlTools\Contract\ProvidesResultExtension;
@@ -20,12 +21,7 @@ final class ActualCostExtension implements ProvidesResultExtension, ExecutionExt
     {
     }
 
-    public function key(): string
-    {
-        return 'actualCost';
-    }
-
-    public function visitField(VisitFieldEvent $event): void
+    public function visitField(VisitField $event): void
     {
         $this->usedCost += $event->info->fieldDefinition->config['cost'] ?? 0;
     }
@@ -37,6 +33,11 @@ final class ActualCostExtension implements ProvidesResultExtension, ExecutionExt
     public function isVisibleInResult($context): bool
     {
         return true;
+    }
+
+    public function key(): string
+    {
+        return 'actualCost';
     }
 
     public function serialize(int $debug = DebugFlag::NONE): int

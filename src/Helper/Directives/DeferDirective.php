@@ -9,7 +9,6 @@ use GraphQlTools\Definition\GraphQlDirective;
 
 final class DeferDirective extends GraphQlDirective
 {
-
     protected function arguments(TypeRegistry $registry): array
     {
         return [

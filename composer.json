@@ -11,6 +11,9 @@
       "email": "leodaniel@nitrosoft.ch"
     }
   ],
+  "scripts": {
+    "test": "phpunit"
+  },
   "require": {
     "php": "^8.2",
     "webonyx/graphql-php": "^15",
