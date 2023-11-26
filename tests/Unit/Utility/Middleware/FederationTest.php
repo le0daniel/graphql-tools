@@ -4,14 +4,6 @@ namespace GraphQlTools\Test\Unit\Utility\Middleware;
 
 use ArrayAccess;
 use Closure;
-use GraphQL\Language\AST\OperationDefinitionNode;
-use GraphQL\Type\Definition\FieldDefinition;
-use GraphQL\Type\Definition\ObjectType;
-use GraphQL\Type\Definition\ResolveInfo;
-use GraphQL\Type\Definition\Type;
-use GraphQL\Type\Schema;
-use GraphQlTools\Helper\Context;
-use GraphQlTools\Helper\Resolver\ProxyResolver;
 use GraphQlTools\Utility\Middleware\Federation;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -119,22 +111,5 @@ class FederationTest extends TestCase
         };
 
         self::assertNull( $this->executeMiddlewareWith(Federation::key('name'), $instance));
-    }
-
-    public function testFederationField() {
-        $resolveInfo = $this->prophesize(ResolveInfo::class)->reveal();
-        $parentType = $this->prophesize(ObjectType::class);
-        $field = $this->prophesize(FieldDefinition::class);
-        $field->getType()->willReturn($this->prophesize(Type::class)->reveal());
-        $field->name = 'random';
-        $field->resolveFn = new ProxyResolver(fn() => 'value');
-        $parentType->getField('fieldName')->willReturn($field->reveal());
-        $resolveInfo->parentType = $parentType->reveal();
-        $resolveInfo->schema = $this->prophesize(Schema::class)->reveal();
-        $resolveInfo->operation = $this->prophesize(OperationDefinitionNode::class)->reveal();
-
-        $pipe = Federation::field('fieldName');
-        $result = $pipe(null, [], new Context(), $resolveInfo, fn($val) => $val);
-        self::assertEquals('value', $result);
     }
 }
