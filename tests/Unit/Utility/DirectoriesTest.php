@@ -24,12 +24,12 @@ class DirectoriesTest extends TestCase
             'DataLoaderTest.php',
             'ExtensionManagerTest.php',
             'MiddlewareTest.php',
+            'OperationContextTest.php',
             'ProxyResolverTest.php',
             'QueryExecutorTest.php',
             'Registry/FactoryTypeRegistryTest.php',
             'Registry/SchemaRegistrySchemaTest.php',
             'Registry/TagBasedSchemaRulesTest.php',
-            'Resolver/MiddlewareResolverTest.php',
             'Results/GraphQlResultTest.php',
             'Validation/QueryComplexityRuleTest.php'
         ], $result);

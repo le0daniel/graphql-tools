@@ -31,9 +31,15 @@ abstract class GraphQlInterface extends TypeDefinition
                 [$this->fields(...), ...$this->mergedFieldFactories],
                 $schemaRules,
             ),
-            'resolveType' => fn($_, OperationContext $context, $info) => $registry->type(
-                $this->resolveToType($_, $context->context, $info)
-            ),
+            'resolveType' => function($_, OperationContext $context, $info) use ($registry) {
+                $typeName = $context->getCache($info->path, $this->getName()) ?? $context->setCache(
+                    $info->path,
+                    $this->getName(),
+                    $this->resolveToType($_, $context->context, $info)
+                );
+
+                return $registry->type($typeName);
+            },
         ]);
     }
 

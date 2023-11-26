@@ -11,7 +11,7 @@ use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Helper\Context;
 use GraphQlTools\Helper\QueryExecutor;
 use GraphQlTools\Helper\Registry\SchemaRegistry;
-use GraphQlTools\Helper\Results\GraphQlResult;
+use GraphQlTools\Helper\Results\CompleteResult;
 use PHPUnit\Framework\TestCase;
 
 class QueryComplexityRuleTest extends TestCase
@@ -96,7 +96,7 @@ class QueryComplexityRuleTest extends TestCase
         ]);
     }
 
-    private function query(string $query, int $maxComplexity): GraphQlResult {
+    private function query(string $query, int $maxComplexity): CompleteResult {
         return $this->getExecutor($maxComplexity)
             ->execute(
                 $this->getSchema(),

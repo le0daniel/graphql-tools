@@ -11,7 +11,10 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
 use GraphQlTools\Helper\Context;
+use GraphQlTools\Helper\Extensions;
+use GraphQlTools\Helper\Middleware;
 use GraphQlTools\Helper\OperationContext;
+use GraphQlTools\Utility\Directives;
 use GraphQlTools\Utility\Promises;
 use Throwable;
 
@@ -21,38 +24,33 @@ use Throwable;
  */
 class ProxyResolver
 {
-    private readonly Closure $resolver;
+    public static bool $disableDirectives = false;
+    private readonly Closure $resolveFunction;
 
-    public function __construct(private ?Closure $resolveFunction = null)
+    public function __construct(
+        private readonly ?Closure $fieldResolveFunction = null,
+        private readonly array    $middlewares = [],
+    )
     {
     }
 
-    /**
-     * Overwrite this method to define your own resolver.
-     *
-     * @template T
-     * @param T $typeData
-     * @param array<string, mixed> $arguments
-     * @param Context $context
-     * @param ResolveInfo $info
-     * @return mixed
-     * @internal
-     */
-    public function resolveToValue(mixed $typeData, array $arguments, GraphQlContext $context, ResolveInfo $info): mixed
+    private function createResolveFunction(): Closure
     {
-        return ($this->resolveFunction ??= $this->getResolveFunction())($typeData, $arguments, $context, $info);
+        return Middleware::create($this->middlewares)
+            ->then($this->fieldResolveFunction ?? Executor::getDefaultFieldResolver()(...));
     }
 
-    protected function getResolveFunction(): Closure {
-        return Executor::getDefaultFieldResolver();
-    }
+    private function attachDirectiveMiddlewares(Closure $resolver, ResolveInfo $info): Closure
+    {
+        if (
+            self::$disableDirectives
+            || empty($directiveNames = Directives::getNamesByResolveInfo($info))
+            || empty($pipes = Directives::createPipes($info, $directiveNames))
+        ) {
+            return $resolver;
+        }
 
-    /**
-     * @param ResolveInfo $info
-     * @return Closure(mixed, array, GraphQlContext, ResolveInfo): mixed|SyncPromise
-     */
-    private function decoratedResolveFunction(ResolveInfo $info): Closure {
-        // $info->fragments[0]->
+        return Middleware::create($pipes)->then($resolver);
     }
 
     /**
@@ -69,19 +67,53 @@ class ProxyResolver
      */
     final public function __invoke(mixed $typeData, ?array $arguments, OperationContext $operationContext, ResolveInfo $info): mixed
     {
+        /**
+         * If the result has been cached previously, we get it from cache, skipping everything. This enables extensions to
+         * collect data only once and not be run multiple times.
+         */
+        if ($operationContext->isInResult($info->path)) {
+            return $operationContext->getFromResult($info->path);
+        }
+
         // Ensure arguments are always an array, as the framework does not guarantee that
         $arguments ??= [];
 
-        $afterFieldResolution = $operationContext->extensions->willResolveField(
-            VisitFieldEvent::create($typeData, $arguments, $info)
-        );
+        // We first verify if in a previous run this has been deferred
+        // If this is the case, we mark it as hasBeenDeferred and take the type data
+        // from the last run to ensure the resolver works as intended.
+        $hasBeenDeferred = $operationContext->isDeferred($info->path);
+        if ($hasBeenDeferred) {
+            $typeData = $operationContext->popDeferred($info->path);
+        }
+
+        /** @var VisitFieldEvent $fieldResolution */
+        $fieldResolution = VisitFieldEvent::create($typeData, $arguments, $info, $hasBeenDeferred);
+        $operationContext->willResolveField($fieldResolution);
+
+        // As the field has been deferred, we return null. If multiple runs are enabled, this will
+        // result in the field being run next time. This can only happen once.
+        if ($fieldResolution->shouldDefer() && !$hasBeenDeferred) {
+            $operationContext->deferField($info->path, $fieldResolution->getDeferLabel(), $typeData);
+            return null;
+        }
+
+        // Hook after the field and all it's promises have been executed.
+        // This is where extensions can hook in. They are though not allowed to manipulate the result.
+        $afterFieldResolution = static function (mixed $value) use ($fieldResolution, $operationContext): mixed {
+            return $fieldResolution->resolveValue($value);
+        };
 
         try {
+            $resolveFn = $this->attachDirectiveMiddlewares(
+                $this->resolveFunction ??= $this->createResolveFunction(),
+                $info
+            );
+
             /** @var SyncPromise|mixed $promiseOrValue */
-            $promiseOrValue = $this->resolveToValue(
+            $promiseOrValue = $resolveFn(
                 $typeData,
                 $arguments,
-                $operationContext->context,
+                $operationContext->getContext(),
                 $info
             );
 
@@ -90,7 +122,6 @@ class ProxyResolver
                     ->then(static fn(mixed $resolvedValue): mixed => $afterFieldResolution($resolvedValue))
                     ->catch(static fn(Throwable $error): Throwable => $afterFieldResolution($error))
                 : $afterFieldResolution($promiseOrValue);
-
         } catch (Throwable $error) {
             return $afterFieldResolution($error);
         }

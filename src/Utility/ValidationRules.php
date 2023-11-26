@@ -6,6 +6,7 @@ use Closure;
 use GraphQL\Validator\DocumentValidator;
 use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Contract\GraphQlContext;
+use GraphQlTools\Contract\ValidationRule\RequiresVariableValues;
 use GraphQlTools\Definition\DefinitionException;
 
 final class ValidationRules
@@ -17,7 +18,7 @@ final class ValidationRules
      * @return array<string, ValidationRule>
      * @throws DefinitionException
      */
-    public static function initialize(GraphQlContext $context, array $rules): array {
+    public static function initialize(GraphQlContext $context, array $rules, ?array $variableValues): array {
         $initializedRules = DocumentValidator::defaultRules();
 
         foreach ($rules as $ruleOrFactory) {
@@ -28,6 +29,10 @@ final class ValidationRules
                 $ruleOrFactory instanceof Closure => $ruleOrFactory($context),
                 default => throw new DefinitionException("Expected class-string|Closure|ValidationRule, got: " . Debugging::typeOf($ruleOrFactory)),
             };
+
+            if ($rule instanceof RequiresVariableValues) {
+                $rule->setVariableValues($variableValues);
+            }
 
             if ($rule) {
                 $initializedRules[$rule->getName()] = $rule;

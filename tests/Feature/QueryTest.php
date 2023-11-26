@@ -6,13 +6,19 @@ namespace GraphQlTools\Test\Feature;
 
 use GraphQL\Executor\ExecutionResult;
 use GraphQL\Type\Schema;
+use GraphQlTools\Contract\GraphQlResult;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Extending\Extend;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Helper\Context;
+use GraphQlTools\Helper\Directives\DeferDirective;
+use GraphQlTools\Helper\Extension\DeferExtension;
 use GraphQlTools\Helper\QueryExecutor;
 use GraphQlTools\Helper\Registry\SchemaRegistry;
 use GraphQlTools\Helper\Registry\TagBasedSchemaRules;
+use GraphQlTools\Helper\Results\CompleteResult;
+use GraphQlTools\Helper\Results\PartialBatch;
+use GraphQlTools\Helper\Results\PartialResult;
 use GraphQlTools\Test\Dummies\Schema\JsonScalar;
 use GraphQlTools\Test\Dummies\Schema\LionType;
 use GraphQlTools\Test\Dummies\Schema\QueryType;
@@ -23,21 +29,30 @@ use PHPUnit\Framework\TestCase;
 
 class QueryTest extends TestCase
 {
-    protected function assertNoErrors(ExecutionResult $result): void
+    /**
+     * @param GraphQlResult|PartialBatch $completeOrPartialResult
+     * @return GraphQlResult[]
+     */
+    protected static function unpackResults(GraphQlResult|PartialBatch $completeOrPartialResult): array {
+        return $completeOrPartialResult instanceof PartialBatch ? $completeOrPartialResult->getResults() : [$completeOrPartialResult];
+    }
+
+    protected function assertNoErrors(GraphQlResult $completeOrPartialResult): void
     {
+        $errors = $completeOrPartialResult->getErrors();
         $message = '';
-        foreach ($result->errors as $error) {
+        foreach ($errors as $error) {
             $message .= $error->getMessage() . PHP_EOL;
         }
 
-        self::assertEmpty($result->errors, $message);
+        self::assertEmpty($errors, $message);
     }
 
-    protected function assertError(ExecutionResult $result, string $expectedMessage): void
+    protected function assertError(GraphQlResult $result, string $expectedMessage): void
     {
         $errorMessages = [];
 
-        foreach ($result->errors as $error) {
+        foreach ($result->getErrors() as $error) {
             if ($error->getMessage() === $expectedMessage) {
                 self::assertTrue(true);
                 return;
@@ -70,7 +85,7 @@ class QueryTest extends TestCase
         self::assertEquals($expectedCount, $count);
     }
 
-    protected function executeOn(Schema $schema, string $query): ExecutionResult
+    protected function executeOn(Schema $schema, string $query): CompleteResult
     {
         $executor = new QueryExecutor(
             [],
@@ -78,20 +93,31 @@ class QueryTest extends TestCase
         return $executor->execute($schema, $query, new Context());
     }
 
-    protected function execute(string $query): ExecutionResult
+    protected function execute(string $query): CompleteResult
     {
         return $this->executeOn($this->schema(), $query);
     }
 
+    protected function executeStream(string $query) {
+        $executor = new QueryExecutor(
+            [fn() => new DeferExtension()],
+        );
+        return $executor->executeGenerator(
+            $this->schema(),
+            $query,
+            new Context()
+        );
+    }
+
     protected function schemaRegistry(): SchemaRegistry
     {
-        $federatedSchema = new SchemaRegistry();
+        $schemaRegistry = new SchemaRegistry();
 
         [$types, $extendedTypes] = TypeMap::createTypeMapFromDirectory(__DIR__ . '/../Dummies/Schema');
-        $federatedSchema->registerTypes($types);
-        $federatedSchema->extendMany($extendedTypes);
+        $schemaRegistry->registerTypes($types);
+        $schemaRegistry->extendMany($extendedTypes);
 
-        $federatedSchema->extend(
+        $schemaRegistry->extend(
             Extend::type(UserType::class)
                 ->withFields(fn(TypeRegistry $registry) => [
                     Field::withName('extended')
@@ -103,7 +129,9 @@ class QueryTest extends TestCase
                 ]),
         );
 
-        $federatedSchema->extend(
+        $schemaRegistry->register(DeferDirective::class);
+
+        $schemaRegistry->extend(
             Extend::type('User')
                 ->withFields(fn(TypeRegistry $registry) => [
                     Field::withName('byName')
@@ -124,9 +152,9 @@ class QueryTest extends TestCase
                 ])
         );
 
-        $federatedSchema->registerEagerlyLoadedType(LionType::class);
+        $schemaRegistry->registerEagerlyLoadedType(LionType::class);
 
-        return $federatedSchema;
+        return $schemaRegistry;
     }
 
     protected function schema(array $excludeTags = []): Schema
@@ -155,6 +183,20 @@ class QueryTest extends TestCase
     public function testFieldExecutionWithArguments(): void
     {
         $result = $this->execute('query { currentUser(name: "Doris") }');
+        $this->assertNoErrors($result);
+        self::assertEquals('Hello Doris', $result->data['currentUser']);
+    }
+
+    public function testFieldExecutionWithDirectiveUpperCase(): void
+    {
+        $result = $this->execute('query { currentUser(name: "Doris") @upperCase }');
+        $this->assertNoErrors($result);
+        self::assertEquals('HELLO DORIS', $result->data['currentUser']);
+    }
+
+    public function testFieldExecutionWithDirectiveUpperCaseDisabled(): void
+    {
+        $result = $this->execute('query { currentUser(name: "Doris") @upperCase(if: false) }');
         $this->assertNoErrors($result);
         self::assertEquals('Hello Doris', $result->data['currentUser']);
     }
@@ -335,5 +377,26 @@ class QueryTest extends TestCase
         );
         $this->assertNoErrors($result);
         self::assertEquals(['overwrittenAlias' => ['id' => 'super secret id']], $result->data);
+    }
+
+    public function testExecuteDeferred(): void {
+        $query = <<<GraphQl
+query {
+    user { lazy @defer(label: "test") } 
+}
+GraphQl;
+
+        $count = 0;
+        foreach ($this->executeStream($query) as $result) {
+            $count++;
+            $this->assertNoErrors($result);
+            self::assertEquals($count < 2, $result->hasNext);
+
+            if ($count === 2) {
+                /** @var PartialResult $result */
+                self::assertEquals("lazy-field", $result->data);
+                self::assertEquals(['user', 'lazy'], $result->path);
+            }
+        }
     }
 }

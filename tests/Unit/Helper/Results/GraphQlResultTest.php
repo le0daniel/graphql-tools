@@ -10,7 +10,8 @@ use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Contract\ExecutionExtension;
 use GraphQlTools\Contract\ProvidesResultExtension;
 use GraphQlTools\Helper\Context;
-use GraphQlTools\Helper\Results\GraphQlResult;
+use GraphQlTools\Helper\Extensions;
+use GraphQlTools\Helper\Results\CompleteResult;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
 use Prophecy\PhpUnit\ProphecyTrait;
@@ -34,14 +35,16 @@ class GraphQlResultTest extends TestCase
         $extension->isVisibleInResult($context)->willReturn(true);
         $extension->key()->willReturn('extension');
         $extension->serialize(Argument::type('int'))->willReturn('result-extension');
+        $extension->getName()->willReturn('extension');
 
-        $result = GraphqlResult::fromExecutionResult(
-            new ExecutionResult([
+        $result = new CompleteResult(
+            [
                 'test' => true,
-            ]),
+            ],
+            [],
             new Context(),
             [$rule->reveal()],
-            [$extension->reveal()],
+            new Extensions($extension->reveal()),
         );
 
         self::assertEquals([
@@ -67,14 +70,16 @@ class GraphQlResultTest extends TestCase
 
         $error = new Error(previous: $exception->reveal());
 
-        $result = GraphqlResult::fromExecutionResult(
-            new ExecutionResult(errors: [$error]),
+        $result = new CompleteResult(
+            null,
+            [$error],
             new Context(),
             [],
-            [],
+            null,
         );
 
         self::assertEquals([
+            'data' => null,
             'errors' => [
                 [
                     'message' => '',
@@ -92,14 +97,16 @@ class GraphQlResultTest extends TestCase
         $exception->getExtensions()->willReturn(null);
         $error = new Error(previous: $exception->reveal());
 
-        $result = GraphqlResult::fromExecutionResult(
-            new ExecutionResult(errors: [$error]),
+        $result = new CompleteResult(
+            null,
+            [$error],
             new Context(),
             [],
-            [],
+            null,
         );
 
         self::assertEquals([
+            'data' => null,
             'errors' => [
                 [
                     'message' => 'Internal server error',
@@ -114,14 +121,16 @@ class GraphQlResultTest extends TestCase
         $error = new Error(previous: $exception->reveal());
         $exception->getExtensions()->willReturn(null);
 
-        $result = GraphqlResult::fromExecutionResult(
-            new ExecutionResult(errors: [$error]),
+        $result = new CompleteResult(
+            null,
+            [$error],
             new Context(),
             [],
-            [],
+            null,
         );
 
         self::assertEquals([
+            'data' => null,
             'errors' => [
                 [
                     'message' => '',
@@ -134,11 +143,12 @@ class GraphQlResultTest extends TestCase
     {
         $rule = $this->prophesize(ValidationRule::class)->reveal();
 
-        $result = GraphqlResult::fromExecutionResult(
-            new ExecutionResult(),
+        $result = new CompleteResult(
+            null,
+            [],
             new Context(),
             ['my-rule' => $rule],
-            [],
+            null,
         );
         self::assertSame($rule, $result->getValidationRule('my-rule'));
         self::assertNull($result->getValidationRule('Something'));
@@ -146,15 +156,16 @@ class GraphQlResultTest extends TestCase
 
     public function testGetExtension()
     {
-        $extension = $this->prophesize(ExecutionExtension::class)->reveal();
+        $extensionProhecy = $this->prophesize(ExecutionExtension::class);
+        $extensionProhecy->getName()->willReturn('my-extension');
+        $extension = $extensionProhecy->reveal();
 
-        $result = GraphqlResult::fromExecutionResult(
-            new ExecutionResult(),
+        $result = new CompleteResult(
+            null,
+            [],
             new Context(),
             [],
-            [
-                'my-extension' => $extension
-            ],
+            new Extensions($extension),
         );
         self::assertSame($extension, $result->getExtension('my-extension'));
         self::assertNull($result->getExtension('Something'));

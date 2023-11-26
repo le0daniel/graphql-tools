@@ -2,14 +2,17 @@
 
 namespace GraphQlTools\Helper\Extension;
 
-use Closure;
 use GraphQL\Error\DebugFlag;
+use GraphQlTools\Contract\ExecutionExtension;
+use GraphQlTools\Contract\Extension\InteractsWithFieldResolution;
 use GraphQlTools\Contract\ProvidesResultExtension;
 use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
 
-final class ActualCostExtension extends Extension implements ProvidesResultExtension
+final class ActualCostExtension implements ProvidesResultExtension, ExecutionExtension, InteractsWithFieldResolution
 {
     private const DEFAULT_MIN_QUERY_COST = 2;
+
+    private int $usedCost = 0;
 
     public function __construct(
         private readonly int $minQueryCost = self::DEFAULT_MIN_QUERY_COST,
@@ -17,17 +20,14 @@ final class ActualCostExtension extends Extension implements ProvidesResultExten
     {
     }
 
-    private int $usedCost = 0;
-
     public function key(): string
     {
         return 'actualCost';
     }
 
-    public function visitField(VisitFieldEvent $event): ?Closure
+    public function visitField(VisitFieldEvent $event): void
     {
         $this->usedCost += $event->info->fieldDefinition->config['cost'] ?? 0;
-        return null;
     }
 
     public function getCost(): int {
@@ -42,5 +42,20 @@ final class ActualCostExtension extends Extension implements ProvidesResultExten
     public function serialize(int $debug = DebugFlag::NONE): int
     {
         return $this->getCost();
+    }
+
+    public function priority(): int
+    {
+        return 100;
+    }
+
+    public function getName(): string
+    {
+        return ActualCostExtension::class;
+    }
+
+    public function isEnabled(): bool
+    {
+        return true;
     }
 }

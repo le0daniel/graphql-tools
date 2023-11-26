@@ -4,6 +4,7 @@ namespace GraphQlTools\Definition;
 
 use GraphQL\Language\DirectiveLocation;
 use GraphQL\Type\Definition\Directive;
+use GraphQlTools\Contract\FieldMiddleware;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\InputField;
@@ -20,6 +21,8 @@ abstract class GraphQlDirective extends TypeDefinition
             'args' => $this->initInputFields($registry),
             'isRepeatable' => $this->isRepeatable(),
             'locations' => $this->locations(),
+            'middleware' => $this instanceof FieldMiddleware ? $this::createMiddleware(...) : null,
+            'alias' => static::class,
         ]);
     }
 
@@ -48,7 +51,6 @@ abstract class GraphQlDirective extends TypeDefinition
     public function getName(): string {
         return Types::inferNameFromClassName(static::class);
     }
-
     protected function isRepeatable(): bool {
         return false;
     }

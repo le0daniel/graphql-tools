@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\Data\ValueObjects\Events;
 
+use GraphQL\Language\AST\DocumentNode;
 use GraphQlTools\Data\ValueObjects\Events\Event;
 use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Utility\Query;
@@ -13,9 +14,9 @@ final class StartEvent extends Event
 {
 
     protected function __construct(
-        public readonly string         $query,
-        public readonly GraphQlContext $context,
-        public readonly null|string    $operationName,
+        public readonly string|DocumentNode $query,
+        public readonly GraphQlContext      $context,
+        public readonly null|string         $operationName,
     )
     {
     }

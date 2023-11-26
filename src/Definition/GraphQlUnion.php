@@ -14,7 +14,6 @@ use GraphQlTools\Utility\Types;
 
 abstract class GraphQlUnion extends TypeDefinition
 {
-
     public function toDefinition(TypeRegistry $registry, SchemaRules $schemaRules): UnionType {
         return new UnionType([
             'name' => $this->getName(),
@@ -22,9 +21,15 @@ abstract class GraphQlUnion extends TypeDefinition
             'deprecationReason' => $this->deprecationReason(),
             'removalDate' => $this->removalDate(),
             'types' => fn() => array_map(fn(string $typeName) => $registry->type($typeName), $this->possibleTypes()),
-            'resolveType' => fn($_, OperationContext $context, $info) => $registry->type(
-                $this->resolveToType($_, $context->context, $info)
-            ),
+            'resolveType' => function($_, OperationContext $context, $info) use ($registry) {
+                $typeName = $context->getCache($info->path, $this->getName()) ?? $context->setCache(
+                    $info->path,
+                    $this->getName(),
+                    $this->resolveToType($_, $context->context, $info)
+                );
+
+                return $registry->type($typeName);
+            },
         ]);
     }
 

@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\Definition;
 
+use DateTimeInterface;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Utility\Descriptions;
 
@@ -18,7 +19,7 @@ abstract class TypeDefinition implements DefinesGraphQlType
         return null;
     }
 
-    protected function removalDate(): ?\DateTimeInterface
+    protected function removalDate(): ?DateTimeInterface
     {
         return null;
     }

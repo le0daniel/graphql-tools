@@ -2,7 +2,7 @@
 
 namespace GraphQlTools\Test\Dummies\Schema;
 
-use GraphQL\Type\Definition\Type;
+use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\GraphQlType;
@@ -18,7 +18,9 @@ final class DepthType extends GraphQlType
                 ->resolvedBy(fn() => 'just a string'),
             Field::withName('deeper')
                 ->ofType($registry->type(DepthType::class))
-                ->resolvedBy(fn() => 'some-data')
+                ->resolvedBy(function ($_, $__, $c, ResolveInfo $info): string {
+                    return 'some-data';
+                })
         ];
     }
 

@@ -26,7 +26,7 @@ final readonly class Middleware
      * @param array<callable(mixed, array, GraphQlContext, ResolveInfo, callable): mixed> $pipes
      * @return static
      */
-    public static function create(array $pipes): static
+    public static function create(array $pipes): Middleware
     {
         return new Middleware(...$pipes);
     }
@@ -37,6 +37,10 @@ final readonly class Middleware
      */
     public function then(Closure $middle): Closure
     {
+        if (empty($this->pipes)) {
+            return $middle;
+        }
+
         return array_reduce(
             array_reverse($this->pipes), $this->reducer(...), $middle,
         );

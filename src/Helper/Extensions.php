@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace GraphQlTools\Helper;
 
 use Closure;
+use GraphQlTools\Contract\Extension\InteractsWithFieldResolution;
+use GraphQlTools\Contract\Extension\ListensToLifecycleEvents;
 use GraphQlTools\Data\ValueObjects\Events\Event;
 use GraphQlTools\Contract\ExecutionExtension;
 use GraphQlTools\Contract\GraphQlContext;
@@ -16,26 +18,43 @@ use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
 /**
  * @internal
  */
-final readonly class Extensions
+class Extensions
 {
-    /** @var ExecutionExtension[] */
-    private array $extensions;
+    /** @var array<string, ExecutionExtension> */
+    private array $extensions = [];
+
+    /**
+     * @var array{lifecycleEvents: array<ListensToLifecycleEvents>, fieldResolution: array<InteractsWithFieldResolution>}
+     */
+    private array $registrations = [
+        'lifecycleEvents' => [],
+        'fieldResolution' => [],
+    ];
 
     public function __construct(ExecutionExtension ...$extensions)
     {
-        $this->extensions = $extensions;
+        foreach ($extensions as $extension) {
+            if ($extension instanceof ListensToLifecycleEvents) {
+                $this->registrations['lifecycleEvents'][] = $extension;
+            }
+            if ($extension instanceof InteractsWithFieldResolution) {
+                $this->registrations['fieldResolution'][] = $extension;
+            }
+
+            $this->extensions[$extension->getName()] = $extension;
+        }
     }
 
     /**
      * @return array<string, ExecutionExtension>
      */
-    public function getKeyedExtensions(): array
+    public function getExtensions(): array
     {
-        $keyedExtensions = [];
-        foreach ($this->extensions as $extension) {
-            $keyedExtensions[$extension->getName()] = $extension;
-        }
-        return $keyedExtensions;
+        return $this->extensions;
+    }
+
+    public function get(string $name): ?ExecutionExtension {
+        return $this->extensions[$name] ?? null;
     }
 
     /**
@@ -72,30 +91,19 @@ final readonly class Extensions
         return new self(...$instances);
     }
 
-    public function willResolveField(VisitFieldEvent $event): Closure
+    public function willResolveField(VisitFieldEvent $event): void
     {
-        $afterCallStack = [];
-
-        foreach ($this->extensions as $extension) {
-            if ($afterEvent = $extension->visitField($event)) {
-                array_unshift($afterCallStack, $afterEvent);
+        foreach ($this->registrations['fieldResolution'] as $extension) {
+            $extension->visitField($event);
+            if ($event->isStopped()) {
+                break;
             }
         }
-
-        return static function (mixed $resolvedValue) use (&$afterCallStack) {
-            foreach ($afterCallStack as $next) {
-                $next($resolvedValue);
-            }
-
-            // Extensions should not modify the resolved value, they can only read it.
-            // Use middlewares to actually change the behaviour
-            return $resolvedValue;
-        };
     }
 
     public function dispatch(Event $event): void
     {
-        foreach ($this->extensions as $extension) {
+        foreach ($this->registrations['lifecycleEvents'] as $extension) {
             match ($event::class) {
                 StartEvent::class => $extension->start($event),
                 ParsedEvent::class => $extension->parsed($event),

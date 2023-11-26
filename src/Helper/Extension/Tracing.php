@@ -6,6 +6,12 @@ namespace GraphQlTools\Helper\Extension;
 
 use Closure;
 use DateTimeImmutable;
+use GraphQL\Error\DebugFlag;
+use GraphQL\Language\AST\DocumentNode;
+use GraphQL\Language\Printer;
+use GraphQlTools\Contract\Extension\InteractsWithFieldResolution;
+use GraphQlTools\Contract\Extension\ListensToLifecycleEvents;
+use GraphQlTools\Contract\ProvidesResultExtension;
 use GraphQlTools\Data\ValueObjects\Tracing\ExecutionTrace;
 use GraphQlTools\Data\ValueObjects\Tracing\GraphQlError;
 use GraphQlTools\Data\ValueObjects\Tracing\ResolverTrace;
@@ -14,10 +20,10 @@ use GraphQlTools\Data\ValueObjects\Events\StartEvent;
 use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
 use GraphQlTools\Utility\Query;
 
-abstract class Tracing extends Extension
+class Tracing extends Extension implements InteractsWithFieldResolution, ProvidesResultExtension
 {
     private bool $isIntrospectionQuery = false;
-    private string $query;
+    private string|DocumentNode $query;
     private DateTimeImmutable $startDateTime;
 
     private int $startTimeInNanoseconds;
@@ -31,7 +37,7 @@ abstract class Tracing extends Extension
 
     public function priority(): int
     {
-        return -1;
+        return 1;
     }
 
     public function key(): string
@@ -49,12 +55,10 @@ abstract class Tracing extends Extension
         return true;
     }
 
-    abstract protected function storeTrace(ExecutionTrace $trace): void;
-
     public function toExecutionTrace(): ExecutionTrace
     {
         return new ExecutionTrace(
-            $this->query,
+            $this->queryAsString(),
             $this->startTimeInNanoseconds,
             $this->endTimeInNanoseconds,
             $this->resolverTraces,
@@ -63,12 +67,10 @@ abstract class Tracing extends Extension
         );
     }
 
-    /**
-     * @return array|null
-     */
-    public function jsonSerialize(): ?ExecutionTrace
-    {
-        return $this->toExecutionTrace();
+    private function queryAsString(): string {
+        return $this->query instanceof DocumentNode
+            ? Printer::doPrint($this->query)
+            : $this->query;
     }
 
     public function start(StartEvent $event): void
@@ -87,26 +89,22 @@ abstract class Tracing extends Extension
         }
     }
 
-    public function visitField(VisitFieldEvent $event): ?Closure
+    public function visitField(VisitFieldEvent $event): void
     {
         if ($this->isIntrospectionQuery) {
-            return null;
+            return;
         }
 
-        return function () use ($event) {
+        $event->then(function () use ($event) {
             $this->resolverTraces[] = ResolverTrace::fromEvent(
                 $event,
                 $this->startTimeInNanoseconds
             );
-        };
+        });
     }
 
-    public function __destruct()
+    public function serialize(int $debug = DebugFlag::NONE): mixed
     {
-        if (!isset($this->startTimeInNanoseconds) || $this->isIntrospectionQuery) {
-            return;
-        }
-
-        $this->storeTrace($this->toExecutionTrace());
+        return $this->toExecutionTrace();
     }
 }

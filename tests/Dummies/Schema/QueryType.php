@@ -75,11 +75,6 @@ final class QueryType extends GraphQlType
                 ->ofType($registry->string())
                 ->middleware(fn($a, $b, $c, $d, $next) => ($next(['middlewareWithoutResolver' => 'Default'], $b, $c, $d)). ' - this is the middle'),
 
-            Field::withName('testFieldMiddleware')
-                ->ofType($registry->nonNull($registry->string()))
-                ->middleware(Federation::field('currentUser'))
-                ->resolvedBy(fn(string $data): string => $data),
-
             Field::withName('middlewareWithPrimitiveBinding')
                 ->ofType($registry->string())
                 ->tags('private')
