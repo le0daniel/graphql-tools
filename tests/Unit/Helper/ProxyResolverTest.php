@@ -83,6 +83,7 @@ final class ProxyResolverTest extends TestCase {
         $context->isDeferred(['query', 1])->willReturn(false);
 
         $context->getContext()->willReturn($this->prophesize(GraphQlContext::class)->reveal());
+        $context->canDefer()->willReturn(true);
         $context->deferField(['query', 1], null, [])->shouldBeCalledOnce();
 
         $context->willResolveField(Argument::type(VisitFieldEvent::class))
@@ -101,6 +102,7 @@ final class ProxyResolverTest extends TestCase {
         $context->isInResult(['query', 1])->willReturn(false);
         $context->isDeferred(['query', 1])->willReturn(true);
         $context->popDeferred(['query', 1])->willReturn(['id' => 7]);
+        $context->canDefer()->willReturn(true);
 
         $context->getContext()->willReturn($this->prophesize(GraphQlContext::class)->reveal());
         $context->deferField(['query', 1], null, [])->shouldNotBeCalled();

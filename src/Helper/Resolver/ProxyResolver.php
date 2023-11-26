@@ -8,10 +8,7 @@ use Closure;
 use GraphQL\Executor\Executor;
 use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Type\Definition\ResolveInfo;
-use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
-use GraphQlTools\Helper\Context;
-use GraphQlTools\Helper\Extensions;
 use GraphQlTools\Helper\Middleware;
 use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Utility\Directives;
@@ -60,19 +57,19 @@ class ProxyResolver
      * @template T
      * @param T $typeData
      * @param array<string, mixed>|null $arguments
-     * @param OperationContext $operationContext
+     * @param OperationContext $context
      * @param ResolveInfo $info
      * @return mixed
      * @throws Throwable
      */
-    final public function __invoke(mixed $typeData, ?array $arguments, OperationContext $operationContext, ResolveInfo $info): mixed
+    final public function __invoke(mixed $typeData, ?array $arguments, OperationContext $context, ResolveInfo $info): mixed
     {
         /**
          * If the result has been cached previously, we get it from cache, skipping everything. This enables extensions to
          * collect data only once and not be run multiple times.
          */
-        if ($operationContext->isInResult($info->path)) {
-            return $operationContext->getFromResult($info->path);
+        if ($context->isInResult($info->path)) {
+            return $context->getFromResult($info->path);
         }
 
         // Ensure arguments are always an array, as the framework does not guarantee that
@@ -81,25 +78,25 @@ class ProxyResolver
         // We first verify if in a previous run this has been deferred
         // If this is the case, we mark it as hasBeenDeferred and take the type data
         // from the last run to ensure the resolver works as intended.
-        $hasBeenDeferred = $operationContext->isDeferred($info->path);
+        $hasBeenDeferred = $context->isDeferred($info->path);
         if ($hasBeenDeferred) {
-            $typeData = $operationContext->popDeferred($info->path);
+            $typeData = $context->popDeferred($info->path);
         }
 
         /** @var VisitFieldEvent $fieldResolution */
         $fieldResolution = VisitFieldEvent::create($typeData, $arguments, $info, $hasBeenDeferred);
-        $operationContext->willResolveField($fieldResolution);
+        $context->willResolveField($fieldResolution);
 
         // As the field has been deferred, we return null. If multiple runs are enabled, this will
         // result in the field being run next time. This can only happen once.
-        if ($fieldResolution->shouldDefer() && !$hasBeenDeferred) {
-            $operationContext->deferField($info->path, $fieldResolution->getDeferLabel(), $typeData);
+        if ($fieldResolution->shouldDefer() && $context->canDefer() && !$hasBeenDeferred) {
+            $context->deferField($info->path, $fieldResolution->getDeferLabel(), $typeData);
             return null;
         }
 
         // Hook after the field and all it's promises have been executed.
         // This is where extensions can hook in. They are though not allowed to manipulate the result.
-        $afterFieldResolution = static function (mixed $value) use ($fieldResolution, $operationContext): mixed {
+        $afterFieldResolution = static function (mixed $value) use ($fieldResolution, $context): mixed {
             return $fieldResolution->resolveValue($value);
         };
 
@@ -113,7 +110,7 @@ class ProxyResolver
             $promiseOrValue = $resolveFn(
                 $typeData,
                 $arguments,
-                $operationContext->getContext(),
+                $context->getContext(),
                 $info
             );
 

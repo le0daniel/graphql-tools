@@ -385,18 +385,19 @@ query {
     user { lazy @defer(label: "test") } 
 }
 GraphQl;
+        $results = iterator_to_array($this->executeStream($query));
+        self::assertCount(2, $results);
 
-        $count = 0;
-        foreach ($this->executeStream($query) as $result) {
-            $count++;
-            $this->assertNoErrors($result);
-            self::assertEquals($count < 2, $result->hasNext);
+        [$initial, $second] = $results;
 
-            if ($count === 2) {
-                /** @var PartialResult $result */
-                self::assertEquals("lazy-field", $result->data);
-                self::assertEquals(['user', 'lazy'], $result->path);
-            }
-        }
+        $this->assertNoErrors($initial);
+        $this->assertNoErrors($second);
+
+        self::assertTrue($initial->hasNext);
+        self::assertFalse($second->hasNext);
+
+        self::assertEquals(['user' => ['lazy' => null]], $initial->data);
+        self::assertEquals("lazy-field", $second->data);
+        self::assertEquals(['user', 'lazy'], $second->path);
     }
 }

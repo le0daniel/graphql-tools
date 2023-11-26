@@ -71,6 +71,10 @@ class OperationContext
         return $this->currentRun === 1;
     }
 
+    public function canDefer(): bool {
+        return $this->currentRun < $this->maxRuns;
+    }
+
     public function shouldRunAgain(): bool
     {
         return $this->currentRun < $this->maxRuns && !empty($this->deferred);

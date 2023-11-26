@@ -19,6 +19,7 @@ Main Features
   dependency directions in your code.
 - Type name aliases, so that you can either use type names of class names of types.
 - Lazy by default for best performance
+- Support for @defer for PHP using generators.
 
 ## Installation
 
@@ -471,7 +472,8 @@ $schemaRegistry->extend(
 Our approach allows to use classes, similar to types, that define type extensions.
 
 ClassName naming patterns for lazy registration to work correctly: `Extends[TypeOrInterfaceName](Type|Interface)`
-Examples: 
+Examples:
+
 - ExtendsQueryType => Extends the type with the name Query
 - ExtendsUserInterface => Extends the interface with the name User
 
@@ -583,6 +585,44 @@ $deprecationNotices = $result->getValidationRule(CollectDeprecatedFieldNotices::
 $application->logDeprecatedUsages($deprecationNotices->getMessages());
 
 $jsonResult = json_encode($result);
+```
+
+### Defer (@defer directive)
+
+You can use and enable @defer extension by adding `DeferExtension` to your Query executor. It is highly recommended to
+also add the `ValidateDeferUsageOnFields` validation rule to limit how many defers are allowed per query.
+
+To use it, behind the scenes, the query is run multiple times with cached results. This enables us to defer resolution
+of some fields to the consequent execution.
+
+```php
+use GraphQlTools\Helper\QueryExecutor;
+use GraphQlTools\Helper\Validation\ValidateDeferUsageOnFields;
+use GraphQlTools\Helper\Extension\DeferExtension;
+use GraphQlTools\Helper\Results\CompleteResult;
+use GraphQlTools\Helper\Results\PartialResult;
+use GraphQlTools\Helper\Results\PartialBatch;
+
+$executor = new QueryExecutor(
+    [fn() => new DeferExtension()],
+    [new ValidateDeferUsageOnFields(10)]
+);
+
+$generator = $executor->executeGenerator(/* ... */);
+
+/** @var CompleteResult|PartialResult $initialResult */
+$initialResult = $generator->current();
+/* SEND INITIAL RESPONSE */
+
+$generator->next();
+while ($result = $generator->current()) {
+    $generator->next();
+    
+    /** @var PartialResult|PartialBatch $result */
+    /* Send next chunk */
+}
+
+/* Close Response */
 ```
 
 ## ValidationRules
