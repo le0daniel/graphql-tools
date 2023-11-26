@@ -6,7 +6,6 @@ use Closure;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Definition\DefinitionException;
-use GraphQlTools\Helper\Resolver\MiddlewareResolver;
 use GraphQlTools\Helper\Resolver\ProxyResolver;
 
 
@@ -134,9 +133,7 @@ final class Field extends BaseProperties
      */
     public function toDefinition(SchemaRules $schemaRules): FieldDefinition
     {
-        $resolveFn = empty($this->middlewares)
-            ? new ProxyResolver($this->resolveFunction ?? null)
-            : new MiddlewareResolver($this->resolveFunction ?? null, $this->middlewares);
+        $resolveFn = new ProxyResolver($this->resolveFunction ?? null, $this->middlewares);
 
         $this->verifyTypeIsSet();
         return new FieldDefinition([
