@@ -4,6 +4,7 @@ namespace GraphQlTools\Helper;
 
 use Closure;
 use GraphQL\Validator\DocumentValidator;
+use GraphQL\Validator\Rules\QueryComplexity;
 use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Contract\ValidationRule\RequiresVariableValues;
@@ -12,6 +13,16 @@ use GraphQlTools\Utility\Debugging;
 
 final class ValidationRules
 {
+    private static array $defaultRules;
+
+    public static function setDefaultRules(array $defaultRules): void {
+        self::$defaultRules = $defaultRules;
+    }
+
+    public static function getDefaultRules(): array {
+        return self::$defaultRules ??= DocumentValidator::defaultRules();
+    }
+
     public function __construct(private readonly array $rules = [])
     {
     }
@@ -33,7 +44,7 @@ final class ValidationRules
 
     public static function initialize(GraphQlContext $context, array $rules, ?array $variableValues): self
     {
-        $initializedRules = DocumentValidator::defaultRules();
+        $initializedRules = self::getDefaultRules();
 
         foreach ($rules as $ruleOrFactory) {
             /** @var ValidationRule|null $rule */
@@ -50,6 +61,14 @@ final class ValidationRules
 
             if ($rule) {
                 $initializedRules[$rule->getName()] = $rule;
+            }
+        }
+
+        // We need to set the QueryComplexity variables
+        foreach ($initializedRules as $rule) {
+            if ($rule instanceof QueryComplexity) {
+                $rule->setRawVariableValues($variableValues);
+                break;
             }
         }
 

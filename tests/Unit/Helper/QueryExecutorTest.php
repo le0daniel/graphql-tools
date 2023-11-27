@@ -40,8 +40,11 @@ class QueryExecutorTest extends TestCase
         self::assertInstanceOf(QueryDepth::class, $validationResult->getRule(QueryDepth::class));
         self::assertCount(1, $validationResult->errors);
         self::assertSame($instance, $validationResult->getRule(QueryDepth::class));
-
         self::assertEquals('Max query depth should be 1 but got 2.',$result->errors[0]->getMessage());
+
+        // Test failed parsing
+        $validationResult = $queryExecutor->validateQuery($schema, 'query "{}');
+        self::assertTrue($validationResult->hasErrors());
     }
 
     public function testExecuteWithValidationRuleInstance()

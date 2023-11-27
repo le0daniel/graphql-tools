@@ -20,6 +20,12 @@ interface VisitField
 
     public function canDefer(): bool;
 
+    /**
+     * Propose to the Executor to defer execution of this field.
+     * The executor will make the final decision if it is allowed to be skipped for this run or not.
+     * @param string|null $label
+     * @return void
+     */
     public function defer(?string $label = null): void;
 
 }

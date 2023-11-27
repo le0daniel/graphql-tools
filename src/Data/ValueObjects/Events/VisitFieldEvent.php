@@ -8,7 +8,6 @@ use GraphQlTools\Contract\Events\VisitField as VisitFieldContract;
 
 /**
  * @internal
- * @method static create(mixed $typeData, array $arguments, ResolveInfo $resolveInfo, bool $canDefer): static
  */
 final class VisitFieldEvent extends Event implements VisitFieldContract
 {
@@ -17,13 +16,14 @@ final class VisitFieldEvent extends Event implements VisitFieldContract
     private bool $stopImmediatePropagation = false;
     private array $afterResolution = [];
 
-    protected function __construct(
+    public function __construct(
         public readonly mixed       $typeData,
         public readonly array       $arguments,
         public readonly ResolveInfo $info,
         private readonly bool       $canDefer,
     )
     {
+        parent::__construct();
     }
 
     public function stopImmediatePropagation(): void
@@ -86,12 +86,6 @@ final class VisitFieldEvent extends Event implements VisitFieldContract
         return $this->deferLabel;
     }
 
-    /**
-     * Propose to the Executor to defer execution of this field.
-     * The executor will make the final decision if it is allowed to be skipped or not.
-     * @param string|null $label
-     * @return void
-     */
     public function defer(?string $label = null): void
     {
         if ($this->canDefer()) {

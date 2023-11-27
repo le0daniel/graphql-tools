@@ -69,23 +69,30 @@ class QueryExecutor
      * Used to validate a query without running it. This is done be default when using execute.
      *
      * @param Schema $schema
-     * @param string $query
-     * @param GraphQlContext $context
+     * @param string|DocumentNode $query
+     * @param GraphQlContext|null $context
+     * @param array|null $variables
      * @return ValidationResult
-     * @throws DefinitionException
-     * @throws SyntaxError
-     * @throws JsonException
+     * @throws DefinitionException|JsonException
      */
     public function validateQuery(
-        Schema         $schema,
-        string         $query,
-        GraphQlContext $context = new Context(),
-        ?array         $variables = null,
+        Schema              $schema,
+        string|DocumentNode $query,
+        ?GraphQlContext     $context = null,
+        ?array              $variables = null,
     ): ValidationResult
     {
-        $source = Parser::parse($query);
+        $context ??= new class implements GraphQlContext {
+        };
         $validationRules = ValidationRules::initialize($context, $this->validationRules, $variables);
-        $validationErrors = DocumentValidator::validate($schema, $source, $validationRules->toArray());
+
+        try {
+            $source = $query instanceof DocumentNode ? $query : Parser::parse($query);
+            $validationErrors = DocumentValidator::validate($schema, $source, $validationRules->toArray());
+        } catch (SyntaxError $exception) {
+            $validationErrors = [$exception];
+        }
+
         return new ValidationResult($validationErrors, $validationRules);
     }
 
@@ -116,22 +123,22 @@ class QueryExecutor
         $extensions = Extensions::createFromExtensionFactories($context, $this->extensionFactories);
         $operationContext = new OperationContext($context, $extensions, $executor, $validationRules);
 
-        $extensions->dispatch(StartEvent::create($query, $context, $operationName));
+        $extensions->dispatch(new StartEvent($query, $context, $operationName));
 
         try {
             $source = $query instanceof DocumentNode ? $query : Parser::parse($query);
         } catch (SyntaxError $exception) {
-            $extensions->dispatch(EndEvent::create(new ExecutionResult(null, [$exception])));
+            $extensions->dispatch(new EndEvent(new ExecutionResult(null, [$exception])));
             yield CompleteResult::withErrorsOnly([$exception], $operationContext);
             return;
         }
 
-        $extensions->dispatch(ParsedEvent::create($source, $operationName));
+        $extensions->dispatch(new ParsedEvent($source, $operationName));
         $errors = DocumentValidator::validate($schema, $source, $validationRules->toArray());
-        $extensions->dispatch(ValidatedEvent::create($source, $errors));
+        $extensions->dispatch(new ValidatedEvent($source, $errors));
 
         if (!empty($errors)) {
-            $extensions->dispatch(EndEvent::create(new ExecutionResult(null, $errors)));
+            $extensions->dispatch(new EndEvent(new ExecutionResult(null, $errors)));
             yield CompleteResult::withErrorsOnly($errors, $operationContext);;
             return;
         }
@@ -154,7 +161,7 @@ class QueryExecutor
             // On the last run, extensions should be collected. And dispatch the complete result.
             // All Extensions get the complete result with all data, but without all errors at this time
             if (!$executor->hasDeferred()) {
-                $extensions->dispatch(EndEvent::create($executionResult));
+                $extensions->dispatch(new EndEvent($executionResult));
             }
 
             // We set the result data, so that fields are not resolved twice.
@@ -280,6 +287,4 @@ class QueryExecutor
             return $this->mapError($graphQlError);
         }, $errors);
     }
-
-
 }

@@ -66,7 +66,7 @@ class ProxyResolver
     {
         /**
          * If the result has been cached previously, we get it from cache, skipping everything. This enables extensions to
-         * collect data only once and not be run multiple times.
+         * collect data only once and not be run multiple times. This will skip all additional logic.
          */
         if ($context->executor->isInResult($info->path)) {
             return $context->executor->getFromResult($info->path);
@@ -84,7 +84,7 @@ class ProxyResolver
         }
 
         /** @var VisitFieldEvent $fieldResolution */
-        $fieldResolution = VisitFieldEvent::create(
+        $fieldResolution = new VisitFieldEvent(
             $typeData,
             $arguments,
             $info,

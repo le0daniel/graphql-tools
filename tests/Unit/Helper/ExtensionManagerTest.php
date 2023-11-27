@@ -58,8 +58,8 @@ class ExtensionManagerTest extends TestCase
 
     public function testExtensionsEventDispatching()
     {
-        $startEvent = StartEvent::create('', $this->prophesize(GraphQlContext::class)->reveal(), null);
-        $endEvent = EndEvent::create(new ExecutionResult(null));
+        $startEvent = new StartEvent('', $this->prophesize(GraphQlContext::class)->reveal(), null);
+        $endEvent = new EndEvent(new ExecutionResult(null));
 
         /** @var Extension|ObjectProphecy $extensionProphecy */
         $extensions = [];
@@ -116,7 +116,7 @@ class ExtensionManagerTest extends TestCase
         );
 
         /** @var VisitFieldEvent $event */
-        $extensions->willResolveField($event = VisitFieldEvent::create(
+        $extensions->willResolveField($event = new VisitFieldEvent(
             null, [], ResolveInfoDummy::withDefaults(), false, false
         ));
 

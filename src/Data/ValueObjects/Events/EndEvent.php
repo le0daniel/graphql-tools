@@ -5,16 +5,14 @@ namespace GraphQlTools\Data\ValueObjects\Events;
 use GraphQL\Executor\ExecutionResult;
 use GraphQlTools\Data\ValueObjects\Events\Event;
 
-/**
- * @method static create(ExecutionResult $result)
- */
 final class EndEvent extends Event
 {
 
-    protected function __construct(
+    public function __construct(
         public readonly ExecutionResult $result
     )
     {
+        parent::__construct();
     }
 
     public function hasErrors(): bool

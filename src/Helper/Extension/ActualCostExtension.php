@@ -7,7 +7,6 @@ use GraphQlTools\Contract\Events\VisitField;
 use GraphQlTools\Contract\ExecutionExtension;
 use GraphQlTools\Contract\Extension\InteractsWithFieldResolution;
 use GraphQlTools\Contract\ProvidesResultExtension;
-use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
 
 final class ActualCostExtension implements ProvidesResultExtension, ExecutionExtension, InteractsWithFieldResolution
 {

@@ -4,9 +4,6 @@ namespace GraphQlTools\Data\ValueObjects\Events;
 
 use GraphQL\Language\AST\DocumentNode;
 
-/**
- * @method static create(DocumentNode $source, string|null $operationName)
- */
 final class ParsedEvent extends Event
 {
     public function __construct(
@@ -14,5 +11,6 @@ final class ParsedEvent extends Event
         public readonly null|string  $operationName,
     )
     {
+        parent::__construct();
     }
 }

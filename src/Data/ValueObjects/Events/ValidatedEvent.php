@@ -4,9 +4,6 @@ namespace GraphQlTools\Data\ValueObjects\Events;
 
 use GraphQL\Language\AST\DocumentNode;
 
-/**
- * @method static create(DocumentNode $source, array $errors)
- */
 final class ValidatedEvent extends Event
 {
 
@@ -15,6 +12,7 @@ final class ValidatedEvent extends Event
         public readonly array        $errors,
     )
     {
+        parent::__construct();
     }
 
 }

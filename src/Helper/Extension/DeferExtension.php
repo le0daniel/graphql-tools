@@ -5,7 +5,6 @@ namespace GraphQlTools\Helper\Extension;
 use GraphQL\Executor\Values;
 use GraphQlTools\Contract\Events\VisitField;
 use GraphQlTools\Contract\Extension\InteractsWithFieldResolution;
-use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
 use GraphQlTools\Utility\Directives;
 
 class DeferExtension extends Extension implements InteractsWithFieldResolution

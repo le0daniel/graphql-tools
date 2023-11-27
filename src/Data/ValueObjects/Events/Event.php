@@ -11,11 +11,8 @@ abstract class Event
 {
     public readonly int $eventTimeInNanoSeconds;
 
-    public static function create(...$payload): static
+    public function __construct()
     {
-        $instance = new static(... $payload);
-        $instance->eventTimeInNanoSeconds = Time::nanoSeconds();
-        return $instance;
+        $this->eventTimeInNanoSeconds = Time::nanoSeconds();
     }
-
 }
