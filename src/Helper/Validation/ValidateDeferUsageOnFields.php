@@ -15,6 +15,8 @@ use GraphQlTools\Contract\ValidationRule\RequiresVariableValues;
 
 final class ValidateDeferUsageOnFields extends ValidationRule implements RequiresVariableValues
 {
+    private const DEFER_DIRECTIVE_NAME = 'defer';
+
     private int $usageCount;
     private ?array $variableValues;
 
@@ -72,9 +74,9 @@ final class ValidateDeferUsageOnFields extends ValidationRule implements Require
     {
         /** @var DirectiveNode $directive */
         foreach ($node->directives as $directive) {
-            if ($directive->name->value === 'defer') {
+            if ($directive->name->value === self::DEFER_DIRECTIVE_NAME) {
                 $arguments = Values::getDirectiveValues(
-                    $context->getSchema()->getDirective('defer'),
+                    $context->getSchema()->getDirective(self::DEFER_DIRECTIVE_NAME),
                     $node,
                     $this->variableValues
                 );
