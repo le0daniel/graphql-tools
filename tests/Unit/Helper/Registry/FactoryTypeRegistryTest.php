@@ -3,6 +3,7 @@
 namespace GraphQlTools\Test\Unit\Helper\Registry;
 
 use GraphQL\Type\Definition\Type;
+use GraphQL\Type\Schema;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
@@ -30,7 +31,10 @@ class FactoryTypeRegistryTest extends TestCase
             ['alias' => 'typeName']
         );
 
-        self::assertSame($registry->type('typeName')(), $registry->type('alias')());
+        self::assertSame(
+            Schema::resolveType($registry->type('typeName')),
+            Schema::resolveType($registry->type('alias'))
+        );
     }
 
     public function testVerifyAliasCollisions()

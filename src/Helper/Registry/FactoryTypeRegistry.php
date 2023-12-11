@@ -25,20 +25,18 @@ use GraphQlTools\Data\ValueObjects\GraphQlTypes;
 class FactoryTypeRegistry implements TypeRegistryContract
 {
     protected array $typeInstances = [];
-
     /**
-     * @param array<string, class-string<DefinesGraphQlType>|DefinesGraphQlType> $types
+     * @param array<string, class-string<DefinesGraphQlType>|DefinesGraphQlType> $typeFactories
      * @param array<string, string> $aliasesOfTypes
      * @param array<string, array<ExtendType|class-string>> $typeExtensions
      */
     public function __construct(
-        protected readonly array       $types,
+        protected readonly array       $typeFactories,
         protected readonly array       $aliasesOfTypes = [],
         protected readonly array       $typeExtensions = [],
         protected readonly SchemaRules $schemaRules = new AllVisibleSchemaRule()
     )
-    {
-    }
+    {}
 
     /**
      * @return void
@@ -46,7 +44,7 @@ class FactoryTypeRegistry implements TypeRegistryContract
     public function verifyAliasCollisions(): void
     {
         foreach ($this->aliasesOfTypes as $alias => $typeName) {
-            if (array_key_exists($alias, $this->types)) {
+            if (array_key_exists($alias, $this->typeFactories)) {
                 throw new RuntimeException("The alias `{$alias}` is used also as typename, which is invalid.");
             }
         }
@@ -108,7 +106,7 @@ class FactoryTypeRegistry implements TypeRegistryContract
 
     protected function createInstanceOfGraphQlType(string $typeName): DefinesGraphQlType
     {
-        $typeFactory = $this->types[$typeName] ?? null;
+        $typeFactory = $this->typeFactories[$typeName] ?? null;
 
         return match (true) {
             is_string($typeFactory) => new $typeFactory,
@@ -125,6 +123,11 @@ class FactoryTypeRegistry implements TypeRegistryContract
      */
     protected function createType(string $typeName): Type
     {
+        // We create the built-in types separately, as they can not be customized for now.
+        if (in_array($typeName, Type::BUILT_IN_TYPE_NAMES, true)) {
+            return Type::builtInTypes()[$typeName];
+        }
+
         $definesGraphQlType = $this->createInstanceOfGraphQlType($typeName);
 
         return match (true) {
@@ -158,26 +161,31 @@ class FactoryTypeRegistry implements TypeRegistryContract
 
     public function int(): ScalarType
     {
-        return Type::int();
+        /** @var ScalarType */
+        return $this->getType(Type::INT);
     }
 
     public function float(): ScalarType
     {
-        return Type::float();
+        /** @var ScalarType */
+        return $this->getType(Type::FLOAT);
     }
 
     public function string(): ScalarType
     {
-        return Type::string();
+        /** @var ScalarType */
+        return $this->getType(Type::STRING);
     }
 
     public function id(): ScalarType
     {
-        return Type::id();
+        /** @var ScalarType */
+        return $this->getType(Type::ID);
     }
 
     public function boolean(): ScalarType
     {
-        return Type::boolean();
+        /** @var ScalarType */
+        return $this->getType(Type::BOOLEAN);
     }
 }
