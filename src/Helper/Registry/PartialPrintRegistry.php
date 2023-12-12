@@ -108,7 +108,7 @@ final class PartialPrintRegistry extends FactoryTypeRegistry
             throw new RuntimeException("You can only use this before any type is initialized. Otherwise side effects occur.");
         }
 
-        foreach (array_keys($this->types) as $name) {
+        foreach (array_keys($this->typeFactories) as $name) {
             // We initialize all types and get their interfaces to ensure type hints are given.
             $type = $this->type($name)();
             if ($type instanceof ObjectType) {
@@ -118,7 +118,7 @@ final class PartialPrintRegistry extends FactoryTypeRegistry
         $this->typeInstances = [];
         $this->partialMocks = [];
 
-        return array_map($this->resolveAliasToName(...), array_keys($this->types));
+        return array_map($this->resolveAliasToName(...), array_keys($this->typeFactories));
     }
 
     protected function resolveAliasToName(string $nameOrAlias): string
