@@ -36,9 +36,9 @@ use Throwable;
 
 class QueryExecutor
 {
-    public const DEFAULT_MAX_DEFERRED_RUNS = 10;
+    public const DEFAULT_MAX_DEFERRED_RUNS = 5;
 
-    public const DEFAULT_CONTEXTUAL_VALIDATION_RULE = [
+    public const DEFAULT_VALIDATION_RULE = [
         CollectDeprecatedFieldNotices::class
     ];
 
@@ -58,7 +58,7 @@ class QueryExecutor
      */
     public function __construct(
         private readonly array    $extensionFactories = [],
-        private readonly array    $validationRules = self::DEFAULT_CONTEXTUAL_VALIDATION_RULE,
+        private readonly array    $validationRules = self::DEFAULT_VALIDATION_RULE,
         private readonly ?Closure $errorLogger = null,
         private readonly ?Closure $errorMapper = null,
     )
@@ -79,7 +79,7 @@ class QueryExecutor
         Schema              $schema,
         string|DocumentNode $query,
         ?GraphQlContext     $context = null,
-        ?array              $variables = null,
+        array               $variables = [],
     ): ValidationResult
     {
         $context ??= new class implements GraphQlContext {
@@ -107,6 +107,7 @@ class QueryExecutor
      * @return Generator<CompleteResult|PartialResult|PartialBatch>
      * @throws DefinitionException
      * @throws JsonException
+     * @throws \Exception
      */
     public function executeGenerator(
         Schema              $schema,
@@ -154,6 +155,7 @@ class QueryExecutor
                 variableValues: $variables ?? [],
                 operationName: $operationName,
                 fieldResolver: static fn() => throw new RuntimeException("A field was provided that did not include the proxy resolver. This might break extensions and produce unknown side-effects. Did you use the field builder everywhere?"),
+                // As we validate the query beforehand, we pass an empty array to avoid double validation.
                 validationRules: [],
             );
             $executor->stop();
@@ -184,6 +186,11 @@ class QueryExecutor
     {
         $batch = [];
 
+        /**
+         * @var int $index
+         * @var array<string|int> $path
+         * @var ?string $label
+         */
         foreach ($deferred as $index => [$path, $label]) {
             $hasNext = $operationContext->executor->hasDeferred() || ($index + 1) !== count($deferred);
             $batch[] = PartialResult::part(
