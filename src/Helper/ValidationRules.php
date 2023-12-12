@@ -15,6 +15,11 @@ final class ValidationRules
 {
     private static array $defaultRules;
 
+    /**
+     * Set the default rules
+     * @param array $defaultRules
+     * @return void
+     */
     public static function setDefaultRules(array $defaultRules): void {
         self::$defaultRules = $defaultRules;
     }
@@ -25,11 +30,6 @@ final class ValidationRules
 
     public function __construct(private readonly array $rules = [])
     {
-    }
-
-    public static function empty(): array
-    {
-        return [];
     }
 
     public function toArray(): array
