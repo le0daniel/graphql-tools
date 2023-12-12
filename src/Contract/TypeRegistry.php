@@ -20,7 +20,11 @@ interface TypeRegistry
      * @return Closure(): Type|Type
      */
     public function type(string $nameOrAlias, ?GraphQlTypes $typeHint = null): Closure|Type;
+
+    /** @deprecated Wrapping should not depend on the Framework, use `Type::nonNull(...)` or `new NonNull(...)` */
     public function nonNull(Type|Closure $wrappedType): NonNull;
+
+    /** @deprecated Wrapping should not depend on the Framework, `Type::listOf(...)` or `new ListOfType(...)` */
     public function listOf(Type|Closure $wrappedType): ListOfType;
     public function int(): ScalarType;
     public function float(): ScalarType;
