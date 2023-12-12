@@ -211,6 +211,14 @@ class SchemaRegistry
         );
     }
 
+    /**
+     * @deprecated This is experimental and will change.
+     * @param SchemaRules|null $schemaRules
+     * @return string
+     * @throws \GraphQL\Error\Error
+     * @throws \GraphQL\Error\SerializationError
+     * @throws \JsonException
+     */
     public function printPartial(?SchemaRules $schemaRules = null): string
     {
         $aliases = $this->createAliases();
