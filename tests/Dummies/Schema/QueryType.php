@@ -66,6 +66,10 @@ final class QueryType extends GraphQlType
                     return 'Hello World!';
                 }),
 
+            Field::withName('methods')
+                ->ofType($registry->type(MethodsType::class))
+                ->resolvedBy(fn() => 'some data'),
+
             Field::withName('isHiddenDynamically')
                 ->ofType($registry->string())
                 ->visible(fn(): bool => false)

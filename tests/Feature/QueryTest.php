@@ -180,6 +180,13 @@ class QueryTest extends TestCase
         self::assertEquals('passed', $result->data['stitchedByClassName']);
     }
 
+    public function testMethodsDefinitionOfFields(): void
+    {
+        $result = $this->execute('query { methods { testField } }');
+        $this->assertNoErrors($result);
+        self::assertEquals('This is a testField', $result->data['methods']['testField']);
+    }
+
     public function testFieldExecutionWithArguments(): void
     {
         $result = $this->execute('query { currentUser(name: "Doris") }');

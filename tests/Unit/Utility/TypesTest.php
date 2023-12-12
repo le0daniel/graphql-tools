@@ -36,6 +36,13 @@ class TypesTest extends TestCase
         self::assertEquals('Animal', Types::inferExtensionTypeName('Some\\ExtendsAnimalInterface'));
     }
 
+    public function testParseName(): void {
+        self::assertEquals(['Name', []], Types::parseGraphQlTypeDefinition('Name'));
+        self::assertEquals(['Name', ['NonNull']], Types::parseGraphQlTypeDefinition('Name!'));
+        self::assertEquals(['Name', ['NonNull', 'List']], Types::parseGraphQlTypeDefinition('[Name]!'));
+        self::assertEquals(['Name', ['NonNull', 'List', 'NonNull']], Types::parseGraphQlTypeDefinition('[Name!]!'));
+    }
+
     /**
      * @param string $className
      * @param string $message

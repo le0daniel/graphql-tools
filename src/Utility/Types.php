@@ -16,6 +16,44 @@ final class Types
     private const DIRECTIVE_NAME_ENDING = 'Directive';
     private const EXTENDS_NAME_PREFIX = 'Extends';
 
+    /**
+     * @param string $name
+     * @return array{0: string, 1: array<string>}
+     * @throws DefinitionException
+     */
+    public static function parseGraphQlTypeDefinition(string $name): array {
+        $decorators = [];
+        while (self::containsDecorator($name)) {
+            [$name, $decorator] = self::popDecorator($name);
+            $decorators[] = $decorator;
+        }
+
+        return [$name, $decorators];
+    }
+
+    /**
+     * @throws DefinitionException
+     */
+    private static function popDecorator(string $name): array {
+        if (str_ends_with($name, '!')) {
+            return [substr($name, 0, -1), 'NonNull'];
+        }
+
+        if (str_ends_with($name, ']') && str_starts_with($name, '[')) {
+            return [substr($name, 1, -1), 'List'];
+        }
+
+        throw new DefinitionException("Expected valid graphql type string, got: '{$name}'");
+    }
+
+    private static function containsDecorator(string $name): bool {
+        return match (true) {
+            str_ends_with($name, '!') => true,
+            str_starts_with($name, '[') && str_ends_with($name, ']') => true,
+            default => false
+        };
+    }
+
     public static function inferNameFromClassName(string $className): string
     {
         $parts = explode('\\', $className);
