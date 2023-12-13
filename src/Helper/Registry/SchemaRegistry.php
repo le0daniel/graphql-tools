@@ -63,6 +63,14 @@ class SchemaRegistry
     }
 
     /**
+     * @throws DefinitionException
+     */
+    public function registerFromTypeMap(array $types, array $extensions): void {
+        $this->registerTypes($types);
+        $this->extendMany($extensions);
+    }
+
+    /**
      * @param array $types
      * @return void
      * @throws DefinitionException
@@ -79,6 +87,15 @@ class SchemaRegistry
         $this->eagerlyLoadedTypes[] = $typeNameOrAlias;
     }
 
+    /**
+     * Extend a type or interface. If no name is provided, the name is inferred from the
+     * classname.
+     *
+     * @param ExtendType|string $extendedType
+     * @param string|null $extendedTypeName
+     * @return void
+     * @throws DefinitionException
+     */
     public function extend(ExtendType|string $extendedType, ?string $extendedTypeName = null): void
     {
         $extendedTypeName ??= $extendedType instanceof ExtendType
@@ -93,6 +110,11 @@ class SchemaRegistry
         $this->typeFieldExtensions[$extendedTypeName][] = $extendedType;
     }
 
+    /**
+     * @param array $extensions
+     * @return void
+     * @throws DefinitionException
+     */
     public function extendMany(array $extensions): void
     {
         foreach ($extensions as $typeName => $definitions) {

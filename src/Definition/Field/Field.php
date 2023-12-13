@@ -129,16 +129,13 @@ final class Field extends BaseProperties
      * @return FieldDefinition
      * @throws DefinitionException
      * @internal
-     * @internal
      */
     public function toDefinition(SchemaRules $schemaRules): FieldDefinition
     {
-        $resolveFn = new ProxyResolver($this->resolveFunction ?? null, $this->middlewares);
-
         $this->verifyTypeIsSet();
         return new FieldDefinition([
             'name' => $this->name,
-            'resolve' => $resolveFn,
+            'resolve' => new ProxyResolver($this->resolveFunction ?? null, $this->middlewares),
             'type' => $this->ofType,
             'deprecationReason' => $this->deprecationReason,
             'removalDate' => $this->removalDate,

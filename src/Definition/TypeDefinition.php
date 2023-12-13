@@ -8,11 +8,9 @@ use GraphQlTools\Utility\Descriptions;
 
 abstract class TypeDefinition implements DefinesGraphQlType
 {
-    /**
-     * Description of the type
-     * @return string
-     */
-    abstract protected function description(): string;
+    protected function description(): string {
+        return '';
+    }
 
     protected function deprecationReason(): ?string
     {
