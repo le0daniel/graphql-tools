@@ -40,6 +40,11 @@ abstract class GraphQlUnion extends TypeDefinition
         return Types::inferNameFromClassName(static::class);
     }
 
+    /**
+     * Return an array of type name (or aliases). They will be resolved
+     * by the type registry.
+     * @return array<string>
+     */
     abstract protected function possibleTypes(): array;
 
 }
