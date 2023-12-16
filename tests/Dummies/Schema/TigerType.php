@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GraphQlTools\Test\Dummies\Schema;
 
 use Exception;
+use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Contract\TypeRegistry;
@@ -18,7 +19,7 @@ final class TigerType extends GraphQlType {
     protected function fields(TypeRegistry $registry): array {
         return [
             Field::withName('sound')
-                ->ofType($registry->nonNull($registry->string()))
+                ->ofType(new NonNull($registry->string()))
                 ->resolvedBy(fn(array $data) => $data['sound']),
 
             Field::withName('withArg')

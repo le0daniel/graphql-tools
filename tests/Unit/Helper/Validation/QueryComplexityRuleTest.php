@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\Test\Unit\Helper\Validation;
 
+use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Schema;
 use GraphQL\Validator\Rules\QueryComplexity;
 use GraphQlTools\Contract\TypeRegistry;
@@ -36,7 +37,7 @@ class QueryComplexityRuleTest extends TestCase
                     Field::withName('multiplied')
                         ->withArguments(
                             InputField::withName('limit')
-                                ->ofType($registry->nonNull($registry->int()))
+                                ->ofType(new NonNull($registry->int()))
                         )
                         ->ofType($registry->type('User'))
                         ->resolvedBy(fn() => 'something')
@@ -44,7 +45,7 @@ class QueryComplexityRuleTest extends TestCase
                     Field::withName('multipliedZero')
                         ->withArguments(
                             InputField::withName('limit')
-                                ->ofType($registry->nonNull($registry->int()))
+                                ->ofType(new NonNull($registry->int()))
                         )
                         ->ofType($registry->type('User'))
                         ->resolvedBy(fn() => 'something')

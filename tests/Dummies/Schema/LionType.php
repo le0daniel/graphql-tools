@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GraphQlTools\Test\Dummies\Schema;
 
 use DateTime;
+use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Contract\TypeRegistry;
@@ -18,14 +19,14 @@ final class LionType extends GraphQlType {
     protected function fields(TypeRegistry $registry): array {
         return [
             Field::withName('sound')
-                ->ofType($registry->nonNull($registry->string()))
+                ->ofType(new NonNull($registry->string()))
                 ->middleware(
                     fn(array $data, $args, $context, $info, $next) => $next($data['sound'] ?? '', $args, $context, $info)
                 )
                 ->resolvedBy(fn(string $sound) => $sound),
 
             Field::withName('fieldWithMeta')
-                ->ofType($registry->nonNull($registry->string()))
+                ->ofType(new NonNull($registry->string()))
                 ->resolvedBy(function ($value, $args, $context, ResolveInfo $resolveInfo) {
                     return "Tags are: " . implode(', ', $resolveInfo->fieldDefinition->config['tags'] ?? []);
                 })

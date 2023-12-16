@@ -23,25 +23,17 @@ class GraphQlTypeTest extends TestCase
         $this->registry = $this->prophesize(TypeRegistry::class);
     }
 
-    private function instance(Closure $fields, array $interfaces = []): GraphQlType {
-        return new class ($fields, $interfaces) extends GraphQlType {
-            public function __construct(private readonly Closure $fields, private readonly array $interfaces)
-            {
-            }
-
+    public function testToDefinition()
+    {
+        $instance = new class extends GraphQlType {
             protected function fields(TypeRegistry $registry): array
             {
-                return ($this->fields)($registry);
-            }
-
-            protected function interfaces(): array
-            {
-                return $this->interfaces;
-            }
-
-            protected function description(): string
-            {
-                return 'some description';
+                return [
+                    Field::withName('id')
+                        ->ofType(Type::id()),
+                    Field::withName('lazy')
+                        ->ofType(Type::id()),
+                ];
             }
 
             public function getName(): string
@@ -49,25 +41,10 @@ class GraphQlTypeTest extends TestCase
                 return 'Name';
             }
         };
-    }
-
-    public function testToDefinition()
-    {
-        $definition = $this->instance(fn(TypeRegistry $registry) => [
-            Field::withName('id')
-                ->ofType(Type::id()),
-            Field::withName('lazy')
-                ->ofType(Type::id()),
-        ])->toDefinition($this->registry->reveal(), new AllVisibleSchemaRule());
+        $definition = $instance->toDefinition($this->registry->reveal(), new AllVisibleSchemaRule());
 
         $definition->assertValid();
         self::assertTrue(true);
-    }
-
-    public function testTypeName()
-    {
-        self::assertEquals(
-            'Name', $this->instance(fn() => [])->getName()
-        );
+        self::assertEquals('Name', $instance->getName());
     }
 }

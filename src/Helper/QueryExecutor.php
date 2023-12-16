@@ -22,6 +22,8 @@ use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Data\ValueObjects\Events\ParsedEvent;
 use GraphQlTools\Data\ValueObjects\Events\StartEvent;
 use GraphQlTools\Data\ValueObjects\Events\EndEvent;
+use GraphQlTools\Helper\Cache\ExecutionCache;
+use GraphQlTools\Helper\Cache\NoCache;
 use GraphQlTools\Helper\Extension\Extension;
 use GraphQlTools\Helper\Results\CompleteResult;
 use GraphQlTools\Helper\Results\PartialBatch;
@@ -71,9 +73,10 @@ class QueryExecutor
      * @param Schema $schema
      * @param string|DocumentNode $query
      * @param GraphQlContext|null $context
-     * @param array|null $variables
+     * @param array $variables
      * @return ValidationResult
-     * @throws DefinitionException|JsonException
+     * @throws DefinitionException
+     * @throws JsonException
      */
     public function validateQuery(
         Schema              $schema,
@@ -122,7 +125,13 @@ class QueryExecutor
         $executor = new ExecutionManager($maxRuns);
         $validationRules = ValidationRules::initialize($context, $this->validationRules, $variables);
         $extensions = Extensions::createFromExtensionFactories($context, $this->extensionFactories);
-        $operationContext = new OperationContext($context, $extensions, $executor, $validationRules);
+        $operationContext = new OperationContext(
+            $context,
+            $extensions,
+            $executor,
+            $validationRules,
+            $maxRuns === 1 ? new NoCache() : new ExecutionCache(),
+        );
 
         $extensions->dispatch(new StartEvent($query, $context, $operationName));
 
@@ -160,15 +169,15 @@ class QueryExecutor
             );
             $executor->stop();
 
-            // On the last run, extensions should be collected. And dispatch the complete result.
-            // All Extensions get the complete result with all data, but without all errors at this time
             if (!$executor->hasDeferred()) {
+                // On the last run, extensions should be collected. And dispatch the complete result.
+                // All Extensions get the complete result with all data, but without all errors at this time
                 $extensions->dispatch(new EndEvent($executionResult));
+            } else {
+                // We set the result data, so that fields are not resolved twice.
+                // If the data is present in the result and not deferred, we directly return the data.
+                $operationContext->cache->setResult($executionResult->data);
             }
-
-            // We set the result data, so that fields are not resolved twice.
-            // If the data is present in the result and not deferred, we directly return the data.
-            $executor->setResult($executionResult->data);
 
             // The initial result is different from consecutive results
             // If complete, the first part is a complete result, otherwise

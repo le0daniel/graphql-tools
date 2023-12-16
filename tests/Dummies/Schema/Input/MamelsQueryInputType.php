@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\Test\Dummies\Schema\Input;
 
+use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\InputField;
@@ -19,7 +20,7 @@ class MamelsQueryInputType extends GraphQlInputType
     {
         return [
             InputField::withName('name')
-                ->ofType($registry->nonNull($registry->string()))
+                ->ofType(new NonNull($registry->string()))
                 ->deprecated('my reason')
         ];
     }

@@ -9,7 +9,6 @@ use GraphQlTools\Definition\Field\InputField;
 
 final class AllVisibleSchemaRule implements SchemaRules
 {
-
     public function isVisible(EnumValue|Field|InputField $item): bool
     {
         return true;

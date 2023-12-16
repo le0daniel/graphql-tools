@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace GraphQlTools\Test\Dummies\Schema;
 
+use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
@@ -19,7 +20,7 @@ final class UserType extends GraphQlType {
                 ->resolvedBy(fn($data) => $data['id']),
 
             Field::withName('name')
-                ->ofType($registry->nonNull($registry->string()))
+                ->ofType(new NonNull($registry->string()))
                 ->withArguments(
                     InputField::withName('name')->ofType( $registry->string())
                 )

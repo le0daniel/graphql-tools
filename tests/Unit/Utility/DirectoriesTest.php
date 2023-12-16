@@ -22,6 +22,7 @@ class DirectoriesTest extends TestCase
             'ContextTest.php',
             'DataLoader/CachedDataLoaderTest.php',
             'DataLoaderTest.php',
+            'ExecutionCacheTest.php',
             'ExecutionManagerTest.php',
             'ExtensionManagerTest.php',
             'MiddlewareTest.php',

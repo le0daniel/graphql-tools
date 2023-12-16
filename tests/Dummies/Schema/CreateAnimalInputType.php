@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\Test\Dummies\Schema;
 
+use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\Type;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\InputField;
@@ -14,7 +15,7 @@ class CreateAnimalInputType extends GraphQlInputType
     {
         return [
             InputField::withName('id')
-                ->ofType($registry->nonNull($registry->id()))
+                ->ofType(new NonNull($registry->id()))
                 ->withDefaultValue('My-ID')
         ];
     }

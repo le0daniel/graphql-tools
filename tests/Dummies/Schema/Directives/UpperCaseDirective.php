@@ -4,6 +4,7 @@ namespace GraphQlTools\Test\Dummies\Schema\Directives;
 
 use Closure;
 use GraphQL\Language\DirectiveLocation;
+use GraphQL\Type\Definition\NonNull;
 use GraphQlTools\Contract\FieldMiddleware;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\InputField;
@@ -15,7 +16,7 @@ final class UpperCaseDirective extends GraphQlDirective implements FieldMiddlewa
     {
         return [
             InputField::withName('if')
-                ->ofType($registry->nonNull($registry->boolean()))
+                ->ofType(new NonNull($registry->boolean()))
                 ->withDefaultValue(true)
         ];
     }

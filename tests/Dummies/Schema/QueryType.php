@@ -116,7 +116,7 @@ final class QueryType extends GraphQlType
                 ),
 
             Field::withName('user')
-                ->ofType($registry->nonNull($registry->type(UserType::class)))
+                ->ofType(new NonNull($registry->type(UserType::class)))
                 ->resolvedBy(fn() => ['id' => QueryType::USER_ID]),
 
             Field::withName('jsonInput')
@@ -134,9 +134,9 @@ final class QueryType extends GraphQlType
 
             Field::withName('animals')
                 ->ofType(
-                    $registry->nonNull(
-                        $registry->listOf(
-                            $registry->nonNull(
+                    new NonNull(
+                        new ListOfType(
+                            new NonNull(
                                 $registry->type(AnimalUnion::class)
                             )
                         )

@@ -68,8 +68,9 @@ class ProxyResolver
          * If the result has been cached previously, we get it from cache, skipping everything. This enables extensions to
          * collect data only once and not be run multiple times. This will skip all additional logic.
          */
-        if ($context->executor->isInResult($info->path)) {
-            return $context->executor->getFromResult($info->path);
+        $hasBeenDeferred = $context->executor->isDeferred($info->path);
+        if (!$hasBeenDeferred && $context->cache->isInResult($info->path)) {
+            return $context->cache->getFromResult($info->path);
         }
 
         // Ensure arguments are always an array, as the framework does not guarantee that
@@ -78,12 +79,10 @@ class ProxyResolver
         // We first verify if in a previous run this has been deferred
         // If this is the case, we mark it as hasBeenDeferred and take the type data
         // from the last run to ensure the resolver works as intended.
-        $hasBeenDeferred = $context->executor->isDeferred($info->path);
         if ($hasBeenDeferred) {
             $typeData = $context->executor->popDeferred($info->path);
         }
 
-        /** @var VisitFieldEvent $fieldResolution */
         $fieldResolution = new VisitFieldEvent(
             $typeData,
             $arguments,

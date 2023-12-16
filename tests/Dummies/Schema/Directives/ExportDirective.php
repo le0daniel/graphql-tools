@@ -3,6 +3,7 @@
 namespace GraphQlTools\Test\Dummies\Schema\Directives;
 
 use GraphQL\Language\DirectiveLocation;
+use GraphQL\Type\Definition\NonNull;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlDirective;
@@ -13,7 +14,7 @@ final class ExportDirective extends GraphQlDirective
     {
         return [
             InputField::withName('as')
-                ->ofType($registry->nonNull($registry->string()))
+                ->ofType(new NonNull($registry->string()))
                 ->withDescription('The key of the variable to export.'),
             InputField::withName('isList')
                 ->ofType($registry->boolean()),

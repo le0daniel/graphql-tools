@@ -13,7 +13,6 @@ use GraphQL\Type\Definition\ResolveInfo;
  */
 interface VisitField
 {
-
     public function stopImmediatePropagation(): void;
 
     public function then(Closure $afterResolution): void;
@@ -27,5 +26,4 @@ interface VisitField
      * @return void
      */
     public function defer(?string $label = null): void;
-
 }

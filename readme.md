@@ -186,6 +186,7 @@ You can overwrite this behaviour by overwriting the getName function.
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
+use GraphQL\Type\Definition\NonNull;
 
 class QueryType extends GraphQlType {
 
@@ -195,7 +196,7 @@ class QueryType extends GraphQlType {
     protected function fields(TypeRegistry $registry) : array {
         return [
             Field::withName('currentUser')
-                ->ofType($registry->nonNull($registry->string()))
+                ->ofType(new NonNull($registry->string()))
                 ->resolvedBy(fn(array $user) => $user['name']),
             // More fields
         ];
@@ -244,11 +245,13 @@ In its simplest form:
 
 ```php
 use GraphQlTools\Definition\Field\Field;
+use GraphQL\Type\Definition\NonNull;
+use GraphQL\Type\Definition\ListOfType;
 /** @var \GraphQlTools\Contract\TypeRegistry $registry */
 
 // In type Animal
-Field::withName('myField')->ofType($registry->nonNull($registry->id()));
-Field::withName('myOtherField')->ofType($registry->listOf($registry->type('Other')));
+Field::withName('myField')->ofType(new NonNull($registry->id()));
+Field::withName('myOtherField')->ofType(new ListOfType($registry->type('Other')));
 
 // Results in GraphQL
 // type Animal {
@@ -265,6 +268,7 @@ Broader Usage:
     use GraphQlTools\Contract\TypeRegistry;
     use GraphQlTools\Definition\Field\Field;
     use GraphQL\Type\Definition\ResolveInfo;
+    use GraphQL\Type\Definition\NonNull;
     
     
     final class AnimalType extends GraphQlType {
@@ -297,7 +301,7 @@ Broader Usage:
                     ->withArguments(
                         // Define named arguments, works for all fields
                         InputField::withName('name')
-                            ->ofType($registry->nonNull($registry->string()))
+                            ->ofType(new NonNull($registry->string()))
                             ->withDefaultValue('Anonymous')
                             ->withDescription('My Description')
                     )
@@ -318,11 +322,12 @@ Creating reusable fields are easy. Create a function or method that returns a fi
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\GraphQlType;
+use GraphQL\Type\Definition\NonNull;
 
 class ReusableFields {
     public static function id(TypeRegistry $registry): Field {
         return Field::withName('id')
-            ->ofType($registry->nonNull($registry->id()))
+            ->ofType(new NonNull($registry->id()))
             ->withDescription('Globally unique identifier.')
             ->resolvedBy(fn(Identifiable $data): string => $data->globallyUniqueId());
     }

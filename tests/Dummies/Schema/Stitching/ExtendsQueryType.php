@@ -2,6 +2,7 @@
 
 namespace GraphQlTools\Test\Dummies\Schema\Stitching;
 
+use GraphQL\Type\Definition\NonNull;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Extending\ExtendGraphQlType;
 use GraphQlTools\Definition\Field\Field;
@@ -13,7 +14,7 @@ final class ExtendsQueryType extends ExtendGraphQlType
     {
         return [
             Field::withName('stitchedByClassName')
-                ->ofType($registry->nonNull($registry->string()))
+                ->ofType(new NonNull($registry->string()))
                 ->resolvedBy(fn() => 'passed'),
         ];
     }

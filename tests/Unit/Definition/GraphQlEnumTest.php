@@ -15,11 +15,15 @@ class GraphQlEnumTest extends TestCase
 {
     use ProphecyTrait;
 
-    private function instance(array|string $values, string $description): GraphQlEnum {
-        return new class ($values, $description) extends GraphQlEnum {
+    private function instance(array|string $values): GraphQlEnum
+    {
+        $instance = new class () extends GraphQlEnum {
+            private readonly array|string $values;
 
-            public function __construct(private readonly array|string $values, private readonly string $description)
+            public function setValuesOnce(array|string $values): self
             {
+                $this->values = $values;
+                return $this;
             }
 
             protected function values(): array|string
@@ -27,32 +31,29 @@ class GraphQlEnumTest extends TestCase
                 return $this->values;
             }
 
-            protected function description(): string
-            {
-                return $this->description;
-            }
-
             public function getName(): string
             {
                 return 'Name';
             }
         };
+        return $instance->setValuesOnce($values);
     }
 
     /**
      * @dataProvider toDefinitionDataProvider
      */
-    public function testToDefinition(array|string $values , ?string $description = null)
+    public function testToDefinition(array|string $values)
     {
         $description ??= 'some description';
-        $instance = $this->instance($values, $description);
+        $instance = $this->instance($values);
         $definition = $instance->toDefinition($this->prophesize(TypeRegistry::class)->reveal(), new AllVisibleSchemaRule());
         $definition->assertValid();
 
-        self::assertEquals($description, $definition->description);
+        self::assertEquals('', $definition->description);
     }
 
-    public function toDefinitionDataProvider(): array {
+    public function toDefinitionDataProvider(): array
+    {
         return [
             'with array values' => [['one', 'two', 'three']],
             'with key values pairs' => [['one' => ['value' => true]]],

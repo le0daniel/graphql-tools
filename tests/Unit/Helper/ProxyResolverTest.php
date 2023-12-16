@@ -51,7 +51,7 @@ final class ProxyResolverTest extends TestCase {
     }
 
     public function testFromResult() {
-        $this->operationContext->executor->setResult([
+        $this->operationContext->cache->setResult([
             'data' => [
                 'id' => 7
             ]

@@ -12,15 +12,14 @@ final class ExecutionManager
     private int $currentExecution = 0;
     private int $startTimeNs;
     private array $deferred = [];
-    private array $cache = [];
-    private null|array $result = null;
-    private stdClass $undefined;
 
     public function __construct(
         private readonly int $maxExecutions = 10,
     )
     {
-        $this->undefined = new stdClass();
+        if ($this->maxExecutions < 1) {
+            throw new RuntimeException("Max runs needs to be bigger than 1, got: {$this->maxExecutions}");
+        }
     }
 
     public function start(): void
@@ -99,67 +98,8 @@ final class ExecutionManager
         return $data;
     }
 
-    public function setResult(?array $result): void
-    {
-        if (isset($this->startTimeNs)) {
-            throw new RuntimeException("Not allowed to manipulate result during execution");
-        }
-
-        $this->result = $result;
-    }
-
-    /**
-     * @param array $path
-     * @return bool
-     * @internal
-     */
-    public function isInResult(array $path): bool
-    {
-        // If the path was deferred, this means the previous result should show null.
-        if (null === $this->result || $this->isDeferred($path)) {
-            return false;
-        }
-
-        return Arrays::getByPathArray($this->result, $path, $this->undefined) !== $this->undefined;
-    }
-
-    /**
-     * @param array $path
-     * @return mixed
-     * @internal
-     */
-    public function getFromResult(array $path): mixed
-    {
-        return Arrays::getByPathArray($this->result, $path, null);
-    }
-
     private static function pathToString(array $path): string
     {
         return implode('.', $path);
-    }
-
-    /**
-     * Cache during execution. This is used to cache the resolution of 'resolveToType' for
-     * unions and interfaces, to allow for more than one run successfully.
-     * @param array $path
-     * @param string $key
-     * @param mixed $data
-     * @return mixed
-     */
-    public function setCache(array $path, string $key, mixed $data): mixed
-    {
-        $this->cache[self::pathToString($path) . ":{$key}"] = $data;
-        return $data;
-    }
-
-    /**
-     * Get an item from the cache
-     * @param array $path
-     * @param string $key
-     * @return mixed
-     */
-    public function getCache(array $path, string $key): mixed
-    {
-        return $this->cache[self::pathToString($path) . ":{$key}"] ?? null;
     }
 }

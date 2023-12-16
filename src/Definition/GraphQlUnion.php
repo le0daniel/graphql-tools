@@ -22,7 +22,7 @@ abstract class GraphQlUnion extends TypeDefinition
             'removalDate' => $this->removalDate(),
             'types' => fn() => array_map(fn(string $typeName) => $registry->type($typeName), $this->possibleTypes()),
             'resolveType' => function($_, OperationContext $context, $info) use ($registry) {
-                $typeName = $context->executor->getCache($info->path, $this->getName()) ?? $context->executor->setCache(
+                $typeName = $context->cache->getCache($info->path, $this->getName()) ?? $context->cache->setCache(
                     $info->path,
                     $this->getName(),
                     $this->resolveToType($_, $context->context, $info)
