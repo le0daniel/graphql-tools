@@ -3,6 +3,7 @@
 namespace GraphQlTools\Data\ValueObjects\Events;
 
 use Closure;
+use GraphQL\Executor\Values;
 use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\Events\VisitField as VisitFieldContract;
 
@@ -21,6 +22,7 @@ final class VisitFieldEvent extends Event implements VisitFieldContract
         public readonly array       $arguments,
         public readonly ResolveInfo $info,
         private readonly bool       $canDefer,
+        public readonly array       $directiveNames,
     )
     {
         parent::__construct();
@@ -41,7 +43,7 @@ final class VisitFieldEvent extends Event implements VisitFieldContract
     }
 
     /**
-     * Add a hook after the field has been resolved.
+     * Add a hook after the field (and all promises) have been resolved to a value.
      * @param Closure(mixed $value):void $afterResolution
      * @return void
      */
@@ -95,4 +97,17 @@ final class VisitFieldEvent extends Event implements VisitFieldContract
         }
     }
 
+    public function hasDirective(string $name): bool
+    {
+        return in_array($name, $this->directiveNames, true);
+    }
+
+    public function getDirectiveArguments(string $name): array
+    {
+        return Values::getDirectiveValues(
+            $this->info->schema->getDirective($name),
+            $this->info->fieldNodes[0],
+            $this->info->variableValues,
+        );
+    }
 }
