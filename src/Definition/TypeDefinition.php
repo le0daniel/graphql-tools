@@ -5,6 +5,7 @@ namespace GraphQlTools\Definition;
 use DateTimeInterface;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Utility\Descriptions;
+use GraphQlTools\Utility\Types;
 
 abstract class TypeDefinition implements DefinesGraphQlType
 {
@@ -41,6 +42,11 @@ abstract class TypeDefinition implements DefinesGraphQlType
                 $this->removalDate()
             )
             : $this->description();
+    }
+
+    public function getName(): string
+    {
+        return Types::inferNameFromClassName(static::class);
     }
 
 }

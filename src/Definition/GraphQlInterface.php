@@ -11,7 +11,6 @@ use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Shared\HasFields;
 use GraphQlTools\Helper\OperationContext;
-use GraphQlTools\Utility\Types;
 
 abstract class GraphQlInterface extends TypeDefinition
 {
@@ -41,10 +40,5 @@ abstract class GraphQlInterface extends TypeDefinition
                 return $registry->type($typeName);
             },
         ]);
-    }
-
-    public function getName(): string
-    {
-        return Types::inferNameFromClassName(static::class);
     }
 }

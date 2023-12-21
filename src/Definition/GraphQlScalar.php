@@ -11,15 +11,9 @@ use GraphQL\Type\Definition\ScalarType;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
-use GraphQlTools\Utility\Types;
 
 abstract class GraphQlScalar extends TypeDefinition implements DefinesGraphQlType, LeafType
 {
-    public function getName(): string
-    {
-        return Types::inferNameFromClassName(static::class);
-    }
-
     public function toDefinition(TypeRegistry $registry, SchemaRules $schemaRules): ScalarType
     {
         $config = [

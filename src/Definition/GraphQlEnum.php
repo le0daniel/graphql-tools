@@ -9,7 +9,6 @@ use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\EnumValue;
 use GraphQlTools\Utility\Arrays;
-use GraphQlTools\Utility\Types;
 use UnitEnum;
 
 abstract class GraphQlEnum extends TypeDefinition
@@ -74,11 +73,6 @@ abstract class GraphQlEnum extends TypeDefinition
             fn(int $_, UnitEnum $enum) => [
                 $enum->name, ['name' => $enum->name, 'value' => $enum]
             ]);
-    }
-
-    public function getName(): string
-    {
-        return Types::inferNameFromClassName(static::class);
     }
 
     /**

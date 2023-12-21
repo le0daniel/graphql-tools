@@ -11,7 +11,6 @@ use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Data\ValueObjects\GraphQlTypes;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Shared\HasFields;
-use GraphQlTools\Utility\Types;
 
 abstract class GraphQlType extends TypeDefinition
 {
@@ -19,16 +18,6 @@ abstract class GraphQlType extends TypeDefinition
 
     protected function middleware(): array|null {
         return null;
-    }
-
-    /**
-     * Overwrite if you want to define custom name patterns
-     * @return string
-     * @throws DefinitionException
-     */
-    public function getName(): string
-    {
-        return Types::inferNameFromClassName(static::class);
     }
 
     /**

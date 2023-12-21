@@ -10,7 +10,6 @@ use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Helper\OperationContext;
-use GraphQlTools\Utility\Types;
 
 abstract class GraphQlUnion extends TypeDefinition
 {
@@ -34,11 +33,6 @@ abstract class GraphQlUnion extends TypeDefinition
     }
 
     abstract public function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string;
-
-    public function getName(): string
-    {
-        return Types::inferNameFromClassName(static::class);
-    }
 
     /**
      * Return an array of type name (or aliases). They will be resolved

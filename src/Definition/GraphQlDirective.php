@@ -8,7 +8,6 @@ use GraphQlTools\Contract\FieldMiddleware;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\InputField;
-use GraphQlTools\Utility\Types;
 
 abstract class GraphQlDirective extends TypeDefinition
 {
@@ -48,9 +47,7 @@ abstract class GraphQlDirective extends TypeDefinition
      */
     abstract protected function arguments(TypeRegistry $registry): array;
     abstract protected function locations(): array;
-    public function getName(): string {
-        return Types::inferNameFromClassName(static::class);
-    }
+
     protected function isRepeatable(): bool {
         return false;
     }

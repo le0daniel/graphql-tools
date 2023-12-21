@@ -8,9 +8,8 @@ use GraphQL\Type\Definition\InputObjectType;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Shared\HasFields;
-use GraphQlTools\Utility\Types;
 
-abstract class GraphQlInputType  extends TypeDefinition
+abstract class GraphQlInputType extends TypeDefinition
 {
     use HasFields;
 
@@ -22,10 +21,5 @@ abstract class GraphQlInputType  extends TypeDefinition
             'deprecationReason' => $this->deprecationReason(),
             'removalDate' => $this->removalDate(),
         ]);
-    }
-
-    public function getName(): string
-    {
-        return Types::inferNameFromClassName(static::class);
     }
 }
