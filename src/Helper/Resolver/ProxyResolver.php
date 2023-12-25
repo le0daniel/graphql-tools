@@ -37,12 +37,12 @@ class ProxyResolver
             ->then($this->fieldResolveFunction ?? Executor::getDefaultFieldResolver()(...));
     }
 
-    private function attachDirectiveMiddlewares(Closure $resolver, ResolveInfo $info): Closure
+    private function attachDirectiveMiddlewares(Closure $resolver, ResolveInfo $info, array $directiveNames): Closure
     {
         if (
             self::$disableDirectives
-            || empty($directiveNames = Directives::getNamesByResolveInfo($info))
-            || empty($pipes = Directives::createPipes($info, $directiveNames))
+            || empty($directiveNames)
+            || empty($pipes = Directives::createMiddlewares($info, $directiveNames))
         ) {
             return $resolver;
         }
@@ -73,26 +73,28 @@ class ProxyResolver
             return $context->cache->getFromResult($info->path);
         }
 
-        // Ensure arguments are always an array, as the framework does not guarantee that
         $arguments ??= [];
 
-        // We first verify if in a previous run this has been deferred
-        // If this is the case, we mark it as hasBeenDeferred and take the type data
-        // from the last run to ensure the resolver works as intended.
-        if ($hasBeenDeferred) {
-            $typeData = $context->executor->popDeferred($info->path);
-        }
+        /**
+         * In case the resolver has been deferred, we need to get the original $typeData from the resolver
+         * as the previous resolvers have been resolved from the cache, meaning the $typeData is not what
+         * is expected
+         */
+        $typeData = $hasBeenDeferred ? $context->executor->popDeferred($info->path) : $typeData;
 
         $fieldResolution = new VisitFieldEvent(
             $typeData,
             $arguments,
             $info,
-            !$hasBeenDeferred && $context->executor->canExecuteAgain()
+            !$hasBeenDeferred && $context->executor->canExecuteAgain(),
+            Directives::getNamesByResolveInfo($info),
         );
+
         $context->extensions->willResolveField($fieldResolution);
 
         // As the field has been deferred, we return null. If multiple runs are enabled, this will
-        // result in the field being run next time. This can only happen once.
+        // result in the field being run next time. This can only happen once and if the executor
+        // allows it to happen.
         if ($fieldResolution->isDeferred()) {
             $context->executor->addDefer($info->path, $fieldResolution->getDeferLabel(), $typeData);
             return null;
@@ -100,14 +102,13 @@ class ProxyResolver
 
         // Hook after the field and all it's promises have been executed.
         // This is where extensions can hook in. They are though not allowed to manipulate the result.
-        $afterFieldResolution = static function (mixed $value) use ($fieldResolution, $context): mixed {
-            return $fieldResolution->resolveValue($value);
-        };
+        $afterFieldResolution = static fn(mixed $value): mixed => $fieldResolution->resolveValue($value);
 
         try {
             $resolveFn = $this->attachDirectiveMiddlewares(
                 $this->resolveFunction ??= $this->createResolveFunction(),
-                $info
+                $info,
+                $fieldResolution->directiveNames,
             );
 
             /** @var SyncPromise|mixed $promiseOrValue */

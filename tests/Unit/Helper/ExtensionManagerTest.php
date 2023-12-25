@@ -117,7 +117,7 @@ class ExtensionManagerTest extends TestCase
 
         /** @var VisitFieldEvent $event */
         $extensions->willResolveField($event = new VisitFieldEvent(
-            null, [], ResolveInfoDummy::withDefaults(), false, false
+            null, [], ResolveInfoDummy::withDefaults(), false, []
         ));
 
         self::assertEquals('other value', $event->resolveValue('other value'));

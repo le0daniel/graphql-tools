@@ -100,13 +100,6 @@ class QueryExecutor
     }
 
     /**
-     * @param Schema $schema
-     * @param string|DocumentNode $query
-     * @param GraphQlContext $context
-     * @param array|null $variables
-     * @param mixed|null $rootValue
-     * @param string|null $operationName
-     * @param int $maxRuns
      * @return Generator<CompleteResult|PartialResult|PartialBatch>
      * @throws DefinitionException
      * @throws JsonException
@@ -137,13 +130,13 @@ class QueryExecutor
 
         try {
             $source = $query instanceof DocumentNode ? $query : Parser::parse($query);
+            $extensions->dispatch(new ParsedEvent($source, $operationName));
         } catch (SyntaxError $exception) {
             $extensions->dispatch(new EndEvent(new ExecutionResult(null, [$exception])));
             yield CompleteResult::withErrorsOnly([$exception], $operationContext);
             return;
         }
 
-        $extensions->dispatch(new ParsedEvent($source, $operationName));
         $errors = DocumentValidator::validate($schema, $source, $validationRules->toArray());
         $extensions->dispatch(new ValidatedEvent($source, $errors));
 
@@ -281,7 +274,7 @@ class QueryExecutor
             );
     }
 
-    private function logError(GraphQlError $error): void
+    protected function logError(GraphQlError $error): void
     {
         if ($this->errorLogger) {
             ($this->errorLogger)($error->getPrevious(), $error);
@@ -292,7 +285,7 @@ class QueryExecutor
      * @param GraphQlError[] $errors
      * @return array
      */
-    private function handleErrors(array $errors): array
+    protected function handleErrors(array $errors): array
     {
         return array_map(function (GraphQlError $graphQlError): GraphQlError {
             if (!$graphQlError->getPrevious()) {

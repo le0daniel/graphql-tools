@@ -40,16 +40,6 @@ final class ProxyResolverTest extends TestCase {
         $this->info = $this->infoProphecy->reveal();
     }
 
-    /**
-     * @return array{0: OperationContext|ObjectProphecy, 1: ResolveInfo|ObjectProphecy}
-     */
-    private function getProphecies(): array {
-        return [
-             $this->prophesize(OperationContext::class),
-             $this->prophesize(ResolveInfo::class),
-        ];
-    }
-
     public function testFromResult() {
         $this->operationContext->cache->setResult([
             'data' => [
