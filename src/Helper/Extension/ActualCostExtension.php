@@ -8,7 +8,7 @@ use GraphQlTools\Contract\ExecutionExtension;
 use GraphQlTools\Contract\Extension\InteractsWithFieldResolution;
 use GraphQlTools\Contract\ProvidesResultExtension;
 
-final class ActualCostExtension implements ProvidesResultExtension, ExecutionExtension, InteractsWithFieldResolution
+class ActualCostExtension implements ProvidesResultExtension, ExecutionExtension, InteractsWithFieldResolution
 {
     private const DEFAULT_MIN_QUERY_COST = 2;
 

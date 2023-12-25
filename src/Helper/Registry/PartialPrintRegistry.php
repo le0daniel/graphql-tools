@@ -34,10 +34,10 @@ final class PartialPrintRegistry extends FactoryTypeRegistry
         return parent::type($typeName, $typeHint);
     }
 
-    protected function getType(string $typeName): Type
+    protected function getOrCreateType(string $typeName): Type
     {
         try {
-            return parent::getType($typeName);
+            return parent::getOrCreateType($typeName);
         } catch (Throwable) {
             return $this->getMock($this->resolveAliasToName($typeName));
         }
@@ -90,7 +90,7 @@ final class PartialPrintRegistry extends FactoryTypeRegistry
             'fields' => array_reduce(
                 $pipes,
                 fn(mixed $carry, Closure $pipe): mixed => $pipe($carry),
-                $this->getFieldExtensionsForTypeName($typeName)
+                $this->getFieldExtensionsByTypeName($typeName)
             ),
             'description' => $isInterface
                 ? 'External type, scalar, union or input type reference not present in the schema'

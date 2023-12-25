@@ -18,7 +18,7 @@ abstract class Extension implements ExecutionExtension, ListensToLifecycleEvents
 
     public function getName(): string
     {
-        return $this->name ?? static::class;
+        return $this->name ??= static::class;
     }
 
     /**

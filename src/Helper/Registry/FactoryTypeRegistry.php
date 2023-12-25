@@ -28,7 +28,7 @@ class FactoryTypeRegistry implements TypeRegistryContract
     /**
      * @param array<string, class-string<DefinesGraphQlType>|DefinesGraphQlType> $typeFactories
      * @param array<string, string> $aliasesOfTypes
-     * @param array<string, array<ExtendType|class-string>> $typeExtensions
+     * @param array<string, array<ExtendType|class-string<ExtendType>> $typeExtensions
      */
     public function __construct(
         protected readonly array       $typeFactories,
@@ -52,7 +52,7 @@ class FactoryTypeRegistry implements TypeRegistryContract
 
     public function type(string $nameOrAlias, ?GraphQlTypes $typeHint = null): Closure
     {
-        return fn() => $this->getType(
+        return fn() => $this->getOrCreateType(
             $this->resolveAliasToName($nameOrAlias)
         );
     }
@@ -62,30 +62,58 @@ class FactoryTypeRegistry implements TypeRegistryContract
         return $this->aliasesOfTypes[$nameOrAlias] ?? $nameOrAlias;
     }
 
-    protected function getType(string $typeName): Type
+    protected function getOrCreateType(string $typeName): Type
     {
         return $this->typeInstances[$typeName] ??= $this->createType($typeName);
     }
 
     /**
+     * @param string $typeName
+     * @return Type
      * @throws DefinitionException
      */
-    protected function getAllExtendedFieldFactoriesFor(GraphQlInterface|GraphQlType $type): array
+    protected function createType(string $typeName): Type
     {
-        $factories = $this->getFieldExtensionsForTypeName($type->getName());
+        // We create the built-in types separately, as they can not be customized for now.
+        if (in_array($typeName, Type::BUILT_IN_TYPE_NAMES, true)) {
+            return Type::builtInTypes()[$typeName];
+        }
 
+        $typeFactory = $this->typeFactories[$typeName] ?? null;
+
+        $definition = match (true) {
+            is_string($typeFactory) => new $typeFactory,
+            $typeFactory instanceof DefinesGraphQlType => $typeFactory,
+            is_null($typeFactory) => throw new DefinitionException("Could not resolve type '{$typeName}', no factory provided. Did you register this type?"),
+            default => throw new DefinitionException("Invalid type factory provided for '{$typeName}'. Expected class-string, closure, or instance of DefinesGraphQlType got: " . gettype($typeFactory))
+        };
+
+        return ($definition instanceof GraphQlType || $definition instanceof GraphQlInterface)
+            ? $this->extendTypeDefinitionWithExtendedFields($definition)
+            : $definition->toDefinition($this, $this->schemaRules);
+    }
+
+    /**
+     * @throws DefinitionException
+     */
+    protected function extendTypeDefinitionWithExtendedFields(GraphQlType|GraphQlInterface $type): Type
+    {
+        $extendedFields = $this->getFieldExtensionsByTypeName($type->getName());
         if ($type instanceof GraphQlType) {
             foreach ($type->getInterfaces() as $interfaceNameOrAlias) {
-                array_push($factories, ...$this->getFieldExtensionsForTypeName(
+                array_push($extendedFields, ...$this->getFieldExtensionsByTypeName(
                     $this->resolveAliasToName($interfaceNameOrAlias)
                 ));
             }
         }
 
-        return $factories;
+        return empty($extendedFields)
+            ? $type->toDefinition($this, $this->schemaRules)
+            : $type->mergeFieldFactories(...$extendedFields)
+                ->toDefinition($this, $this->schemaRules);
     }
 
-    protected function getFieldExtensionsForTypeName(string $typeName): array
+    protected function getFieldExtensionsByTypeName(string $typeName): array
     {
         if (!isset($this->typeExtensions[$typeName])) {
             return [];
@@ -104,51 +132,6 @@ class FactoryTypeRegistry implements TypeRegistryContract
         return $factories;
     }
 
-    protected function createInstanceOfGraphQlType(string $typeName): DefinesGraphQlType
-    {
-        $typeFactory = $this->typeFactories[$typeName] ?? null;
-
-        return match (true) {
-            is_string($typeFactory) => new $typeFactory,
-            $typeFactory instanceof DefinesGraphQlType => $typeFactory,
-            is_null($typeFactory) => throw new DefinitionException("Could not resolve type '{$typeName}', no factory provided. Did you register this type?"),
-            default => throw new DefinitionException("Invalid type factory provided for '{$typeName}'. Expected class-string, closure, or instance of DefinesGraphQlType got: " . gettype($typeFactory))
-        };
-    }
-
-    /**
-     * @param string $typeName
-     * @return Type
-     * @throws DefinitionException
-     */
-    protected function createType(string $typeName): Type
-    {
-        // We create the built-in types separately, as they can not be customized for now.
-        if (in_array($typeName, Type::BUILT_IN_TYPE_NAMES, true)) {
-            return Type::builtInTypes()[$typeName];
-        }
-
-        $definesGraphQlType = $this->createInstanceOfGraphQlType($typeName);
-
-        return match (true) {
-            $definesGraphQlType instanceof GraphQlType, $definesGraphQlType instanceof GraphQlInterface => $this->extendTypeDefinitionWithExtendedFields($definesGraphQlType),
-            default => $definesGraphQlType->toDefinition($this, $this->schemaRules)
-        };
-    }
-
-    /**
-     * @throws DefinitionException
-     */
-    protected function extendTypeDefinitionWithExtendedFields(GraphQlType|GraphQlInterface $type): Type
-    {
-        $extendedFields = $this->getAllExtendedFieldFactoriesFor($type);
-        return empty($extendedFields)
-            ? $type->toDefinition($this, $this->schemaRules)
-            : $type
-                ->mergeFieldFactories(...$extendedFields)
-                ->toDefinition($this, $this->schemaRules);
-    }
-
     public function nonNull(Type|Closure $wrappedType): NonNull
     {
         return new NonNull($wrappedType);
@@ -162,30 +145,30 @@ class FactoryTypeRegistry implements TypeRegistryContract
     public function int(): ScalarType
     {
         /** @var ScalarType */
-        return $this->getType(Type::INT);
+        return $this->getOrCreateType(Type::INT);
     }
 
     public function float(): ScalarType
     {
         /** @var ScalarType */
-        return $this->getType(Type::FLOAT);
+        return $this->getOrCreateType(Type::FLOAT);
     }
 
     public function string(): ScalarType
     {
         /** @var ScalarType */
-        return $this->getType(Type::STRING);
+        return $this->getOrCreateType(Type::STRING);
     }
 
     public function id(): ScalarType
     {
         /** @var ScalarType */
-        return $this->getType(Type::ID);
+        return $this->getOrCreateType(Type::ID);
     }
 
     public function boolean(): ScalarType
     {
         /** @var ScalarType */
-        return $this->getType(Type::BOOLEAN);
+        return $this->getOrCreateType(Type::BOOLEAN);
     }
 }

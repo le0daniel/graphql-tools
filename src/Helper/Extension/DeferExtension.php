@@ -22,11 +22,7 @@ class DeferExtension extends Extension implements InteractsWithFieldResolution
 
     public function visitField(VisitField $event): void
     {
-        if (!$event->canDefer()) {
-            return;
-        }
-
-        if (!$event->hasDirective(self::DEFER_DIRECTIVE_NAME)) {
+        if (!$event->canDefer() || !$event->hasDirective(self::DEFER_DIRECTIVE_NAME)) {
             return;
         }
 

@@ -3,6 +3,7 @@
 namespace GraphQlTools\Helper\Cache;
 
 use GraphQlTools\Contract\Cache;
+use RuntimeException;
 
 final class NoCache implements Cache
 {
@@ -17,7 +18,7 @@ final class NoCache implements Cache
 
     public function getFromResult(array $path): mixed
     {
-        throw new \RuntimeException("Cache is disabled, should not be reached.");
+        throw new RuntimeException("Cache is disabled, should not be reached.");
     }
 
     public function setCache(array $path, string $key, mixed $data): mixed
