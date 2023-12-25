@@ -5,7 +5,6 @@ namespace GraphQlTools\Helper\Extension;
 use GraphQL\Executor\Values;
 use GraphQlTools\Contract\Events\VisitField;
 use GraphQlTools\Contract\Extension\InteractsWithFieldResolution;
-use GraphQlTools\Utility\Directives;
 
 class DeferExtension extends Extension implements InteractsWithFieldResolution
 {
@@ -27,18 +26,13 @@ class DeferExtension extends Extension implements InteractsWithFieldResolution
             return;
         }
 
-        $directives = Directives::getNamesByResolveInfo($event->info);
-        if (!in_array(self::DEFER_DIRECTIVE_NAME, $directives, true)) {
+        if (!$event->hasDirective(self::DEFER_DIRECTIVE_NAME)) {
             return;
         }
 
-        $arguments = Values::getDirectiveValues(
-            $event->info->schema->getDirective(self::DEFER_DIRECTIVE_NAME),
-            $event->info->fieldNodes[0],
-            $event->info->variableValues,
-        );
-
+        $arguments = $event->getDirectiveArguments(self::DEFER_DIRECTIVE_NAME);
         $isEnabled = $arguments['if'] ?? true;
+
         if ($isEnabled) {
             $event->defer($arguments['label'] ?? null);
         }
