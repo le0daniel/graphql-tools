@@ -140,6 +140,9 @@ class QueryExecutor
         $errors = DocumentValidator::validate($schema, $source, $validationRules->toArray());
         $extensions->dispatch(new ValidatedEvent($source, $errors));
 
+        // The ast is fully valid, now it the opportunity for extensions to manipulate it.
+        $source = $extensions->manipulateAst($source, $schema, $variables);
+
         if (!empty($errors)) {
             $extensions->dispatch(new EndEvent(new ExecutionResult(null, $errors)));
             yield CompleteResult::withErrorsOnly($errors, $operationContext);;

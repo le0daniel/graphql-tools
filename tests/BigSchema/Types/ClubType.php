@@ -16,7 +16,7 @@ final class ClubType extends GraphQlType
             Field::withName('id')
                 ->ofType(new NonNull($registry->id())),
             Field::withName('name')
-                ->ofType(new NonNull($registry->string())),
+                ->ofType($registry->string()),
             Field::withName('city')->ofType($registry->string()),
         ];
     }

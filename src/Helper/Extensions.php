@@ -5,8 +5,13 @@ declare(strict_types=1);
 namespace GraphQlTools\Helper;
 
 use Closure;
+use GraphQL\Language\AST\DocumentNode;
+use GraphQL\Language\Visitor;
+use GraphQL\Type\Schema;
+use GraphQL\Utils\TypeInfo;
 use GraphQlTools\Contract\Extension\InteractsWithFieldResolution;
 use GraphQlTools\Contract\Extension\ListensToLifecycleEvents;
+use GraphQlTools\Contract\Extension\ManipulatesAst;
 use GraphQlTools\Data\ValueObjects\Events\Event;
 use GraphQlTools\Contract\ExecutionExtension;
 use GraphQlTools\Contract\GraphQlContext;
@@ -25,11 +30,12 @@ class Extensions
     private array $extensions = [];
 
     /**
-     * @var array{lifecycleEvents: array<ListensToLifecycleEvents>, fieldResolution: array<InteractsWithFieldResolution>}
+     * @var array{lifecycleEvents: array<ListensToLifecycleEvents>, fieldResolution: array<InteractsWithFieldResolution>, manipulateAst: array<ManipulatesAst>}
      */
     private array $registrations = [
         'lifecycleEvents' => [],
         'fieldResolution' => [],
+        'manipulateAst' => [],
     ];
 
     public function __construct(ExecutionExtension ...$extensions)
@@ -40,6 +46,9 @@ class Extensions
             }
             if ($extension instanceof InteractsWithFieldResolution) {
                 $this->registrations['fieldResolution'][] = $extension;
+            }
+            if ($extension instanceof ManipulatesAst) {
+                $this->registrations['manipulateAst'][] = $extension;
             }
 
             $this->extensions[$extension->getName()] = $extension;
@@ -54,7 +63,8 @@ class Extensions
         return $this->extensions;
     }
 
-    public function get(string $name): ?ExecutionExtension {
+    public function get(string $name): ?ExecutionExtension
+    {
         return $this->extensions[$name] ?? null;
     }
 
@@ -100,6 +110,29 @@ class Extensions
                 break;
             }
         }
+    }
+
+    public function manipulateAst(DocumentNode $node, Schema $schema, ?array $variables): DocumentNode
+    {
+        if (empty($this->registrations['manipulateAst'])) {
+            return $node;
+        }
+
+        $typeInfo = new TypeInfo($schema);
+        $visitors = [];
+        foreach ($this->registrations['manipulateAst'] as $extension) {
+            if ($visitor = $extension->visitor($schema, $variables, $typeInfo)) {
+                $visitors[] = $visitor;
+            }
+        }
+
+        return Visitor::visit(
+            $node,
+            Visitor::visitWithTypeInfo(
+                $typeInfo,
+                Visitor::visitInParallel($visitors)
+            )
+        );
     }
 
     public function dispatch(Event $event): void

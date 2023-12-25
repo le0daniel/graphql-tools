@@ -22,7 +22,7 @@ final class DeferDirective extends GraphQlDirective
 
     protected function locations(): array
     {
-        return [DirectiveLocation::FIELD];
+        return [DirectiveLocation::FIELD, DirectiveLocation::INLINE_FRAGMENT, DirectiveLocation::FRAGMENT_SPREAD];
     }
 
     protected function description(): string
