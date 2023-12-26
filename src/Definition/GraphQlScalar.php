@@ -8,11 +8,10 @@ use Closure;
 use GraphQL\Language\AST\Node;
 use GraphQL\Type\Definition\LeafType;
 use GraphQL\Type\Definition\ScalarType;
-use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
 
-abstract class GraphQlScalar extends TypeDefinition implements DefinesGraphQlType, LeafType
+abstract class GraphQlScalar extends TypeDefinition implements LeafType
 {
     public function toDefinition(TypeRegistry $registry, SchemaRules $schemaRules): ScalarType
     {
