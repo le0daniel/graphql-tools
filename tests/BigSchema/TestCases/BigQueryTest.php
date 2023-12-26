@@ -20,4 +20,18 @@ GRAPHQL);
         self::assertCount(1, $result->data['clubs']);
     }
 
+    public function testTagsQuery(): void {
+        $result = $this->execute(<<<GRAPHQL
+query {
+    tags {
+        value
+    }
+}
+GRAPHQL);
+
+        $this->assertNoErrors($result);
+        self::assertCount(1000, $result->data['tags']);
+    }
+
+
 }

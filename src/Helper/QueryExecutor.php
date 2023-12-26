@@ -137,12 +137,12 @@ class QueryExecutor
             return;
         }
 
-        $errors = DocumentValidator::validate($schema, $source, $validationRules->toArray());
-        $extensions->dispatch(new ValidatedEvent($source, $errors));
+        $validationErrors = DocumentValidator::validate($schema, $source, $validationRules->toArray());
+        $extensions->dispatch(new ValidatedEvent($source, $validationErrors));
 
-        if (!empty($errors)) {
-            $extensions->dispatch(new EndEvent(new ExecutionResult(null, $errors)));
-            yield CompleteResult::withErrorsOnly($errors, $operationContext);;
+        if (!empty($validationErrors)) {
+            $extensions->dispatch(new EndEvent(new ExecutionResult(null, $validationErrors)));
+            yield CompleteResult::withErrorsOnly($validationErrors, $operationContext);
             return;
         }
 

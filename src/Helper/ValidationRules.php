@@ -44,6 +44,7 @@ final class ValidationRules
 
     public static function initialize(GraphQlContext $context, array $rules, ?array $variableValues): self
     {
+        /** @var array<string, ValidationRule> $initializedRules */
         $initializedRules = self::getDefaultRules();
 
         foreach ($rules as $ruleOrFactory) {
@@ -64,13 +65,9 @@ final class ValidationRules
             }
         }
 
-        // We need to set the QueryComplexity variables
-        foreach ($initializedRules as $rule) {
-            if ($rule instanceof QueryComplexity) {
-                $rule->setRawVariableValues($variableValues);
-                break;
-            }
-        }
+        /** @var null|QueryComplexity $queryComplexity */
+        $queryComplexity = $initializedRules[QueryComplexity::class] ?? null;
+        $queryComplexity?->setRawVariableValues($variableValues);
 
         return new self($initializedRules);
     }

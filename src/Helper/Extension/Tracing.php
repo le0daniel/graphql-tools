@@ -18,7 +18,7 @@ use GraphQlTools\Data\ValueObjects\Tracing\GraphQlError;
 use GraphQlTools\Data\ValueObjects\Tracing\ResolverTrace;
 use GraphQlTools\Data\ValueObjects\Events\EndEvent;
 use GraphQlTools\Data\ValueObjects\Events\StartEvent;
-use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
+use GraphQlTools\Data\ValueObjects\Events\FieldResolution;
 use GraphQlTools\Utility\Query;
 
 class Tracing extends Extension implements InteractsWithFieldResolution, ProvidesResultExtension

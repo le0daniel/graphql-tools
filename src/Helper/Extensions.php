@@ -14,7 +14,7 @@ use GraphQlTools\Data\ValueObjects\Events\EndEvent;
 use GraphQlTools\Data\ValueObjects\Events\ParsedEvent;
 use GraphQlTools\Data\ValueObjects\Events\StartEvent;
 use GraphQlTools\Data\ValueObjects\Events\ValidatedEvent;
-use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
+use GraphQlTools\Data\ValueObjects\Events\FieldResolution;
 
 /**
  * @internal
@@ -92,7 +92,7 @@ class Extensions
         return new self(...$instances);
     }
 
-    public function willResolveField(VisitFieldEvent $event): void
+    public function willResolveField(FieldResolution $event): void
     {
         foreach ($this->registrations['fieldResolution'] as $extension) {
             $extension->visitField($event);

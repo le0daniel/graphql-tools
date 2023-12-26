@@ -9,13 +9,25 @@ use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Field\InputField;
 use GraphQlTools\Definition\GraphQlType;
 use GraphQlTools\Test\BigSchema\Types\ClubType;
+use GraphQlTools\Test\BigSchema\Types\TagType;
 
 final class QueryType extends GraphQlType
 {
+    private function generateTags(int $count): array {
+        $tags = [];
+        foreach (range(1, $count) as $index) {
+            $tags[] = "tag-{$index}";
+        }
+        return $tags;
+    }
 
     protected function fields(TypeRegistry $registry): array
     {
         return [
+            Field::withName('tags')
+                ->ofType(new ListOfType($registry->type(TagType::class)))
+                ->resolvedBy(fn(): array => $this->generateTags(1000)),
+
             Field::withName('clubs')
                 ->ofType(new ListOfType($registry->type(ClubType::class)))
                 ->arguments(

@@ -36,4 +36,8 @@ final class Debugging
             : "{$type} ($context)";
     }
 
+    public static function implodeOptions(array $options): string {
+        return implode(', ', array_map(fn(string $option): string => "'{$option}'", $options));
+    }
+
 }

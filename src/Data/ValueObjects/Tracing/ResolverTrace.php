@@ -6,7 +6,7 @@ declare(strict_types=1);
 namespace GraphQlTools\Data\ValueObjects\Tracing;
 
 
-use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
+use GraphQlTools\Data\ValueObjects\Events\FieldResolution;
 use GraphQlTools\Utility\Arrays;
 use GraphQlTools\Utility\Time;
 
@@ -41,7 +41,7 @@ final class ResolverTrace
         return implode('.', $this->path);
     }
 
-    public static function fromEvent(VisitFieldEvent $event, int $preciseExecutionStart): ResolverTrace
+    public static function fromEvent(FieldResolution $event, int $preciseExecutionStart): ResolverTrace
     {
         $endTimeInNanoseconds = Time::nanoSeconds();
         $durationInNanoseconds = $endTimeInNanoseconds - $event->eventTimeInNanoSeconds;

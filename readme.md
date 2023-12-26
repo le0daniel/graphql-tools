@@ -665,11 +665,11 @@ you access to the actual data resolved for a field. In case of a failure, a thro
 ```php
 use GraphQlTools\Helper\Extension\Extension;
 use GraphQlTools\Utility\Time;
-use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
+use GraphQlTools\Data\ValueObjects\Events\FieldResolution;
 
 class MyCustomExtension extends Extension {
     //...
-    public function visitField(VisitFieldEvent $event) : ?Closure{
+    public function visitField(FieldResolution $event) : ?Closure{
         Log::debug('Will resolve field', ['name' => $event->info->fieldName, 'typeData' => $event->typeData, 'args' => $event->arguments]);
         return fn($resolvedValue) => Log::debug('did resolve field value to', [
             'value' => $resolvedValue, 

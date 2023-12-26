@@ -34,7 +34,7 @@ final class Directives
         return $directives;
     }
 
-    public static function createMiddlewares(ResolveInfo $info, array $names): array
+    public static function getMiddlewares(ResolveInfo $info, array $names): array
     {
         $pipes = [];
         foreach ($names as $name) {

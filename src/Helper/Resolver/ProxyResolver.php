@@ -6,9 +6,8 @@ namespace GraphQlTools\Helper\Resolver;
 
 use Closure;
 use GraphQL\Executor\Executor;
-use GraphQL\Executor\Promise\Adapter\SyncPromise;
 use GraphQL\Type\Definition\ResolveInfo;
-use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
+use GraphQlTools\Data\ValueObjects\Events\FieldResolution;
 use GraphQlTools\Helper\Middleware;
 use GraphQlTools\Helper\OperationContext;
 use GraphQlTools\Utility\Directives;
@@ -22,7 +21,6 @@ use Throwable;
 class ProxyResolver
 {
     public static bool $disableDirectives = false;
-    private readonly Closure $resolveFunction;
 
     public function __construct(
         private readonly ?Closure $fieldResolveFunction = null,
@@ -31,23 +29,19 @@ class ProxyResolver
     {
     }
 
-    private function createResolveFunction(): Closure
+    private function directiveMiddlewares(ResolveInfo $info, array $directiveNames): array
     {
-        return Middleware::create($this->middlewares)
-            ->then($this->fieldResolveFunction ?? Executor::getDefaultFieldResolver()(...));
-    }
-
-    private function attachDirectiveMiddlewares(Closure $resolver, ResolveInfo $info, array $directiveNames): Closure
-    {
-        if (
-            self::$disableDirectives
-            || empty($directiveNames)
-            || empty($pipes = Directives::createMiddlewares($info, $directiveNames))
-        ) {
-            return $resolver;
+        if (self::$disableDirectives || empty($directiveNames)) {
+            return [];
         }
 
-        return Middleware::create($pipes)->then($resolver);
+        return Directives::getMiddlewares($info, $directiveNames);
+    }
+
+    private function wrapResult(mixed $result, FieldResolution $fieldResolution): mixed {
+        return Promises::isPromise($result)
+            ? $result->then($fieldResolution->resolveValue(...))->catch($fieldResolution->resolveValue(...))
+            : $fieldResolution->resolveValue($result);
     }
 
     /**
@@ -74,15 +68,9 @@ class ProxyResolver
         }
 
         $arguments ??= [];
-
-        /**
-         * In case the resolver has been deferred, we need to get the original $typeData from the resolver
-         * as the previous resolvers have been resolved from the cache, meaning the $typeData is not what
-         * is expected
-         */
         $typeData = $hasBeenDeferred ? $context->executor->popDeferred($info->path) : $typeData;
 
-        $fieldResolution = new VisitFieldEvent(
+        $fieldResolution = new FieldResolution(
             $typeData,
             $arguments,
             $info,
@@ -100,32 +88,18 @@ class ProxyResolver
             return null;
         }
 
-        // Hook after the field and all it's promises have been executed.
-        // This is where extensions can hook in. They are though not allowed to manipulate the result.
-        $afterFieldResolution = static fn(mixed $value): mixed => $fieldResolution->resolveValue($value);
-
         try {
-            $resolveFn = $this->attachDirectiveMiddlewares(
-                $this->resolveFunction ??= $this->createResolveFunction(),
-                $info,
-                $fieldResolution->directiveNames,
-            );
+            $resolveFn = Middleware::create([
+                ... $this->directiveMiddlewares($info, $fieldResolution->directiveNames),
+                ... $this->middlewares,
+            ])->then($this->fieldResolveFunction ?? Executor::getDefaultFieldResolver()(...));
 
-            /** @var SyncPromise|mixed $promiseOrValue */
-            $promiseOrValue = $resolveFn(
-                $typeData,
-                $arguments,
-                $context->context,
-                $info
+            return $this->wrapResult(
+                $resolveFn($typeData, $arguments, $context->context, $info),
+                $fieldResolution
             );
-
-            return Promises::isPromise($promiseOrValue)
-                ? $promiseOrValue
-                    ->then(static fn(mixed $resolvedValue): mixed => $afterFieldResolution($resolvedValue))
-                    ->catch(static fn(Throwable $error): Throwable => $afterFieldResolution($error))
-                : $afterFieldResolution($promiseOrValue);
-        } catch (Throwable $error) {
-            return $afterFieldResolution($error);
+        } catch (Throwable $throwable) {
+            return $fieldResolution->resolveValue($throwable);
         }
     }
 }

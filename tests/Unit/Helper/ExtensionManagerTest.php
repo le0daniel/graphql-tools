@@ -8,7 +8,7 @@ use GraphQlTools\Contract\Extension\ListensToLifecycleEvents;
 use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Data\ValueObjects\Events\EndEvent;
 use GraphQlTools\Data\ValueObjects\Events\StartEvent;
-use GraphQlTools\Data\ValueObjects\Events\VisitFieldEvent;
+use GraphQlTools\Data\ValueObjects\Events\FieldResolution;
 use GraphQlTools\Helper\Extension\ActualCostExtension;
 use GraphQlTools\Helper\Extension\Extension;
 use GraphQlTools\Helper\Extensions;
@@ -103,7 +103,7 @@ class ExtensionManagerTest extends TestCase
     {
         /** @var Extension $extension */
         $extension = $this->prophesize(Extension::class)->willImplement(InteractsWithFieldResolution::class);
-        $extension->visitField(Argument::type(VisitFieldEvent::class))->will(function() {});
+        $extension->visitField(Argument::type(FieldResolution::class))->will(function() {});
         $extension->priority()->willReturn(1);
         $extension->isEnabled()->willReturn(true);
         $extension->getName()->willReturn('something');
@@ -115,8 +115,8 @@ class ExtensionManagerTest extends TestCase
             ]
         );
 
-        /** @var VisitFieldEvent $event */
-        $extensions->willResolveField($event = new VisitFieldEvent(
+        /** @var FieldResolution $event */
+        $extensions->willResolveField($event = new FieldResolution(
             null, [], ResolveInfoDummy::withDefaults(), false, []
         ));
 

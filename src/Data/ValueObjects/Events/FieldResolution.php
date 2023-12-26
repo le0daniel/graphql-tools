@@ -10,7 +10,7 @@ use GraphQlTools\Contract\Events\VisitField as VisitFieldContract;
 /**
  * @internal
  */
-final class VisitFieldEvent extends Event implements VisitFieldContract
+final class FieldResolution extends Event implements VisitFieldContract
 {
     private bool $isDeferred = false;
     private ?string $deferLabel = null;

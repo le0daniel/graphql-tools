@@ -8,6 +8,7 @@ use GraphQlTools\Contract\FieldMiddleware;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\InputField;
+use GraphQlTools\Utility\Debugging;
 
 abstract class GraphQlDirective extends TypeDefinition
 {
@@ -33,10 +34,13 @@ abstract class GraphQlDirective extends TypeDefinition
         return $fields;
     }
 
+    /**
+     * @throws DefinitionException
+     */
     private function verifyLocations(): void {
         foreach ($this->locations() as $location) {
             if (!array_key_exists($location, DirectiveLocation::EXECUTABLE_LOCATIONS)) {
-                $acceptableValues = implode(', ', DirectiveLocation::EXECUTABLE_LOCATIONS);
+                $acceptableValues = Debugging::implodeOptions(DirectiveLocation::EXECUTABLE_LOCATIONS);
                 throw new DefinitionException("Expected valid executable location, got: '{$location}'. Acceptable values: {$acceptableValues}");
             }
         }
