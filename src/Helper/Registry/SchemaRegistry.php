@@ -26,6 +26,8 @@ class SchemaRegistry
      */
     private array $types = [];
 
+    private array $aliases = [];
+
     /**
      * @var array<string>
      */
@@ -59,7 +61,9 @@ class SchemaRegistry
             throw new RuntimeException("Definition name did not match provided name");
         }
 
+        $alias = is_string($definition) ? $definition : $definition::class;
         $this->types[$typeName] = $definition;
+        $this->aliases[$alias] = $typeName;
     }
 
     /**
@@ -144,12 +148,12 @@ class SchemaRegistry
         }
     }
 
-    protected function resolveFieldExtensions(array $aliases): array
+    protected function resolveFieldExtensions(): array
     {
         $extensionFactories = [];
 
         foreach ($this->typeFieldExtensions as $typeNameOrAlias => $fieldExtensions) {
-            $typeName = $aliases[$typeNameOrAlias] ?? $typeNameOrAlias;
+            $typeName = $this->aliases[$typeNameOrAlias] ?? $typeNameOrAlias;
             $extensionFactories[$typeName] ??= [];
             array_push($extensionFactories[$typeName], ...$fieldExtensions);
         }
@@ -157,21 +161,10 @@ class SchemaRegistry
         return $extensionFactories;
     }
 
-    protected function createAliases(): array
-    {
-        $aliases = [];
-        foreach ($this->types as $typeName => $declaration) {
-            if (is_string($declaration)) {
-                $aliases[$declaration] = $typeName;
-            }
-        }
-        return $aliases;
-    }
-
-    protected function createEagerlyLoadedTypes(array &$aliases): array {
+    protected function createEagerlyLoadedTypes(): array {
         $eagerlyLoadedTypes = [];
         foreach ($this->eagerlyLoadedTypes as $typeNameOrAlias) {
-            $eagerlyLoadedTypes[] = $aliases[$typeNameOrAlias] ?? $typeNameOrAlias;
+            $eagerlyLoadedTypes[] = $this->aliases[$typeNameOrAlias] ?? $typeNameOrAlias;
         }
         return array_unique($eagerlyLoadedTypes);
     }
@@ -184,12 +177,11 @@ class SchemaRegistry
     ): SchemaConfig
     {
         $schemaRules ??= new AllVisibleSchemaRule();
-        $aliases = $this->createAliases();
-        $eagerlyLoadedTypes = $this->createEagerlyLoadedTypes($aliases);
+        $eagerlyLoadedTypes = $this->createEagerlyLoadedTypes();
         $registry = new FactoryTypeRegistry(
             $this->types,
-            $aliases,
-            $this->resolveFieldExtensions($aliases),
+            $this->aliases,
+            $this->resolveFieldExtensions(),
             $schemaRules,
         );
 
@@ -243,11 +235,10 @@ class SchemaRegistry
      */
     public function printPartial(?SchemaRules $schemaRules = null): string
     {
-        $aliases = $this->createAliases();
         $registry = new PartialPrintRegistry(
             $this->types,
-            $aliases,
-            $extensions = $this->resolveFieldExtensions($aliases),
+            $this->aliases,
+            $extensions = $this->resolveFieldExtensions(),
             $schemaRules ?? new AllVisibleSchemaRule(),
         );
 
