@@ -285,7 +285,7 @@ class QueryExecutor
      * @param GraphQlError[] $errors
      * @return array
      */
-    protected function handleErrors(array $errors): array
+    private function handleErrors(array $errors): array
     {
         return array_map(function (GraphQlError $graphQlError): GraphQlError {
             if (!$graphQlError->getPrevious()) {

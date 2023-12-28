@@ -59,7 +59,10 @@ final class FieldResolution extends Event implements VisitFieldContract
      */
     public function resolveValue(mixed $value): mixed
     {
-        foreach ($this->afterResolution as $closure) {
+        // We reverse the array, so that the earlier registrations are executed
+        // at last. This is important for certain extensions like tracing to get
+        // the most accurate time of resolution.
+        foreach (array_reverse($this->afterResolution) as $closure) {
             $closure($value);
         }
         return $value;

@@ -11,6 +11,16 @@ use RuntimeException;
 final class ArraysTest extends TestCase
 {
 
+    public function testMapWithKeys() {
+        self::assertEquals(
+            ['zero' => 0, 'one' => 1, 'two' => 2],
+            Arrays::mapWithKeys(
+                ['zero', 'one', 'two'],
+                fn($number, $text) => [$text, $number],
+            )
+        );
+    }
+
     /** @dataProvider sortByColumnProvider */
     public function testSortByColumn(array $array, string $column, array $expected): void
     {
