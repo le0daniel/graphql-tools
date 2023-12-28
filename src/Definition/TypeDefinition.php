@@ -9,7 +9,7 @@ use GraphQlTools\Utility\Types;
 
 abstract class TypeDefinition implements DefinesGraphQlType
 {
-    final public function __construct()
+    public function __construct()
     {
     }
 
