@@ -38,6 +38,12 @@ final class Field extends BaseProperties
         return $this->withArguments(...$arguments);
     }
 
+    public function addArguments(InputField ...$arguments): self {
+        $clone = clone $this;
+        $clone->arguments = [...$this->arguments, ...$arguments];
+        return $clone;
+    }
+
     public function withArguments(InputField ...$arguments): self
     {
         $clone = clone $this;
