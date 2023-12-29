@@ -9,10 +9,6 @@ use GraphQlTools\Utility\Types;
 
 abstract class TypeDefinition implements DefinesGraphQlType
 {
-    public function __construct()
-    {
-    }
-
     protected function description(): string
     {
         return '';
