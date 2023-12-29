@@ -77,7 +77,10 @@ class TypeMap
         foreach ($directories as $directory) {
             [$typeMap, $extendedTypes] = self::createTypeMapFromDirectory($directory);
             $combinedTypeMap = Arrays::mergeKeyValues($combinedTypeMap, $typeMap);
-            $combinedExtendedTypes = Arrays::mergeKeyValues($combinedExtendedTypes, $extendedTypes);
+            foreach ($extendedTypes as $typeName => $extensions) {
+                $combinedExtendedTypes[$typeName] ??= [];
+                array_push($combinedExtendedTypes[$typeName], ... $extensions);
+            }
         }
         return [$combinedTypeMap, $combinedExtendedTypes];
     }
