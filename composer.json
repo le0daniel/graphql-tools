@@ -15,7 +15,7 @@
     "test": "phpunit"
   },
   "require": {
-    "php": "^8.2",
+    "php": "^8.2|^8.3",
     "webonyx/graphql-php": "^15",
     "google/protobuf": "^3.19"
   },
