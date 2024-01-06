@@ -57,7 +57,7 @@ trait HasDataloaders
      *
      * @throws JsonException
      */
-    final public function dataLoader(string $key, array $arguments = []): DataLoader
+    public function dataLoader(string $key, array $arguments = []): DataLoader
     {
         $argumentsKey = empty($arguments)
             ? ''
