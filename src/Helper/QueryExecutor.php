@@ -63,6 +63,7 @@ class QueryExecutor
         private readonly array    $validationRules = self::DEFAULT_VALIDATION_RULE,
         private readonly ?Closure $errorLogger = null,
         private readonly ?Closure $errorMapper = null,
+        private readonly bool     $hideFieldSuggestions = true,
     )
     {
     }
@@ -133,7 +134,7 @@ class QueryExecutor
             $extensions->dispatch(new ParsedEvent($source, $operationName));
         } catch (SyntaxError $exception) {
             $extensions->dispatch(new EndEvent(new ExecutionResult(null, [$exception])));
-            yield CompleteResult::withErrorsOnly([$exception], $operationContext);
+            yield CompleteResult::withErrorsOnly($this->handleErrors([$exception]), $operationContext);
             return;
         }
 
@@ -142,7 +143,7 @@ class QueryExecutor
 
         if (!empty($validationErrors)) {
             $extensions->dispatch(new EndEvent(new ExecutionResult(null, $validationErrors)));
-            yield CompleteResult::withErrorsOnly($validationErrors, $operationContext);
+            yield CompleteResult::withErrorsOnly($this->handleErrors($validationErrors), $operationContext);
             return;
         }
 
@@ -281,6 +282,23 @@ class QueryExecutor
         }
     }
 
+    protected function processInternalError(GraphQlError $error): GraphQlError
+    {
+        if (!$this->hideFieldSuggestions || !str_contains($error->getMessage(), 'Did you mean "')) {
+            return $error;
+        }
+
+        $errorMessage = preg_replace('/\s*Did you mean "[^"]+"\?/', '', $error->getMessage());
+        return new GraphQlError(
+            $errorMessage,
+            $error->nodes,
+            $error->getSource(),
+            $error->getPositions(),
+            $error->getPath(),
+            $error->getPrevious()
+        );
+    }
+
     /**
      * @param GraphQlError[] $errors
      * @return array
@@ -289,7 +307,7 @@ class QueryExecutor
     {
         return array_map(function (GraphQlError $graphQlError): GraphQlError {
             if (!$graphQlError->getPrevious()) {
-                return $graphQlError;
+                return $this->processInternalError($graphQlError);
             }
 
             $this->logError($graphQlError);

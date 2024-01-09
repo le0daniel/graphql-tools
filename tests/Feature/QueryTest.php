@@ -29,6 +29,15 @@ use PHPUnit\Framework\TestCase;
 
 class QueryTest extends TestCase
 {
+    private ?QueryExecutor $executor;
+
+    protected function setUp(): void
+    {
+        $this->executor = new QueryExecutor(
+            [],
+        );
+    }
+
     /**
      * @param GraphQlResult|PartialBatch $completeOrPartialResult
      * @return GraphQlResult[]
@@ -87,10 +96,7 @@ class QueryTest extends TestCase
 
     protected function executeOn(Schema $schema, string $query): CompleteResult
     {
-        $executor = new QueryExecutor(
-            [],
-        );
-        return $executor->execute($schema, $query, new Context());
+        return $this->executor->execute($schema, $query, new Context());
     }
 
     protected function execute(string $query): CompleteResult
@@ -172,6 +178,20 @@ class QueryTest extends TestCase
         $this->assertNoErrors($result);
         self::assertEquals('Hello -- No Name Provided --', $result->data['currentUser']);
     }
+
+    public function testFieldSuggestionSuppression(): void
+    {
+        $result = $this->execute('query { currentUserSomething }');
+        $this->assertError($result, 'Cannot query field "currentUserSomething" on type "Query".');
+    }
+
+    public function testFieldSuggestionSuppressionOff(): void
+    {
+        $this->executor = new QueryExecutor([], [], hideFieldSuggestions: false);
+        $result = $this->execute('query { currentUserSomething }');
+        $this->assertError($result, 'Cannot query field "currentUserSomething" on type "Query". Did you mean "currentUser"?');
+    }
+
 
     public function testStitchedFieldByClassNameExecution(): void
     {

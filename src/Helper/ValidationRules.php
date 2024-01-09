@@ -65,9 +65,11 @@ final class ValidationRules
             }
         }
 
-        /** @var null|QueryComplexity $queryComplexity */
-        $queryComplexity = $initializedRules[QueryComplexity::class] ?? null;
-        $queryComplexity?->setRawVariableValues($variableValues);
+        foreach ($initializedRules as $rule) {
+            if ($rule instanceof QueryComplexity) {
+                $rule->setRawVariableValues($variableValues);
+            }
+        }
 
         return new self($initializedRules);
     }
