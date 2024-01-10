@@ -6,16 +6,16 @@ use GraphQL\Error\Error;
 use GraphQL\Validator\Rules\ValidationRule;
 use GraphQlTools\Helper\ValidationRules;
 
-final class ValidationResult
+final readonly class ValidationResult
 {
 
     /**
      * @param array<int, Error> $errors
-     * @param ValidationRule $validationRules
+     * @param ValidationRules $validationRules
      */
     public function __construct(
-        public readonly array $errors,
-        public readonly ValidationRules $validationRules
+        public array           $errors,
+        public ValidationRules $validationRules
     )
     {
 

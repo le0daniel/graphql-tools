@@ -47,9 +47,19 @@ class ContextTest extends TestCase
             $context->dataLoader('test'),
         );
 
+        self::assertSame(
+            $context->dataLoader('test', ['true']),
+            $context->dataLoader('test', ['true']),
+        );
+
         self::assertNotSame(
             $context->dataLoader('test'),
             $context->dataLoader('test', ['true']),
+        );
+
+        self::assertNotSame(
+            $context->dataLoader('test', ['true']),
+            $context->dataLoader('test', ['false']),
         );
     }
 }
