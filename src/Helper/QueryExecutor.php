@@ -55,8 +55,8 @@ class QueryExecutor
      *
      * @param array<class-string<Extension>|Closure(): Extension> $extensionFactories
      * @param array<ValidationRule|Closure(): ValidationRule|class-string<ValidationRule>> $validationRules
-     * @param ?Closure(Throwable, GraphQlError): void $errorLogger
-     * @param ?Closure(Throwable): Throwable $errorMapper
+     * @param ?Closure(Throwable, GraphQlContext): void $errorLogger
+     * @param ?Closure(Throwable, GraphQlContext): Throwable $errorMapper
      */
     public function __construct(
         private readonly array    $extensionFactories = [],
@@ -134,7 +134,7 @@ class QueryExecutor
             $extensions->dispatch(new ParsedEvent($source, $operationName));
         } catch (SyntaxError $exception) {
             $extensions->dispatch(new EndEvent(new ExecutionResult(null, [$exception])));
-            yield CompleteResult::withErrorsOnly($this->handleErrors([$exception]), $operationContext);
+            yield CompleteResult::withErrorsOnly($this->handleErrors([$exception], $context), $operationContext);
             return;
         }
 
@@ -143,7 +143,7 @@ class QueryExecutor
 
         if (!empty($validationErrors)) {
             $extensions->dispatch(new EndEvent(new ExecutionResult(null, $validationErrors)));
-            yield CompleteResult::withErrorsOnly($this->handleErrors($validationErrors), $operationContext);
+            yield CompleteResult::withErrorsOnly($this->handleErrors($validationErrors, $context), $operationContext);
             return;
         }
 
@@ -198,7 +198,7 @@ class QueryExecutor
             $hasNext = $operationContext->executor->hasDeferred() || ($index + 1) !== count($deferred);
             $batch[] = PartialResult::part(
                 Arrays::getByPathArray($executionResult->data, $path),
-                $this->handleErrors(Errors::filterByPath($executionResult->errors, $path)),
+                $this->handleErrors(Errors::filterByPath($executionResult->errors, $path), $operationContext->context),
                 $hasNext,
                 $operationContext,
                 $label,
@@ -219,12 +219,12 @@ class QueryExecutor
         return $operationContext->executor->hasDeferred()
             ? PartialResult::first(
                 $executionResult->data,
-                $this->handleErrors($executionResult->errors),
+                $this->handleErrors($executionResult->errors, $operationContext->context),
                 $operationContext,
             )
             : CompleteResult::from(
                 $executionResult->data,
-                $this->handleErrors($executionResult->errors),
+                $this->handleErrors($executionResult->errors, $operationContext->context),
                 $operationContext
             );
     }
@@ -256,32 +256,6 @@ class QueryExecutor
         return $result;
     }
 
-    private function mapError(GraphQlError $error): GraphQlError
-    {
-        if (!$this->errorMapper) {
-            return $error;
-        }
-
-        $mappedThrowable = ($this->errorMapper)($error->getPrevious());
-        return $mappedThrowable === $error->getPrevious()
-            ? $error
-            : new GraphQlError(
-                $mappedThrowable->getMessage(),
-                $error->nodes,
-                $error->getSource(),
-                $error->getPositions(),
-                $error->getPath(),
-                $mappedThrowable
-            );
-    }
-
-    protected function logError(GraphQlError $error): void
-    {
-        if ($this->errorLogger) {
-            ($this->errorLogger)($error->getPrevious(), $error);
-        }
-    }
-
     protected function processInternalError(GraphQlError $error): GraphQlError
     {
         if (!$this->hideFieldSuggestions || !str_contains($error->getMessage(), 'Did you mean "')) {
@@ -303,15 +277,34 @@ class QueryExecutor
      * @param GraphQlError[] $errors
      * @return array
      */
-    private function handleErrors(array $errors): array
+    private function handleErrors(array $errors, GraphQlContext $context): array
     {
-        return array_map(function (GraphQlError $graphQlError): GraphQlError {
-            if (!$graphQlError->getPrevious()) {
-                return $this->processInternalError($graphQlError);
+        return array_map(function (GraphQlError $error) use ($context): GraphQlError {
+            if (!$error->getPrevious()) {
+                return $this->processInternalError($error);
             }
 
-            $this->logError($graphQlError);
-            return $this->mapError($graphQlError);
+            if ($this->errorLogger) {
+                ($this->errorLogger)($error->getPrevious(), $context);
+            }
+
+            if (!$this->errorMapper) {
+                return $error;
+            }
+
+            $mappedThrowable = ($this->errorMapper)($error->getPrevious(), $context);
+            if ($mappedThrowable === $error->getPrevious()) {
+                return $error;
+            }
+
+            return new GraphQlError(
+                $mappedThrowable->getMessage(),
+                $error->nodes,
+                $error->getSource(),
+                $error->getPositions(),
+                $error->getPath(),
+                $mappedThrowable
+            );
         }, $errors);
     }
 }
