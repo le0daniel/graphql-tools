@@ -5,6 +5,7 @@ namespace GraphQlTools\Definition\Field;
 use Closure;
 use GraphQL\Type\Definition\FieldDefinition;
 use GraphQlTools\Contract\SchemaRules;
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Helper\Resolver\ProxyResolver;
 
@@ -136,17 +137,16 @@ final class Field extends BaseProperties
      * @throws DefinitionException
      * @internal
      */
-    public function toDefinition(SchemaRules $schemaRules): FieldDefinition
+    public function toDefinition(TypeRegistry $registry, SchemaRules $schemaRules): FieldDefinition
     {
-        $this->verifyTypeIsSet();
         return new FieldDefinition([
-            'name' => $this->name,
+            'name' => $this->getName(),
             'resolve' => new ProxyResolver($this->resolveFunction ?? null, $this->middlewares),
-            'type' => $this->ofType,
+            'type' => $this->getOfType($registry),
             'deprecationReason' => $this->deprecationReason,
             'removalDate' => $this->removalDate,
             'description' => $this->computeDescription(),
-            'args' => $this->initArguments($schemaRules),
+            'args' => $this->initArguments($registry,$schemaRules),
             'tags' => $this->getTags(),
             'complexity' => $this->costFunction ?? self::freeCost(...),
             'cost' => $this->cost,
@@ -157,12 +157,12 @@ final class Field extends BaseProperties
     /**
      * @throws DefinitionException
      */
-    private function initArguments(SchemaRules $schemaRules): ?array
+    private function initArguments(TypeRegistry $registry, SchemaRules $schemaRules): ?array
     {
         $inputFields = [];
         foreach ($this->arguments as $definition) {
             if ($schemaRules->isVisible($definition)) {
-                $inputFields[] = $definition->toDefinition();
+                $inputFields[] = $definition->toDefinition($registry);
             }
         }
 

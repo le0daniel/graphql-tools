@@ -29,7 +29,7 @@ abstract class GraphQlDirective extends TypeDefinition
     private function initInputFields(TypeRegistry $registry): array {
         $fields = [];
         foreach ($this->arguments($registry) as $argument) {
-            $fields[$argument->getName()] = $argument->toDefinition();
+            $fields[$argument->getName()] = $argument->toDefinition($registry);
         }
         return $fields;
     }

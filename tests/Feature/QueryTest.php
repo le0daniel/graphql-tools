@@ -125,12 +125,13 @@ class QueryTest extends TestCase
 
         $schemaRegistry->extend(
             Extend::type(UserType::class)
-                ->withFields(fn(TypeRegistry $registry) => [
+                ->withFields(fn() => [
                     Field::withName('extended')
-                        ->ofType($registry->string())
+                        ->ofTypeResolver(fn(TypeRegistry $x) => $x->string())
                         ->resolvedBy(fn() => 'extended'),
-                    Field::withName('closure')
-                        ->ofType($registry->type(JsonScalar::class))
+                    (new Field())
+                        ->name('closure')
+                        ->ofTypeResolver(fn(TypeRegistry $registry) => $registry->type(JsonScalar::class))
                         ->resolvedBy(fn() => 'closure')
                 ]),
         );

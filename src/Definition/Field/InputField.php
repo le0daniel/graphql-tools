@@ -3,6 +3,7 @@
 namespace GraphQlTools\Definition\Field;
 
 
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\DefinitionException;
 
 final class InputField extends BaseProperties
@@ -21,18 +22,16 @@ final class InputField extends BaseProperties
      * @throws DefinitionException
      * @internal This is used internally to get the state of the builder. Do not use this.
      */
-    final public function toDefinition(): array
+    final public function toDefinition(TypeRegistry $registry): array
     {
         $defaultValue = isset($this->defaultValue)
             ? ['defaultValue' => $this->defaultValue]
             : [];
 
-        $this->verifyTypeIsSet();
-
         return [
-            'name' => $this->name,
+            'name' => $this->getName(),
             'description' => $this->computeDescription(),
-            'type' => $this->ofType,
+            'type' => $this->getOfType($registry),
             'deprecatedReason' => $this->deprecationReason,
             'removalDate' => $this->removalDate,
             'tags' => $this->getTags(),

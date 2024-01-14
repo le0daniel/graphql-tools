@@ -30,7 +30,7 @@ trait HasFields
             /** @var Field|InputField $fieldDeclaration */
             foreach ($factory($registry) as $fieldDeclaration) {
                 if ($schemaRules->isVisible($fieldDeclaration)) {
-                    $initializedFields[$fieldDeclaration->name] = fn() => $fieldDeclaration->toDefinition($schemaRules);
+                    $initializedFields[$fieldDeclaration->getName()] = fn() => $fieldDeclaration->toDefinition($registry, $schemaRules);
                 }
             }
         }

@@ -47,7 +47,7 @@ class ExtendTest extends TestCase
         );
 
         self::assertEquals(
-            $field->name, $fields[0]->name
+            $field->getName(), $fields[0]->getName()
         );
     }
 }

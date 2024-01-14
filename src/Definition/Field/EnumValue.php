@@ -39,7 +39,7 @@ final class EnumValue extends BaseProperties
      */
     public function toDefinition(): array {
         return [
-            'name' => $this->name,
+            'name' => $this->getName(),
             'value' => $this->value,
             'tags' => $this->tags,
             'deprecationReason' => $this->deprecationReason,

@@ -4,13 +4,9 @@ namespace GraphQlTools\Helper\Registry;
 
 use GraphQL\GraphQL;
 use GraphQL\Type\Definition\Directive;
-use GraphQL\Type\Definition\InputObjectType;
-use GraphQL\Type\Definition\InterfaceType;
 use GraphQL\Type\Definition\ObjectType;
-use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
-use GraphQL\Utils\SchemaPrinter;
 use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\ExtendType;
 use GraphQlTools\Contract\SchemaRules;
@@ -223,41 +219,6 @@ class SchemaRegistry
                 'directives' => $customDirectives + GraphQL::getStandardDirectives(),
             ]
         );
-    }
-
-    /**
-     * @deprecated This is experimental and will change.
-     * @param SchemaRules|null $schemaRules
-     * @return string
-     * @throws \GraphQL\Error\Error
-     * @throws \GraphQL\Error\SerializationError
-     * @throws \JsonException
-     */
-    public function printPartial(?SchemaRules $schemaRules = null): string
-    {
-        $registry = new PartialPrintRegistry(
-            $this->types,
-            $this->aliases,
-            $extensions = $this->resolveFieldExtensions(),
-            $schemaRules ?? new AllVisibleSchemaRule(),
-        );
-
-        // This step is required to get type hints for interface types.
-        $typeNames = array_unique([...$registry->getTypeNames(), ...array_keys($extensions)]);
-
-        $schema = new Schema(SchemaConfig::create([
-            'types' => array_filter(
-                array_map(function (string $name) use ($registry) {
-                    /** @var Type $type */
-                    $type = Schema::resolveType($registry->type($name));
-                    $hasFields = $type instanceof ObjectType || $type instanceof InterfaceType || $type instanceof InputObjectType;
-                    $isEmpty = $hasFields && empty($type->getFields());
-                    return $isEmpty ? null : $type;
-                }, $typeNames)
-            ),
-        ]));
-
-        return SchemaPrinter::doPrint($schema);
     }
 
     public function createSchema(

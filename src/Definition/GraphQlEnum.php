@@ -41,7 +41,7 @@ abstract class GraphQlEnum extends TypeDefinition
                 continue;
             }
 
-            $values[$value->name] = $value->toDefinition();
+            $values[$value->getName()] = $value->toDefinition();
         }
 
         return $values;

@@ -5,6 +5,7 @@ namespace GraphQlTools\Definition\Field;
 use Closure;
 use DateTimeInterface;
 use GraphQL\Type\Definition\Type;
+use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Utility\Descriptions;
 
@@ -15,14 +16,26 @@ abstract class BaseProperties
     protected ?DateTimeInterface $removalDate = null;
     protected array $tags = [];
     protected Type|Closure $ofType;
+    protected ?Closure $ofTypeResolver = null;
+    protected string $name;
 
-    final public function __construct(public readonly string $name)
+    final public function __construct(?string $name = null)
     {
+        if ($name) {
+            $this->name = $name;
+        }
     }
 
     public static function withName(string $name): static
     {
         return new static($name);
+    }
+
+    public function name(string $name): static
+    {
+        $clone = clone $this;
+        $clone->name = $name;
+        return $clone;
     }
 
     public function ofType(Type|Closure $resolveType): static
@@ -32,11 +45,29 @@ abstract class BaseProperties
         return $clone;
     }
 
-    protected function verifyTypeIsSet(): void
+    /**
+     * Allows to define
+     * @param Closure(TypeRegistry): Type|Closure $ofTypeClosure
+     * @return $this
+     */
+    public function ofTypeResolver(Closure $ofTypeClosure): static
     {
-        if (!isset($this->ofType)) {
-            throw DefinitionException::fromMissingFieldDeclaration('ofType', $this->name, 'Every field must have a type defined.');
+        $clone = clone $this;
+        $clone->ofTypeResolver = $ofTypeClosure;
+        return $clone;
+    }
+
+    protected function getOfType(TypeRegistry $registry): Closure|Type
+    {
+        if (isset($this->ofType)) {
+            return $this->ofType;
         }
+
+        if (isset($this->ofTypeResolver)) {
+            return ($this->ofTypeResolver)($registry);
+        }
+
+        throw DefinitionException::fromMissingFieldDeclaration('ofType', $this->name, 'Every field must have a type defined.');
     }
 
     public function getName(): string
