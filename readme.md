@@ -318,6 +318,9 @@ Broader Usage:
 
 Creating reusable fields are easy. Create a function or method that returns a field, then it can be used everywhere.
 
+When creating shared fields it is useful to use `ofTypeResolver()`. You can define a closure, taking the type registry
+as a first argument. This way, you don't need to pass the type registry down.
+
 ```php
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Contract\TypeRegistry;
@@ -325,9 +328,9 @@ use GraphQlTools\Definition\GraphQlType;
 use GraphQL\Type\Definition\NonNull;
 
 class ReusableFields {
-    public static function id(TypeRegistry $registry): Field {
+    public static function id(): Field {
         return Field::withName('id')
-            ->ofType(new NonNull($registry->id()))
+            ->ofTypeResolver(fn(TypeRegistry $registry) => new NonNull($registry->id()))
             ->withDescription('Globally unique identifier.')
             ->resolvedBy(fn(Identifiable $data): string => $data->globallyUniqueId());
     }
@@ -337,7 +340,9 @@ class ReusableFields {
 class MyType extends GraphQlType {
     protected function fields(TypeRegistry $registry) : array {
         return [
-            ReusableFields::id($registry)->withDescription('Overwritten description...'),
+            ReusableFields::id()
+                ->name('id')
+                ->withDescription('Overwritten description...'),
             
             // Other Fields
             Field::withName('other')->ofType($registry->string()),

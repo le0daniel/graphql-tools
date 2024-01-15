@@ -46,8 +46,9 @@ abstract class BaseProperties
     }
 
     /**
-     * Allows to define
-     * @param Closure(TypeRegistry): Type|Closure $ofTypeClosure
+     * Allows to define a function that gets the type registry injected. This is useful
+     * for shared fields where you don't want to inject the TypeRegistry every time
+     * @param Closure(TypeRegistry): (Type|Closure) $ofTypeClosure
      * @return $this
      */
     public function ofTypeResolver(Closure $ofTypeClosure): static
