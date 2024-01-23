@@ -3,11 +3,11 @@
 namespace GraphQlTools\Definition\Extending;
 
 use Closure;
-use GraphQlTools\Contract\ExtendType;
+use GraphQlTools\Contract\ExtendsGraphQlDefinition;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
 
-final class Extend implements ExtendType
+final class Extend implements ExtendsGraphQlDefinition
 {
     private readonly Closure $fields;
     private array $middleware = [];
@@ -16,12 +16,17 @@ final class Extend implements ExtendType
     {
     }
 
-    public static function type(string $name): self
+    public static function interface(string $name): ExtendInterface
     {
-        return new self($name);
+        return new ExtendInterface($name);
     }
 
-    public static function interface(string $name): self
+    public static function union(string $name): ExtendUnion
+    {
+        return new ExtendUnion($name);
+    }
+
+    public static function type(string $name): self
     {
         return new self($name);
     }

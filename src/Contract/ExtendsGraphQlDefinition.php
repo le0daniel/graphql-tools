@@ -7,8 +7,7 @@ namespace GraphQlTools\Contract;
  * As for now, this should not be implemented by any other tool
  * This interface will change.
  */
-interface ExtendType
+interface ExtendsGraphQlDefinition
 {
     public function typeName(): string;
-    public function getFields(TypeRegistry $registry): array;
 }

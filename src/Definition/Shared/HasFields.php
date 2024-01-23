@@ -14,15 +14,6 @@ trait HasFields
 
     abstract protected function fields(TypeRegistry $registry): array;
 
-    final public function mergeFieldFactories(Closure ... $factories): static {
-        $instance = clone $this;
-        $instance->mergedFieldFactories = [
-            ...$this->mergedFieldFactories,
-            ...$factories
-        ];
-        return $instance;
-    }
-
     protected function initializeFields(TypeRegistry $registry, array $factories, SchemaRules $schemaRules): array {
         $initializedFields = [];
 

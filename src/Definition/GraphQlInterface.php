@@ -9,14 +9,44 @@ use GraphQL\Type\Definition\ResolveInfo;
 use GraphQlTools\Contract\GraphQlContext;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
+use GraphQlTools\Definition\Extending\ExtendInterface;
 use GraphQlTools\Definition\Shared\HasFields;
 use GraphQlTools\Helper\OperationContext;
 
 abstract class GraphQlInterface extends TypeDefinition
 {
     use HasFields;
+    private array $typeResolvers = [];
 
     abstract public function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string;
+
+    final protected function resolveTypeWithExtendedTypeResolvers(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string
+    {
+        foreach ($this->typeResolvers as $typeResolver) {
+            $typeName = $typeResolver($typeValue, $context, $info);
+            if ($typeName !== null) {
+                return $typeName;
+            }
+        }
+        return $this->resolveToType($typeValue, $context, $info);
+    }
+
+    /**
+     * @param array<ExtendInterface> $extensions
+     * @return $this
+     */
+    public function extendWith(array $extensions): static {
+        $clone = clone $this;
+
+        foreach ($extensions as $extension) {
+            if ($resolver = $extension->getResolver()) {
+                $clone->typeResolvers[] = $resolver;
+            }
+        }
+
+        return $clone;
+    }
+
 
     public function toDefinition(TypeRegistry $registry, SchemaRules $schemaRules): InterfaceType
     {
@@ -34,7 +64,7 @@ abstract class GraphQlInterface extends TypeDefinition
                 $typeName = $context->cache->getCache($info->path, $this->getName()) ?? $context->cache->setCache(
                     $info->path,
                     $this->getName(),
-                    $this->resolveToType($_, $context->context, $info)
+                    $this->resolveTypeWithExtendedTypeResolvers($_, $context->context, $info)
                 );
 
                 return $registry->type($typeName);

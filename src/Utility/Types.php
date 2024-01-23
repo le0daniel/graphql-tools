@@ -44,7 +44,7 @@ final class Types
 
         return match (true) {
             str_ends_with($typeNameWithoutExtendsKeyword, self::TYPE_NAME_ENDING) => substr($typeNameWithoutExtendsKeyword, 0, -4),
-            str_ends_with($typeNameWithoutExtendsKeyword, self::INTERFACE_NAME_ENDING) => substr($typeNameWithoutExtendsKeyword, 0, -9),
+            // str_ends_with($typeNameWithoutExtendsKeyword, self::INTERFACE_NAME_ENDING) => substr($typeNameWithoutExtendsKeyword, 0, -9),
             default => throw new DefinitionException("Could not infer type name from string: {$baseName}. Expected string to end in 'Type' or 'Interface'."),
         };
     }

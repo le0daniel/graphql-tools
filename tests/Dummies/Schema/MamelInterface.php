@@ -20,10 +20,6 @@ final class MamelInterface extends GraphQlInterface {
         ];
     }
 
-    protected function description(): string {
-        return '';
-    }
-
     public function resolveToType(mixed $typeValue, GraphQlContext $context, ResolveInfo $info): string {
         switch ($typeValue['type']) {
             case 'lion':

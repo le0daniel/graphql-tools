@@ -12,12 +12,6 @@ class ExtendTest extends TestCase
 {
     use ProphecyTrait;
 
-    public function testInterface()
-    {
-        $extendedType = Extend::interface('MyTypeName');
-        self::assertEquals('MyTypeName', $extendedType->typeName());
-    }
-
     public function testType()
     {
         $extendedType = Extend::type('MyTypeName');

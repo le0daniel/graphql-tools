@@ -3,16 +3,16 @@
 namespace GraphQlTools\Definition\Extending;
 
 use Closure;
-use GraphQlTools\Contract\ExtendType;
+use GraphQlTools\Contract\ExtendsGraphQlDefinition;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Utility\Middleware\Federation;
 use GraphQlTools\Utility\Types;
 
 /**
- * Naming pattern Extends[TypeOrInterfaceName][Type|Interface]
+ * Naming pattern Extends[TypeNameToBeExtended][Type]
  */
-abstract class ExtendGraphQlType implements ExtendType
+abstract class ExtendType implements ExtendsGraphQlDefinition
 {
     /**
      * Return type name of class name

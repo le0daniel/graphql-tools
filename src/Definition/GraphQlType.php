@@ -9,6 +9,7 @@ use GraphQL\Type\Definition\ObjectType;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Data\ValueObjects\GraphQlTypes;
+use GraphQlTools\Definition\Extending\ExtendType;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Shared\HasFields;
 
@@ -28,6 +29,19 @@ abstract class GraphQlType extends TypeDefinition
     protected function interfaces(): array
     {
         return [];
+    }
+
+    /**
+     * @param array<ExtendType> $extensions
+     * @return $this
+     */
+    public function extendWith(array $extensions): static
+    {
+        $clone = clone $this;
+        foreach ($extensions as $extension) {
+            $clone->mergedFieldFactories[] = $extension->getFields(...);
+        }
+        return $clone;
     }
 
     private function getDefinedFields(TypeRegistry $registry): array {

@@ -3,7 +3,7 @@
 namespace GraphQlTools\Utility;
 
 use GraphQlTools\Contract\DefinesGraphQlType;
-use GraphQlTools\Contract\ExtendType;
+use GraphQlTools\Contract\ExtendsGraphQlDefinition;
 use GraphQlTools\Definition\DefinitionException;
 use ReflectionClass;
 use ReflectionException;
@@ -33,10 +33,10 @@ class TypeMap
                 continue;
             }
 
-            if ($reflection->implementsInterface(ExtendType::class)) {
+            if ($reflection->implementsInterface(ExtendsGraphQlDefinition::class)) {
                 self::verifyHasConstructorWithoutArguments($reflection);
 
-                /** @var ExtendType $instance */
+                /** @var ExtendsGraphQlDefinition $instance */
                 $instance = (new $className);
                 $extendedTypes[$instance->typeName()][] = $className;
                 continue;

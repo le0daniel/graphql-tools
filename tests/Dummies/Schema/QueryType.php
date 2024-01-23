@@ -45,6 +45,14 @@ final class QueryType extends GraphQlType
     {
         $value = 'test';
         return [
+            Field::withName('catTest')
+                ->ofType($registry->type(MamelInterface::class))
+                ->resolvedBy(fn() => ['type' => 'cat']),
+
+            Field::withName('catUnionTest')
+                ->ofType($registry->type(AnimalUnion::class))
+                ->resolvedBy(fn() => ['type' => 'cat']),
+
             Field::withName('currentUser')
                 ->ofType($registry->string())
                 ->withArguments(

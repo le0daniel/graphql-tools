@@ -11,9 +11,10 @@ use GraphQlTools\Contract\DefinesGraphQlType;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry as TypeRegistryContract;
 use GraphQlTools\Definition\DefinitionException;
-use GraphQlTools\Contract\ExtendType;
+use GraphQlTools\Contract\ExtendsGraphQlDefinition;
 use GraphQlTools\Definition\GraphQlInterface;
 use GraphQlTools\Definition\GraphQlType;
+use GraphQlTools\Definition\GraphQlUnion;
 use RuntimeException;
 use GraphQlTools\Data\ValueObjects\GraphQlTypes;
 
@@ -28,12 +29,12 @@ class FactoryTypeRegistry implements TypeRegistryContract
     /**
      * @param array<string, class-string<DefinesGraphQlType>|DefinesGraphQlType> $typeFactories
      * @param array<string, string> $aliasesOfTypes
-     * @param array<string, array<ExtendType|class-string<ExtendType>> $typeExtensions
+     * @param array<string, array<ExtendsGraphQlDefinition|class-string<ExtendsGraphQlDefinition>> $extensions
      */
     public function __construct(
         protected readonly array       $typeFactories,
         protected readonly array       $aliasesOfTypes = [],
-        protected readonly array       $typeExtensions = [],
+        protected readonly array       $extensions = [],
         protected readonly SchemaRules $schemaRules = new AllVisibleSchemaRule()
     )
     {}
@@ -88,50 +89,43 @@ class FactoryTypeRegistry implements TypeRegistryContract
             default => throw new DefinitionException("Invalid type factory provided for '{$typeName}'. Expected class-string, closure, or instance of DefinesGraphQlType got: " . gettype($typeFactory))
         };
 
-        assert($definition instanceof DefinesGraphQlType);
+        $extended = match (true) {
+            $definition instanceof GraphQlType, $definition instanceof GraphQlInterface, $definition instanceof GraphQlUnion => $this->applyExtensions($definition),
+            default => $definition
+        };
 
-        return ($definition instanceof GraphQlType || $definition instanceof GraphQlInterface)
-            ? $this->extendTypeDefinitionWithExtendedFields($definition)
-            : $definition->toDefinition($this, $this->schemaRules);
+        return $extended->toDefinition($this, $this->schemaRules);
     }
 
-    /**
-     * @throws DefinitionException
-     */
-    protected function extendTypeDefinitionWithExtendedFields(GraphQlType|GraphQlInterface $type): Type
+    protected function applyExtensions(DefinesGraphQlType $type): DefinesGraphQlType
     {
-        $extendedFields = $this->getFieldExtensionsByTypeName($type->getName());
-        if ($type instanceof GraphQlType) {
-            foreach ($type->getInterfaces() as $interfaceNameOrAlias) {
-                array_push($extendedFields, ...$this->getFieldExtensionsByTypeName(
-                    $this->resolveAliasToName($interfaceNameOrAlias)
-                ));
-            }
+        $extensions = $this->getAllExtensionsFor($type->getName());
+
+        if (empty($extensions)) {
+            return $type;
         }
 
-        return empty($extendedFields)
-            ? $type->toDefinition($this, $this->schemaRules)
-            : $type->mergeFieldFactories(...$extendedFields)
-                ->toDefinition($this, $this->schemaRules);
+        return match(true) {
+            $type instanceof GraphQlType => $type->extendWith($extensions),
+            $type instanceof GraphQlInterface => $type->extendWith($extensions),
+            $type instanceof GraphQlUnion => $type->extendWith($extensions),
+            default => throw new DefinitionException("Invalid type extension given. Expected GraphQlType or GraphQlInterface got: " . get_class($type))
+        };
     }
 
-    protected function getFieldExtensionsByTypeName(string $typeName): array
+    protected function getAllExtensionsFor(string $typeName): array
     {
-        if (!isset($this->typeExtensions[$typeName])) {
-            return [];
-        }
-
-        $factories = [];
-        /** @var class-string<ExtendType>|ExtendType $extension */
-        foreach ($this->typeExtensions[$typeName] as $extension) {
-            $factories[] = match (true) {
-                is_string($extension) => (new $extension)->getFields(...),
-                $extension instanceof ExtendType => $extension->getFields(...),
+        $extensions = [];
+        /** @var class-string<ExtendsGraphQlDefinition>|ExtendsGraphQlDefinition $extension */
+        foreach (($this->extensions[$typeName] ?? []) as $extension) {
+            $extensions[] = match (true) {
+                is_string($extension) => (new $extension),
+                $extension instanceof ExtendsGraphQlDefinition => $extension,
                 default => throw new DefinitionException("Invalid type field extension given. Expected Closure or class-string<ExtendGraphQlType>."),
             };
         }
 
-        return $factories;
+        return $extensions;
     }
 
     public function nonNull(Type|Closure $wrappedType): NonNull

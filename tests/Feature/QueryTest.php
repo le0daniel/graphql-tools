@@ -136,6 +136,16 @@ class QueryTest extends TestCase
                 ]),
         );
 
+        $schemaRegistry->extend(
+            Extend::interface('Mamel')
+                ->withResolver(fn(array $typeValue) => $typeValue['type'] === 'cat' ? 'Cat': null)
+        );
+
+        $schemaRegistry->extend(
+            Extend::union('Animal')
+                ->withTypeAndResolver('Cat', fn($typeValue) => $typeValue['type'] === 'cat')
+        );
+
         $schemaRegistry->register(DeferDirective::class);
 
         $schemaRegistry->extend(
@@ -171,6 +181,20 @@ class QueryTest extends TestCase
             ->createSchema(QueryType::class, schemaRules: new TagBasedSchemaRules($excludeTags));
         $schema->assertValid();
         return $schema;
+    }
+
+    public function testCatExtendedResolver(): void
+    {
+        $result = $this->execute('query { catTest { sound, __typename } }');
+        $this->assertNoErrors($result);
+        self::assertEquals('Cat', $result->data['catTest']['__typename']);
+    }
+
+    public function testCatExtendedUnionResolver(): void
+    {
+        $result = $this->execute('query { catUnionTest { ... on Cat { sound, __typename } } }');
+        $this->assertNoErrors($result);
+        self::assertEquals('Cat', $result->data['catUnionTest']['__typename']);
     }
 
     public function testFieldExecution(): void
@@ -308,21 +332,6 @@ class QueryTest extends TestCase
         self::assertCount(3, $result->data['mamels']);
         $this->assertColumnCount(3, $result->data['mamels'], 'sound');
     }
-
-
-    public function testQueryExtendedInterface(): void
-    {
-        $result = $this->execute('query { mamels { added } }');
-        $this->assertNoErrors($result);
-        self::assertCount(3, $result->data['mamels']);
-        self::assertCount(3, $result->data['mamels']);
-        $this->assertColumnCount(3, $result->data['mamels'], 'added');
-
-        foreach ($result->data['mamels'] as $mamel) {
-            self::assertEquals('this is a value', $mamel['added']);
-        }
-    }
-
 
     public function testQueryWithExtendedUserType(): void
     {

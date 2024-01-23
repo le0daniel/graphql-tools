@@ -8,7 +8,7 @@ use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
 use GraphQlTools\Contract\DefinesGraphQlType;
-use GraphQlTools\Contract\ExtendType;
+use GraphQlTools\Contract\ExtendsGraphQlDefinition;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Definition\DefinitionException;
 use GraphQlTools\Definition\GraphQlDirective;
@@ -33,9 +33,9 @@ class SchemaRegistry
     private array $directives = [];
 
     /**
-     * @var array<string, array<string, string|ExtendType>>
+     * @var array<string, array<string, string|ExtendsGraphQlDefinition>>
      */
-    private array $typeFieldExtensions = [];
+    private array $extensions = [];
 
     /**
      * @param DefinesGraphQlType|class-string<DefinesGraphQlType> $definition
@@ -91,23 +91,23 @@ class SchemaRegistry
      * Extend a type or interface. If no name is provided, the name is inferred from the
      * classname.
      *
-     * @param ExtendType|string $extendedType
+     * @param ExtendsGraphQlDefinition|string $extendedType
      * @param string|null $extendedTypeName
      * @return void
      * @throws DefinitionException
      */
-    public function extend(ExtendType|string $extendedType, ?string $extendedTypeName = null): void
+    public function extend(ExtendsGraphQlDefinition|string $extendedType, ?string $extendedTypeName = null): void
     {
-        $extendedTypeName ??= $extendedType instanceof ExtendType
+        $extendedTypeName ??= $extendedType instanceof ExtendsGraphQlDefinition
             ? $extendedType->typeName()
             : Types::inferExtensionTypeName($extendedType);
 
-        if ($extendedType instanceof ExtendType && $extendedTypeName !== $extendedType->typeName()) {
+        if ($extendedType instanceof ExtendsGraphQlDefinition && $extendedTypeName !== $extendedType->typeName()) {
             throw new RuntimeException("Extended type name and provided type name hint did not match.");
         }
 
-        $this->typeFieldExtensions[$extendedTypeName] ??= [];
-        $this->typeFieldExtensions[$extendedTypeName][] = $extendedType;
+        $this->extensions[$extendedTypeName] ??= [];
+        $this->extensions[$extendedTypeName][] = $extendedType;
     }
 
     /**
@@ -144,11 +144,11 @@ class SchemaRegistry
         }
     }
 
-    protected function resolveFieldExtensions(): array
+    protected function resolveExtensionAliases(): array
     {
         $extensionFactories = [];
 
-        foreach ($this->typeFieldExtensions as $typeNameOrAlias => $fieldExtensions) {
+        foreach ($this->extensions as $typeNameOrAlias => $fieldExtensions) {
             $typeName = $this->aliases[$typeNameOrAlias] ?? $typeNameOrAlias;
             $extensionFactories[$typeName] ??= [];
             array_push($extensionFactories[$typeName], ...$fieldExtensions);
@@ -177,7 +177,7 @@ class SchemaRegistry
         $registry = new FactoryTypeRegistry(
             $this->types,
             $this->aliases,
-            $this->resolveFieldExtensions(),
+            $this->resolveExtensionAliases(),
             $schemaRules,
         );
 
