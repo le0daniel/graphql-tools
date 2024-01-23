@@ -12,7 +12,7 @@ use GraphQlTools\Utility\Types;
 /**
  * Naming pattern Extends[TypeNameToBeExtended][Type]
  */
-abstract class ExtendType implements ExtendsGraphQlDefinition
+abstract class ExtendGraphQlType implements ExtendsGraphQlDefinition
 {
     /**
      * Return type name of class name

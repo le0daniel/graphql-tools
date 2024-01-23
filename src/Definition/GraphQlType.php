@@ -9,7 +9,7 @@ use GraphQL\Type\Definition\ObjectType;
 use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Data\ValueObjects\GraphQlTypes;
-use GraphQlTools\Definition\Extending\ExtendType;
+use GraphQlTools\Definition\Extending\ExtendGraphQlType;
 use GraphQlTools\Definition\Field\Field;
 use GraphQlTools\Definition\Shared\HasFields;
 
@@ -32,7 +32,7 @@ abstract class GraphQlType extends TypeDefinition
     }
 
     /**
-     * @param array<ExtendType> $extensions
+     * @param array<ExtendGraphQlType> $extensions
      * @return $this
      */
     public function extendWith(array $extensions): static

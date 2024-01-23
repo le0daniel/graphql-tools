@@ -4,10 +4,10 @@ namespace GraphQlTools\Test\Dummies\Schema\Stitching;
 
 use GraphQL\Type\Definition\NonNull;
 use GraphQlTools\Contract\TypeRegistry;
-use GraphQlTools\Definition\Extending\ExtendType;
+use GraphQlTools\Definition\Extending\ExtendGraphQlType;
 use GraphQlTools\Definition\Field\Field;
 
-final class ExtendsQueryType extends ExtendType
+final class ExtendsQueryType extends ExtendGraphQlType
 {
 
     protected function fields(TypeRegistry $registry): array

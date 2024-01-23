@@ -488,11 +488,11 @@ Examples:
 - ExtendsUserInterface => Extends the interface with the name User
 
 ```php
-use GraphQlTools\Definition\Extending\ExtendType;
+use GraphQlTools\Definition\Extending\ExtendGraphQlType;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Helper\Registry\SchemaRegistry;
 
-class ExtendsAnimalType extends ExtendType {
+class ExtendsAnimalType extends ExtendGraphQlType {
     public function fields(TypeRegistry $registry) : array {
         return [
             Field::withName('family')
