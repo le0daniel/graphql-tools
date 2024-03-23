@@ -40,7 +40,9 @@ class ProxyResolver
 
     private function wrapResult(mixed $result, FieldResolution $fieldResolution): mixed {
         return Promises::isPromise($result)
-            ? $result->then($fieldResolution->resolveValue(...))->catch($fieldResolution->resolveValue(...))
+            ? $result
+                ->then($fieldResolution->resolveValue(...))
+                ->catch($fieldResolution->resolveValue(...))
             : $fieldResolution->resolveValue($result);
     }
 
