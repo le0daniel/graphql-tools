@@ -8,6 +8,7 @@ use GraphQlTools\Definition\GraphQlEnum;
 use GraphQlTools\Helper\Registry\AllVisibleSchemaRule;
 use GraphQlTools\Test\Dummies\Enum\Eating;
 use GraphQlTools\Test\Dummies\Enum\NotBackedEnum;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 
@@ -39,9 +40,7 @@ class GraphQlEnumTest extends TestCase
         return $instance->setValuesOnce($values);
     }
 
-    /**
-     * @dataProvider toDefinitionDataProvider
-     */
+    #[DataProvider('toDefinitionDataProvider')]
     public function testToDefinition(array|string $values)
     {
         $description ??= 'some description';
@@ -52,7 +51,7 @@ class GraphQlEnumTest extends TestCase
         self::assertEquals('', $definition->description);
     }
 
-    public function toDefinitionDataProvider(): array
+    public static function toDefinitionDataProvider(): array
     {
         return [
             'with array values' => [['one', 'two', 'three']],

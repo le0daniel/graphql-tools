@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace GraphQlTools\Test\Unit\Utility;
 
 use GraphQlTools\Utility\Arrays;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
 
@@ -21,13 +22,13 @@ final class ArraysTest extends TestCase
         );
     }
 
-    /** @dataProvider sortByColumnProvider */
+    #[DataProvider('sortByColumnProvider')]
     public function testSortByColumn(array $array, string $column, array $expected): void
     {
         self::assertEquals($expected, Arrays::sortByColumn($array, $column));
     }
 
-    public function sortByColumnProvider(): array
+    public static function sortByColumnProvider(): array
     {
         return [
             'simple sort' => [

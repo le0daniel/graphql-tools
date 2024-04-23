@@ -13,6 +13,7 @@ use GraphQlTools\Test\Dummies\Schema\JsonScalar;
 use GraphQlTools\Test\Dummies\Schema\MamelInterface;
 use GraphQlTools\Test\Dummies\Schema\TigerType;
 use GraphQlTools\Utility\Types;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Prophecy\PhpUnit\ProphecyTrait;
 
@@ -33,16 +34,9 @@ class TypesTest extends TestCase
 
     public function testInferExtensionTypeName(): void {
         self::assertEquals('Animal', Types::inferExtensionTypeName('Some\\ExtendsAnimalType'));
-        // self::assertEquals('Animal', Types::inferExtensionTypeName('Some\\ExtendsAnimalInterface'));
     }
 
-    /**
-     * @param string $className
-     * @param string $message
-     * @return void
-     * @throws DefinitionException
-     * @dataProvider failingInferExtensionTypeNameDataProvider
-     */
+    #[DataProvider('failingInferExtensionTypeNameDataProvider')]
     public function testFailingInferExtensionTypeName(string $className, string $message): void {
         $this->expectException(DefinitionException::class);
         $this->expectExceptionMessage($message);

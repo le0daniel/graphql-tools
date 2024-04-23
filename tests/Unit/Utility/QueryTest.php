@@ -4,18 +4,19 @@ namespace GraphQlTools\Test\Unit\Utility;
 
 use GraphQlTools\Utility\Query;
 use JetBrains\PhpStorm\ArrayShape;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class QueryTest extends TestCase
 {
 
-    /** @dataProvider createSignatureProvider */
+    #[DataProvider('createSignatureProvider')]
     public function testCreateSignatureString(string $query, string $expected): void
     {
         self::assertEquals($expected, Query::createSignatureString($query));
     }
 
-    public function createSignatureProvider(): array {
+    public static function createSignatureProvider(): array {
         return [
             'remove aliases and query' => [
                 'query {value: whoami}', '{ whoami }'
@@ -75,13 +76,13 @@ class QueryTest extends TestCase
         ];
     }
 
-    /** @dataProvider sameSignatureDataProvider */
+    #[DataProvider('sameSignatureDataProvider')]
     public function testSameSignature(string ... $queries): void {
         $signatures = array_map(fn(string $query): string => Query::createSignatureString($query), $queries);
         self::assertCount(1, array_unique($signatures));
     }
 
-    public function sameSignatureDataProvider(): array {
+    public static function sameSignatureDataProvider(): array {
         return [
             'with aliases' => [
                 'query AuthorForPost {

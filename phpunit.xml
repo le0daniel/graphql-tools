@@ -1,23 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="./vendor/phpunit/phpunit/phpunit.xsd"
-         bootstrap="tests/bootstrap.php"
-         colors="true"
->
-    <testsuites>
-        <testsuite name="Unit">
-            <directory suffix="Test.php">./tests</directory>
-            <!-- <directory suffix="Test.php">./tests/Definition/</directory>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/11.1/phpunit.xsd" bootstrap="tests/bootstrap.php" colors="true" cacheDirectory=".phpunit.cache">
+  <testsuites>
+    <testsuite name="Unit">
+      <directory suffix="Test.php">./tests</directory>
+      <!-- <directory suffix="Test.php">./tests/Definition/</directory>
             <exclude>./tests/Execution</exclude>
             <exclude>./tests/Feature</exclude> -->
-        </testsuite>
-    </testsuites>
-    <coverage processUncoveredFiles="true">
-        <include>
-            <directory suffix=".php">./app</directory>
-        </include>
-    </coverage>
-    <php>
-        <server name="ENV" value="testing"/>
-    </php>
+    </testsuite>
+  </testsuites>
+  <php>
+    <server name="ENV" value="testing"/>
+  </php>
+  <source>
+    <include>
+      <directory suffix=".php">./app</directory>
+    </include>
+  </source>
 </phpunit>
