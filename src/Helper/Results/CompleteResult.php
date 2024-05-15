@@ -7,7 +7,7 @@ use RuntimeException;
 
 final readonly class CompleteResult extends Result
 {
-    function appendToResult(array $result): array
+    protected function appendToResult(array $result): array
     {
         return $result;
     }
