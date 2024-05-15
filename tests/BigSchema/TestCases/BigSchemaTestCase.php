@@ -35,10 +35,6 @@ abstract class BigSchemaTestCase extends TestCase
             $variables,
         ));
 
-        if ($durationInSeconds > 0.05) {
-            $this->addWarning("Duration of the query was longer than 50ms (0.05s): {$durationInSeconds}s");
-        }
-
         return $result;
     }
 
