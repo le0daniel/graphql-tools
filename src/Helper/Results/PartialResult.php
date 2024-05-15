@@ -67,7 +67,7 @@ readonly class PartialResult extends Result
         );
     }
 
-    function appendToResult(array $result): array
+    protected function appendToResult(array $result): array
     {
         $result['hasNext'] = $this->hasNext;
 
