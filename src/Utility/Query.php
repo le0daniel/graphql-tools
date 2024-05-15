@@ -7,7 +7,6 @@ namespace GraphQlTools\Utility;
 
 
 use GraphQL\Error\SyntaxError;
-use GraphQL\Language\AST\DefinitionNode;
 use GraphQL\Language\AST\DirectiveNode;
 use GraphQL\Language\AST\DocumentNode;
 use GraphQL\Language\AST\FieldNode;
@@ -28,7 +27,6 @@ use GraphQL\Language\Parser;
 use GraphQL\Language\Printer;
 use GraphQL\Language\Visitor;
 use JsonException;
-use Traversable;
 
 final class Query
 {
@@ -84,11 +82,11 @@ final class Query
     }
 
     /**
-     * @param array<mixed>|Traversable<mixed>|null $nodes
+     * @param iterable|null $nodes
      * @param string ...$keys
-     * @return array<mixed>
+     * @return array
      */
-    private static function sortBy(array|Traversable|null $nodes, string ...$keys): array
+    private static function sortBy(?iterable $nodes, string ...$keys): array
     {
         if (!$nodes) {
             return [];

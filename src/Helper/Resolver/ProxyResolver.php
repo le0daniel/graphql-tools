@@ -38,7 +38,8 @@ class ProxyResolver
         return Directives::getMiddlewares($info, $directiveNames);
     }
 
-    private function wrapResult(mixed $result, FieldResolution $fieldResolution): mixed {
+    private function wrapResult(mixed $result, FieldResolution $fieldResolution): mixed
+    {
         return Promises::isPromise($result)
             ? $result
                 ->then($fieldResolution->resolveValue(...))

@@ -275,6 +275,7 @@ class QueryExecutor
 
     /**
      * @param GraphQlError[] $errors
+     * @param GraphQlContext $context
      * @return array
      */
     private function handleErrors(array $errors, GraphQlContext $context): array

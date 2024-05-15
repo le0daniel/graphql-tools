@@ -2,12 +2,13 @@
 
 namespace GraphQlTools\Definition\Extending;
 
+use Closure;
 use GraphQlTools\Contract\ExtendsGraphQlDefinition;
 
 class ExtendUnion implements ExtendsGraphQlDefinition
 {
     private string $typeName;
-    private \Closure $resolver;
+    private Closure $resolver;
 
     public function __construct(private readonly string $unionName)
     {
@@ -26,17 +27,17 @@ class ExtendUnion implements ExtendsGraphQlDefinition
     /**
      * Return the typename that should be added to the union.
      * @param string $typeName
-     * @param \Closure $resolver
+     * @param Closure $resolver
      * @return ExtendUnion
      */
-    public function withTypeAndResolver(string $typeName, \Closure $resolver): self
+    public function withTypeAndResolver(string $typeName, Closure $resolver): self
     {
         $this->resolver = $resolver;
         $this->typeName = $typeName;
         return $this;
     }
 
-    public function getResolver(): \Closure
+    public function getResolver(): Closure
     {
         return $this->resolver;
     }
