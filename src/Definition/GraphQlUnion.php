@@ -11,6 +11,7 @@ use GraphQlTools\Contract\SchemaRules;
 use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Extending\ExtendUnion;
 use GraphQlTools\Helper\OperationContext;
+use GraphQlTools\Utility\Paths;
 
 abstract class GraphQlUnion extends TypeDefinition
 {
@@ -27,8 +28,8 @@ abstract class GraphQlUnion extends TypeDefinition
             'removalDate' => $this->removalDate(),
             'types' => fn() => array_map(fn(string $typeName) => $registry->type($typeName), $this->getAllPossibleTypeNames()),
             'resolveType' => function($_, OperationContext $context, $info) use ($registry) {
-                $typeName = $context->cache->getCache($info->path, $this->getName()) ?? $context->cache->setCache(
-                    $info->path,
+                $typeName = $context->cache->getCache(Paths::toString($info->path), $this->getName()) ?? $context->cache->setCache(
+                    Paths::toString($info->path),
                     $this->getName(),
                     $this->resolveToTypeWithExtendedTypes($_, $context->context, $info)
                 );

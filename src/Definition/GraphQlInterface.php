@@ -12,6 +12,7 @@ use GraphQlTools\Contract\TypeRegistry;
 use GraphQlTools\Definition\Extending\ExtendInterface;
 use GraphQlTools\Definition\Shared\HasFields;
 use GraphQlTools\Helper\OperationContext;
+use GraphQlTools\Utility\Paths;
 
 abstract class GraphQlInterface extends TypeDefinition
 {
@@ -61,8 +62,8 @@ abstract class GraphQlInterface extends TypeDefinition
                 $schemaRules,
             ),
             'resolveType' => function($_, OperationContext $context, $info) use ($registry) {
-                $typeName = $context->cache->getCache($info->path, $this->getName()) ?? $context->cache->setCache(
-                    $info->path,
+                $typeName = $context->cache->getCache(Paths::toString($info->path), $this->getName()) ?? $context->cache->setCache(
+                    Paths::toString($info->path),
                     $this->getName(),
                     $this->resolveTypeWithExtendedTypeResolvers($_, $context->context, $info)
                 );
