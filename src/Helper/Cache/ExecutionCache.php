@@ -42,14 +42,13 @@ final class ExecutionCache implements Cache
      * @template T
      * Cache during execution. This is used to cache the resolution of 'resolveToType' for
      * unions and interfaces, to allow for more than one run successfully.
-     * @param array $path
      * @param string $key
      * @param T $data
      * @return T
      */
-    public function setCache(array $path, string $key, mixed $data): mixed
+    public function setCache(string $path, string $key, mixed $data): mixed
     {
-        $this->cache[self::pathToString($path) . ":{$key}"] = $data;
+        $this->cache[$path . ":{$key}"] = $data;
         return $data;
     }
 
@@ -59,8 +58,8 @@ final class ExecutionCache implements Cache
      * @param string $key
      * @return mixed
      */
-    public function getCache(array $path, string $key): mixed
+    public function getCache(string $path, string $key): mixed
     {
-        return $this->cache[self::pathToString($path) . ":{$key}"] ?? null;
+        return $this->cache[$path . ":{$key}"] ?? null;
     }
 }

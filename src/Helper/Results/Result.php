@@ -44,7 +44,7 @@ abstract readonly class Result implements GraphQlResult, JsonSerializable
         return $this->validationRules->get($name) ?? null;
     }
 
-    abstract function appendToResult(array $result): array;
+    abstract protected function appendToResult(array $result): array;
 
     final public function toArray(int $debug = DebugFlag::NONE): array
     {

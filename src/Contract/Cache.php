@@ -13,18 +13,18 @@ interface Cache
 
     /**
      * @template T
-     * @param array $path
+     * @param string $path
      * @param string $key
      * @param T $data
      * @return T
      */
-    public function setCache(array $path, string $key, mixed $data): mixed;
+    public function setCache(string $path, string $key, mixed $data): mixed;
 
     /**
-     * @param array $path
+     * @param string $path
      * @param string $key
      * @return mixed
      */
-    public function getCache(array $path, string $key): mixed;
+    public function getCache(string $path, string $key): mixed;
 
 }

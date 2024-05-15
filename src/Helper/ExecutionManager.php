@@ -2,7 +2,7 @@
 
 namespace GraphQlTools\Helper;
 
-use GraphQlTools\Utility\Arrays;
+use GraphQlTools\Utility\Paths;
 use GraphQlTools\Utility\Time;
 use RuntimeException;
 use stdClass;
@@ -54,7 +54,7 @@ final class ExecutionManager
             throw new RuntimeException("You can not run again, so deferring further is not allowed.");
         }
 
-        $this->deferred[self::pathToString($path)] = [$path, $label, $data];
+        $this->deferred[Paths::toString($path)] = [$path, $label, $data];
     }
 
     /**
@@ -64,7 +64,7 @@ final class ExecutionManager
      */
     public function isDeferred(array $path): bool
     {
-        return array_key_exists(self::pathToString($path), $this->deferred);
+        return array_key_exists(Paths::toString($path), $this->deferred);
     }
 
     /**
@@ -92,14 +92,9 @@ final class ExecutionManager
 
     public function popDeferred(array $path): mixed
     {
-        $path = self::pathToString($path);
+        $path = Paths::toString($path);
         $data = $this->deferred[$path][2];
         unset($this->deferred[$path]);
         return $data;
-    }
-
-    private static function pathToString(array $path): string
-    {
-        return implode('.', $path);
     }
 }

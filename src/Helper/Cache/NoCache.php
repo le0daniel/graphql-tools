@@ -21,12 +21,12 @@ final class NoCache implements Cache
         throw new RuntimeException("Cache is disabled, should not be reached.");
     }
 
-    public function setCache(array $path, string $key, mixed $data): mixed
+    public function setCache(string $path, string $key, mixed $data): mixed
     {
         return $data;
     }
 
-    public function getCache(array $path, string $key): mixed
+    public function getCache(string $path, string $key): mixed
     {
         return null;
     }

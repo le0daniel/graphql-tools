@@ -16,10 +16,10 @@ class ExecutionCacheTest extends TestCase
 
     public function testGetCache()
     {
-        self::assertNull($this->cache->getCache(['test'], 'test'));
+        self::assertNull($this->cache->getCache('test', 'test'));
         $object = new \stdClass();
-        self::assertSame($object, $this->cache->setCache(['test'], 'test', $object));
-        self::assertSame($object, $this->cache->getCache(['test'], 'test'));
+        self::assertSame($object, $this->cache->setCache('test', 'test', $object));
+        self::assertSame($object, $this->cache->getCache('test', 'test'));
     }
 
     public function testIsInResult()
